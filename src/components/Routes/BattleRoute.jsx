@@ -172,6 +172,7 @@ export const BattleRoute = () => {
   const [isEnemyTurn, setIsEnemyTurn] = useState(false);
   const [battleLog, setBattleLog] = useState([]);
   const [turnCount, setTurnCount] = useState(1);
+  const [isBattleOver, setIsBattleOver] = useState(false);
 
   const [playerStatuses, setPlayerStatuses] = useState([]);
   const [enemyStatuses, setEnemyStatuses] = useState([]);
@@ -496,6 +497,12 @@ export const BattleRoute = () => {
 
   // ✅ FIXED: Card playing using reducer
   const handleCardPlay = useCallback((card) => {
+    // Prevent playing cards after battle ends
+    if (isBattleOver) {
+      console.warn('⚠️ Cannot play cards - battle is over!');
+      return;
+    }
+
     const modifiedCost = getModifiedCardCost(card.energyCost, playerStatuses);
 
     if (playerEnergy < modifiedCost) {
@@ -517,7 +524,7 @@ export const BattleRoute = () => {
     console.log('✋ Hand after:', hand.length - 1, 'cards');
 
     executeCard(card);
-  }, [playerEnergy, playerStatuses, hand.length, executeCard]);
+  }, [isBattleOver, playerEnergy, playerStatuses, hand.length, executeCard]);
 
   // ✅ Item usage
   const handleUseItem = useCallback((item) => {
@@ -723,14 +730,8 @@ export const BattleRoute = () => {
     performEnemyTurnRef.current = performEnemyTurn;
   }, [performEnemyTurn]);
 
-  // ✅ FIXED: Sync player health to GameContext regularly
-  useEffect(() => {
-    if (playerHealth !== gameState.playerHealth) {
-      dispatch({ type: 'UPDATE_HEALTH', health: playerHealth });
-    }
-  }, [playerHealth, gameState.playerHealth, dispatch]);
-
   const handleVictory = useCallback(() => {
+    setIsBattleOver(true);
     setBattleLog(prev => [...prev, `🎉 Victory! ${currentEnemy.name} defeated!`]);
 
     // Calculate gold reward
@@ -791,6 +792,7 @@ export const BattleRoute = () => {
   }, [currentEnemy, playerHealth, dispatch, navigate, setTrackedTimeout]);
 
   const handleDefeat = useCallback(() => {
+    setIsBattleOver(true);
     setBattleLog(prev => [...prev, '💀 Defeat! You have been slain...']);
 
     setTrackedTimeout(() => {
@@ -900,8 +902,8 @@ export const BattleRoute = () => {
                 <Card
                   key={card.id}
                   card={card}
-                  onClick={() => !isEnemyTurn && handleCardPlay(card)}
-                  disabled={isEnemyTurn}
+                  onClick={() => !isEnemyTurn && !isBattleOver && handleCardPlay(card)}
+                  disabled={isEnemyTurn || isBattleOver}
                   playerEnergy={playerEnergy}
                   playerStatuses={playerStatuses}
                 />
