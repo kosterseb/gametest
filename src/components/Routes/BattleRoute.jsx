@@ -35,6 +35,7 @@ export const BattleRoute = () => {
   // ✅ Use ref to track if deck is initialized
   const deckInitialized = useRef(false);
   const initialHandDrawn = useRef(false);
+  const isDrawingCards = useRef(false); // Prevent concurrent draws
 
   // ✅ Track all timeouts for cleanup
   const timeoutsRef = useRef([]);
@@ -151,7 +152,14 @@ export const BattleRoute = () => {
 
   // ✅ FIXED: Draw multiple cards - use refs to coordinate state updates
   const drawMultipleCards = useCallback((count) => {
-    console.log(`📚 Attempting to draw ${count} cards...`);
+    // Prevent concurrent draws
+    if (isDrawingCards.current) {
+      console.warn('⚠️ Already drawing cards, skipping duplicate call');
+      return;
+    }
+
+    isDrawingCards.current = true;
+    console.log(`📚 Drawing ${count} cards...`);
 
     // Use a ref to share data between setState callbacks
     const sharedData = { deck: null, discard: null, drawn: [] };
@@ -200,6 +208,11 @@ export const BattleRoute = () => {
 
       return sharedData.deck;
     });
+
+    // Reset drawing flag after state updates complete
+    setTimeout(() => {
+      isDrawingCards.current = false;
+    }, 0);
   }, [shuffleDeck]);
 
   // ✅ FIXED: Initialize deck ONLY ONCE
@@ -256,13 +269,19 @@ export const BattleRoute = () => {
 
   // ✅ FIXED: Draw initial hand ONLY ONCE
   useEffect(() => {
+    // Guard: Only run if we have cards in deck, empty hand, and haven't drawn yet
     if (deck.length > 0 && hand.length === 0 && !initialHandDrawn.current) {
       const handSize = gameState.maxHandSize || 6;
-      console.log('✋ Drawing initial hand of', handSize, 'cards');
+      console.log(`✋ Drawing initial hand of ${handSize} cards (deck has ${deck.length} cards)`);
+
+      // Set flag IMMEDIATELY to prevent re-entry
       initialHandDrawn.current = true;
+
+      // Draw cards
       drawMultipleCards(handSize);
     }
-  }, [deck.length, hand.length, gameState.maxHandSize, drawMultipleCards]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deck.length]); // Only trigger when deck length changes (deck initialized)
 
   // Execute card effects
   const executeCard = useCallback((card) => {
