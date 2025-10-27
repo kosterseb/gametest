@@ -149,46 +149,56 @@ export const BattleRoute = () => {
     });
   }, []);
 
-  // ✅ FIXED: Draw multiple cards without setTimeout
+  // ✅ FIXED: Draw multiple cards - use refs to coordinate state updates
   const drawMultipleCards = useCallback((count) => {
-    console.log(`📚 Drawing ${count} cards...`);
+    console.log(`📚 Attempting to draw ${count} cards...`);
 
+    // Use a ref to share data between setState callbacks
+    const sharedData = { deck: null, discard: null, drawn: [] };
+
+    // Step 1: Update deck and collect drawn cards
     setDeck(prevDeck => {
-      let deck = [...prevDeck];
-      const drawnCards = [];
+      sharedData.deck = [...prevDeck];
 
-      // Keep trying to draw until we get count cards or run out
       setDiscardPile(prevDiscard => {
-        let discard = [...prevDiscard];
+        sharedData.discard = [...prevDiscard];
 
+        // Draw cards
         for (let i = 0; i < count; i++) {
-          if (deck.length === 0 && discard.length > 0) {
-            // Reshuffle discard into deck
-            console.log('♻️ Reshuffling', discard.length, 'cards from discard');
-            deck = shuffleDeck(discard);
-            discard = [];
-            setBattleLog(prev => [...prev, '♻️ Reshuffling discard pile into deck...']);
+          // Reshuffle if needed
+          if (sharedData.deck.length === 0 && sharedData.discard.length > 0) {
+            console.log('♻️ Reshuffling', sharedData.discard.length, 'cards');
+            sharedData.deck = shuffleDeck(sharedData.discard);
+            sharedData.discard = [];
+            setBattleLog(prev => [...prev, '♻️ Reshuffling discard pile...']);
           }
 
-          if (deck.length > 0) {
-            const card = deck.shift(); // Remove from front
-            drawnCards.push(card);
-            console.log('✋ Drawing card:', card.name, 'ID:', card.id);
+          // Draw card
+          if (sharedData.deck.length > 0) {
+            const card = sharedData.deck.shift();
+            sharedData.drawn.push(card);
+            console.log('✋ Drawn:', card.name);
           } else {
-            console.log('⚠️ No more cards to draw');
             break;
           }
         }
 
-        return discard;
+        console.log(`📥 Drew ${sharedData.drawn.length} cards total`);
+
+        // Step 2: Update hand
+        if (sharedData.drawn.length > 0) {
+          setHand(prevHand => {
+            const updated = [...prevHand, ...sharedData.drawn];
+            console.log(`✋ Hand: ${prevHand.length} -> ${updated.length}`);
+            console.log(`✋ Cards in hand:`, updated.map(c => c.name));
+            return updated;
+          });
+        }
+
+        return sharedData.discard;
       });
 
-      // Add drawn cards to hand
-      if (drawnCards.length > 0) {
-        setHand(prev => [...prev, ...drawnCards]);
-      }
-
-      return deck;
+      return sharedData.deck;
     });
   }, [shuffleDeck]);
 
