@@ -152,11 +152,14 @@ export const BattleRoute = () => {
   // ✅ FIXED: Draw multiple cards without setTimeout
   const drawMultipleCards = useCallback((count) => {
     console.log(`📚 Drawing ${count} cards...`);
-    setDeck(currentDeck => {
-      setDiscardPile(currentDiscard => {
-        let deck = [...currentDeck];
-        let discard = [...currentDiscard];
-        const drawnCards = [];
+
+    setDeck(prevDeck => {
+      let deck = [...prevDeck];
+      const drawnCards = [];
+
+      // Keep trying to draw until we get count cards or run out
+      setDiscardPile(prevDiscard => {
+        let discard = [...prevDiscard];
 
         for (let i = 0; i < count; i++) {
           if (deck.length === 0 && discard.length > 0) {
@@ -168,24 +171,24 @@ export const BattleRoute = () => {
           }
 
           if (deck.length > 0) {
-            const card = deck[0];
-            deck = deck.slice(1);
+            const card = deck.shift(); // Remove from front
             drawnCards.push(card);
             console.log('✋ Drawing card:', card.name, 'ID:', card.id);
           } else {
-            setBattleLog(prev => [...prev, '⚠️ No cards left to draw!']);
+            console.log('⚠️ No more cards to draw');
             break;
           }
         }
 
-        if (drawnCards.length > 0) {
-          setHand(prev => [...prev, ...drawnCards]);
-        }
-
-        setDeck(deck);
         return discard;
       });
-      return []; // Return empty to trigger setDeck update
+
+      // Add drawn cards to hand
+      if (drawnCards.length > 0) {
+        setHand(prev => [...prev, ...drawnCards]);
+      }
+
+      return deck;
     });
   }, [shuffleDeck]);
 
@@ -650,14 +653,28 @@ export const BattleRoute = () => {
   const handleVictory = useCallback(() => {
     setBattleLog(prev => [...prev, `🎉 Victory! ${currentEnemy.name} defeated!`]);
 
+    // Calculate gold reward
     const goldReward = currentEnemy.goldReward
       ? Math.floor(Math.random() * (currentEnemy.goldReward[1] - currentEnemy.goldReward[0] + 1)) + currentEnemy.goldReward[0]
       : 10;
 
+    // Calculate XP reward based on enemy type
+    let xpReward = 15; // Base XP for regular enemies
+    if (currentEnemy.isBoss) {
+      xpReward = 100; // Bosses give 100 XP
+    } else if (currentEnemy.isElite) {
+      xpReward = 50; // Elites give 50 XP
+    }
+
+    console.log(`💰 Victory! Awarded ${goldReward} gold and ✨ ${xpReward} XP`);
+
+    // Update game state
     dispatch({ type: 'UPDATE_HEALTH', health: playerHealth });
     dispatch({ type: 'ADD_GOLD', amount: goldReward });
+    dispatch({ type: 'ADD_EXPERIENCE', amount: xpReward });
     dispatch({ type: 'ADVANCE_FLOOR' });
 
+    // Update run statistics
     dispatch({
       type: 'UPDATE_RUN_STATS',
       stats: {
