@@ -150,7 +150,7 @@ export const BattleRoute = () => {
     });
   }, []);
 
-  // ✅ FIXED: Draw multiple cards - use refs to coordinate state updates
+  // ✅ FIXED: Draw multiple cards - SIMPLE approach, update states directly
   const drawMultipleCards = useCallback((count) => {
     // Prevent concurrent draws
     if (isDrawingCards.current) {
@@ -161,58 +161,56 @@ export const BattleRoute = () => {
     isDrawingCards.current = true;
     console.log(`📚 Drawing ${count} cards...`);
 
-    // Use a ref to share data between setState callbacks
-    const sharedData = { deck: null, discard: null, drawn: [] };
+    // Read current states once and compute new values
+    setDeck(currentDeck => {
+      let workingDeck = [...currentDeck];
+      const drawnCards = [];
 
-    // Step 1: Update deck and collect drawn cards
-    setDeck(prevDeck => {
-      sharedData.deck = [...prevDeck];
-
-      setDiscardPile(prevDiscard => {
-        sharedData.discard = [...prevDiscard];
+      setDiscardPile(currentDiscard => {
+        let workingDiscard = [...currentDiscard];
 
         // Draw cards
         for (let i = 0; i < count; i++) {
           // Reshuffle if needed
-          if (sharedData.deck.length === 0 && sharedData.discard.length > 0) {
-            console.log('♻️ Reshuffling', sharedData.discard.length, 'cards');
-            sharedData.deck = shuffleDeck(sharedData.discard);
-            sharedData.discard = [];
+          if (workingDeck.length === 0 && workingDiscard.length > 0) {
+            console.log('♻️ Reshuffling', workingDiscard.length, 'cards');
+            workingDeck = shuffleDeck(workingDiscard);
+            workingDiscard = [];
             setBattleLog(prev => [...prev, '♻️ Reshuffling discard pile...']);
           }
 
           // Draw card
-          if (sharedData.deck.length > 0) {
-            const card = sharedData.deck.shift();
-            sharedData.drawn.push(card);
+          if (workingDeck.length > 0) {
+            const card = workingDeck.shift();
+            drawnCards.push(card);
             console.log('✋ Drawn:', card.name);
           } else {
+            console.log('⚠️ No more cards to draw');
             break;
           }
         }
 
-        console.log(`📥 Drew ${sharedData.drawn.length} cards total`);
+        console.log(`📥 Drew ${drawnCards.length} cards total`);
 
-        // Step 2: Update hand
-        if (sharedData.drawn.length > 0) {
-          setHand(prevHand => {
-            const updated = [...prevHand, ...sharedData.drawn];
-            console.log(`✋ Hand: ${prevHand.length} -> ${updated.length}`);
-            console.log(`✋ Cards in hand:`, updated.map(c => c.name));
-            return updated;
+        // Update hand once with all drawn cards
+        if (drawnCards.length > 0) {
+          setHand(currentHand => {
+            const newHand = [...currentHand, ...drawnCards];
+            console.log(`✋ Hand updated: ${currentHand.length} -> ${newHand.length}`);
+            return newHand;
           });
         }
 
-        return sharedData.discard;
+        // Reset flag after all updates
+        setTimeout(() => {
+          isDrawingCards.current = false;
+        }, 50);
+
+        return workingDiscard;
       });
 
-      return sharedData.deck;
+      return workingDeck;
     });
-
-    // Reset drawing flag after state updates complete
-    setTimeout(() => {
-      isDrawingCards.current = false;
-    }, 0);
   }, [shuffleDeck]);
 
   // ✅ FIXED: Initialize deck ONLY ONCE
