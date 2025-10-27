@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useReducer } from 'react';
 import { useGame } from '../../context/GameContext';
 import { useRouter } from '../../hooks/useRouter';
 
@@ -24,6 +24,113 @@ import {
 } from '../../data/statusEffects';
 import { applyTalentDamageBonus } from '../../utils/talentEffects';
 import { Skull, ArrowLeft, Zap } from 'lucide-react';
+
+// ✅ Card state reducer for atomic updates
+const cardStateReducer = (state, action) => {
+  switch (action.type) {
+    case 'INITIALIZE_DECK': {
+      return {
+        deck: action.deck,
+        hand: [],
+        discardPile: []
+      };
+    }
+
+    case 'DRAW_CARDS': {
+      let workingDeck = [...state.deck];
+      let workingDiscard = [...state.discardPile];
+      const drawnCards = [];
+      const { count, shuffleDeck, onReshuffle } = action;
+
+      for (let i = 0; i < count; i++) {
+        // Reshuffle if needed
+        if (workingDeck.length === 0 && workingDiscard.length > 0) {
+          console.log('♻️ Reshuffling', workingDiscard.length, 'cards');
+          workingDeck = shuffleDeck(workingDiscard);
+          workingDiscard = [];
+          if (onReshuffle) onReshuffle();
+        }
+
+        // Draw card
+        if (workingDeck.length > 0) {
+          const card = workingDeck.shift();
+          drawnCards.push(card);
+          console.log('✋ Drawn:', card.name);
+        } else {
+          console.log('⚠️ No more cards to draw');
+          break;
+        }
+      }
+
+      console.log(`📥 Drew ${drawnCards.length} cards total`);
+      const newHand = [...state.hand, ...drawnCards];
+      console.log(`✋ Hand updated: ${state.hand.length} -> ${newHand.length}`);
+
+      return {
+        deck: workingDeck,
+        hand: newHand,
+        discardPile: workingDiscard
+      };
+    }
+
+    case 'DRAW_SINGLE_CARD': {
+      const { shuffleDeck, onReshuffle, onNoCards } = action;
+
+      if (state.deck.length === 0 && state.discardPile.length === 0) {
+        if (onNoCards) onNoCards();
+        return state;
+      }
+
+      if (state.deck.length === 0) {
+        // Reshuffle discard into deck
+        console.log('♻️ Reshuffling', state.discardPile.length, 'cards from discard');
+        const reshuffled = shuffleDeck(state.discardPile);
+        const drawnCard = reshuffled[0];
+
+        console.log('✋ Adding card to hand:', drawnCard.name);
+        if (onReshuffle) onReshuffle();
+
+        return {
+          deck: reshuffled.slice(1),
+          hand: [...state.hand, drawnCard],
+          discardPile: []
+        };
+      }
+
+      // Draw from deck
+      const drawnCard = state.deck[0];
+      console.log('✋ Drawing card:', drawnCard.name, 'ID:', drawnCard.id);
+
+      return {
+        deck: state.deck.slice(1),
+        hand: [...state.hand, drawnCard],
+        discardPile: state.discardPile
+      };
+    }
+
+    case 'PLAY_CARD': {
+      const { card } = action;
+      const newHand = state.hand.filter(c => c.id !== card.id);
+
+      return {
+        deck: state.deck,
+        hand: newHand,
+        discardPile: [...state.discardPile, card]
+      };
+    }
+
+    case 'DISCARD_HAND': {
+      return {
+        deck: state.deck,
+        hand: [],
+        discardPile: [...state.discardPile, ...state.hand]
+      };
+    }
+
+    default:
+      return state;
+  }
+};
 
 export const BattleRoute = () => {
   const { gameState, dispatch } = useGame();
@@ -52,9 +159,15 @@ export const BattleRoute = () => {
   const [playerEnergy, setPlayerEnergy] = useState(gameState.maxEnergy || 10);
   const [maxEnergy] = useState(gameState.maxEnergy || 10);
 
-  const [deck, setDeck] = useState([]);
-  const [hand, setHand] = useState([]);
-  const [discardPile, setDiscardPile] = useState([]);
+  // ✅ Use reducer for atomic card state updates
+  const [cardState, dispatchCardState] = useReducer(cardStateReducer, {
+    deck: [],
+    hand: [],
+    discardPile: []
+  });
+
+  // Destructure for easier access
+  const { deck, hand, discardPile } = cardState;
 
   const [isEnemyTurn, setIsEnemyTurn] = useState(false);
   const [battleLog, setBattleLog] = useState([]);
@@ -115,42 +228,17 @@ export const BattleRoute = () => {
     return `${cardName}_${extraInfo}_${cardIdCounter.current}_${Math.random().toString(36).substr(2, 9)}`;
   };
 
-  // ✅ FIXED: Draw card with proper state updates
+  // ✅ FIXED: Draw single card using reducer
   const drawCard = useCallback(() => {
-    setDeck(currentDeck => {
-      if (currentDeck.length === 0) {
-        // Try to reshuffle discard pile
-        setDiscardPile(currentDiscard => {
-          if (currentDiscard.length === 0) {
-            setBattleLog(prev => [...prev, '⚠️ No cards left to draw!']);
-            return currentDiscard;
-          }
-          
-          console.log('♻️ Reshuffling', currentDiscard.length, 'cards from discard');
-          const reshuffled = shuffleDeck(currentDiscard);
-          const drawnCard = reshuffled[0];
-          
-          setHand(prev => {
-            console.log('✋ Adding card to hand:', drawnCard.name);
-            return [...prev, drawnCard];
-          });
-          setDeck(reshuffled.slice(1));
-          setBattleLog(prev => [...prev, '♻️ Reshuffling discard pile into deck...']);
-          
-          return [];
-        });
-        return currentDeck;
-      }
-
-      const drawnCard = currentDeck[0];
-      console.log('✋ Drawing card:', drawnCard.name, 'ID:', drawnCard.id);
-      setHand(prev => [...prev, drawnCard]);
-      
-      return currentDeck.slice(1);
+    dispatchCardState({
+      type: 'DRAW_SINGLE_CARD',
+      shuffleDeck,
+      onReshuffle: () => setBattleLog(prev => [...prev, '♻️ Reshuffling discard pile into deck...']),
+      onNoCards: () => setBattleLog(prev => [...prev, '⚠️ No cards left to draw!'])
     });
-  }, []);
+  }, [shuffleDeck]);
 
-  // ✅ FIXED: Draw multiple cards - SIMPLE approach, update states directly
+  // ✅ FIXED: Draw multiple cards using reducer for atomic updates
   const drawMultipleCards = useCallback((count) => {
     // Prevent concurrent draws
     if (isDrawingCards.current) {
@@ -161,56 +249,17 @@ export const BattleRoute = () => {
     isDrawingCards.current = true;
     console.log(`📚 Drawing ${count} cards...`);
 
-    // Read current states once and compute new values
-    setDeck(currentDeck => {
-      let workingDeck = [...currentDeck];
-      const drawnCards = [];
-
-      setDiscardPile(currentDiscard => {
-        let workingDiscard = [...currentDiscard];
-
-        // Draw cards
-        for (let i = 0; i < count; i++) {
-          // Reshuffle if needed
-          if (workingDeck.length === 0 && workingDiscard.length > 0) {
-            console.log('♻️ Reshuffling', workingDiscard.length, 'cards');
-            workingDeck = shuffleDeck(workingDiscard);
-            workingDiscard = [];
-            setBattleLog(prev => [...prev, '♻️ Reshuffling discard pile...']);
-          }
-
-          // Draw card
-          if (workingDeck.length > 0) {
-            const card = workingDeck.shift();
-            drawnCards.push(card);
-            console.log('✋ Drawn:', card.name);
-          } else {
-            console.log('⚠️ No more cards to draw');
-            break;
-          }
-        }
-
-        console.log(`📥 Drew ${drawnCards.length} cards total`);
-
-        // Update hand once with all drawn cards
-        if (drawnCards.length > 0) {
-          setHand(currentHand => {
-            const newHand = [...currentHand, ...drawnCards];
-            console.log(`✋ Hand updated: ${currentHand.length} -> ${newHand.length}`);
-            return newHand;
-          });
-        }
-
-        // Reset flag after all updates
-        setTimeout(() => {
-          isDrawingCards.current = false;
-        }, 50);
-
-        return workingDiscard;
-      });
-
-      return workingDeck;
+    dispatchCardState({
+      type: 'DRAW_CARDS',
+      count,
+      shuffleDeck,
+      onReshuffle: () => setBattleLog(prev => [...prev, '♻️ Reshuffling discard pile...'])
     });
+
+    // Reset flag after dispatch
+    setTimeout(() => {
+      isDrawingCards.current = false;
+    }, 50);
   }, [shuffleDeck]);
 
   // ✅ FIXED: Initialize deck ONLY ONCE
@@ -245,21 +294,27 @@ export const BattleRoute = () => {
       });
       
       console.log('📦 Created default deck:', defaultDeckCopies.length, 'cards');
-      setDeck(shuffleDeck(defaultDeckCopies));
+      dispatchCardState({
+        type: 'INITIALIZE_DECK',
+        deck: shuffleDeck(defaultDeckCopies)
+      });
     } else {
       const deckCopies = [];
-      
+
       selectedCards.forEach((card, cardIndex) => {
         for (let i = 0; i < 3; i++) {
-          deckCopies.push({ 
-            ...card, 
+          deckCopies.push({
+            ...card,
             id: generateUniqueCardId(card.name, `card${cardIndex}_copy${i}`)
           });
         }
       });
-      
+
       console.log('📦 Created deck:', deckCopies.length, 'cards from', selectedCards.length, 'unique cards');
-      setDeck(shuffleDeck(deckCopies));
+      dispatchCardState({
+        type: 'INITIALIZE_DECK',
+        deck: shuffleDeck(deckCopies)
+      });
     }
 
     deckInitialized.current = true;
@@ -439,7 +494,7 @@ export const BattleRoute = () => {
     }
   }, [playerEnergy, playerStatuses, hand.length, enemyHealth, maxEnemyHealth, maxPlayerHealth, gameState, dispatch, drawCard, drawMultipleCards, setTrackedTimeout]);
 
-  // ✅ FIXED: Card playing with proper removal
+  // ✅ FIXED: Card playing using reducer
   const handleCardPlay = useCallback((card) => {
     const modifiedCost = getModifiedCardCost(card.energyCost, playerStatuses);
 
@@ -453,14 +508,13 @@ export const BattleRoute = () => {
 
     setPlayerEnergy(prev => prev - modifiedCost);
 
-    // ✅ Remove card from hand using ID
-    setHand(prev => {
-      const filtered = prev.filter(c => c.id !== card.id);
-      console.log('✋ Hand after:', filtered.length, 'cards');
-      return filtered;
+    // ✅ Use reducer to remove card from hand and add to discard
+    dispatchCardState({
+      type: 'PLAY_CARD',
+      card
     });
 
-    setDiscardPile(prev => [...prev, card]);
+    console.log('✋ Hand after:', hand.length - 1, 'cards');
 
     executeCard(card);
   }, [playerEnergy, playerStatuses, hand.length, executeCard]);
@@ -513,8 +567,7 @@ export const BattleRoute = () => {
     setEnemyStatuses(prev => tickStatuses(prev));
 
     console.log('🗑️ Discarding hand:', hand.length, 'cards');
-    setDiscardPile(prev => [...prev, ...hand]);
-    setHand([]);
+    dispatchCardState({ type: 'DISCARD_HAND' });
 
     setTurnCount(prev => prev + 1);
     setIsEnemyTurn(true);
