@@ -201,8 +201,9 @@ export const cardTemplates = [
   {
     name: "Shield Wall",
     type: "utility",
-    description: "Block next attack",
+    description: "Gain 10 shield",
     effect: "shield",
+    shieldAmount: 10,
     energyCost: 1,
     weight: 'utility',
     rarity: 'common'

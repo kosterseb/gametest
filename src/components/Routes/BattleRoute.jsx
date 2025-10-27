@@ -12,13 +12,15 @@ import { BattleField } from '../Battle/BattleField';
 import { GameHeader } from '../Battle/GameHeader';
 import { PageTransition } from '../UI/PageTransition';
 import { ItemButton } from '../Cards/ItemButton';
-import { 
-  applyStatus, 
-  tickStatuses, 
-  calculateStatusDamage, 
+import {
+  applyStatus,
+  tickStatuses,
+  calculateStatusDamage,
   getModifiedCardCost,
   getModifiedDamage,
-  shouldSkipTurn
+  shouldSkipTurn,
+  createStatus,
+  applyShieldBlock
 } from '../../data/statusEffects';
 import { applyTalentDamageBonus } from '../../utils/talentEffects';
 import { Skull, ArrowLeft, Zap } from 'lucide-react';
@@ -34,6 +36,35 @@ export const BattleRoute = () => {
   const deckInitialized = useRef(false);
   const initialHandDrawn = useRef(false);
 
+  // ✅ Track all timeouts for cleanup
+  const timeoutsRef = useRef([]);
+
+  // ✅ Ref to store performEnemyTurn to avoid circular dependencies
+  const performEnemyTurnRef = useRef();
+
+  // ✅ Initialize battle state correctly (BEFORE any early returns!)
+  const [playerHealth, setPlayerHealth] = useState(gameState.playerHealth || 100);
+  const [maxPlayerHealth] = useState(gameState.maxPlayerHealth || 100);
+  const [enemyHealth, setEnemyHealth] = useState(currentEnemy?.health || 100);
+  const [maxEnemyHealth] = useState(currentEnemy?.health || 100);
+
+  const [playerEnergy, setPlayerEnergy] = useState(gameState.maxEnergy || 10);
+  const [maxEnergy] = useState(gameState.maxEnergy || 10);
+
+  const [deck, setDeck] = useState([]);
+  const [hand, setHand] = useState([]);
+  const [discardPile, setDiscardPile] = useState([]);
+
+  const [isEnemyTurn, setIsEnemyTurn] = useState(false);
+  const [battleLog, setBattleLog] = useState([]);
+  const [turnCount, setTurnCount] = useState(1);
+
+  const [playerStatuses, setPlayerStatuses] = useState([]);
+  const [enemyStatuses, setEnemyStatuses] = useState([]);
+
+  // ✅ Track used consumables
+  const [usedConsumables, setUsedConsumables] = useState([]);
+
   // If no enemy, redirect to map
   useEffect(() => {
     if (!currentEnemy) {
@@ -42,32 +73,29 @@ export const BattleRoute = () => {
     }
   }, [currentEnemy, navigate]);
 
+  // ✅ Cleanup all timeouts on unmount
+  useEffect(() => {
+    return () => {
+      console.log('🧹 Cleaning up', timeoutsRef.current.length, 'timeouts');
+      timeoutsRef.current.forEach(timeoutId => clearTimeout(timeoutId));
+      timeoutsRef.current = [];
+    };
+  }, []);
+
+  // ✅ Helper to set timeout with tracking
+  const setTrackedTimeout = useCallback((callback, delay) => {
+    const timeoutId = setTimeout(() => {
+      callback();
+      // Remove from tracking after execution
+      timeoutsRef.current = timeoutsRef.current.filter(id => id !== timeoutId);
+    }, delay);
+    timeoutsRef.current.push(timeoutId);
+    return timeoutId;
+  }, []);
+
   if (!currentEnemy) {
     return <div className="min-h-screen flex items-center justify-center text-white">Loading battle...</div>;
   }
-
-  // ✅ Initialize battle state correctly
-  const [playerHealth, setPlayerHealth] = useState(gameState.playerHealth || 100);
-  const [maxPlayerHealth] = useState(gameState.maxPlayerHealth || 100);
-  const [enemyHealth, setEnemyHealth] = useState(currentEnemy.health);
-  const [maxEnemyHealth] = useState(currentEnemy.health);
-  
-  const [playerEnergy, setPlayerEnergy] = useState(gameState.maxEnergy || 10);
-  const [maxEnergy] = useState(gameState.maxEnergy || 10);
-  
-  const [deck, setDeck] = useState([]);
-  const [hand, setHand] = useState([]);
-  const [discardPile, setDiscardPile] = useState([]);
-  
-  const [isEnemyTurn, setIsEnemyTurn] = useState(false);
-  const [battleLog, setBattleLog] = useState([]);
-  const [turnCount, setTurnCount] = useState(1);
-  
-  const [playerStatuses, setPlayerStatuses] = useState([]);
-  const [enemyStatuses, setEnemyStatuses] = useState([]);
-
-  // ✅ Track used consumables
-  const [usedConsumables, setUsedConsumables] = useState([]);
 
   // Helper functions
   const shuffleDeck = (cards) => {
@@ -121,12 +149,45 @@ export const BattleRoute = () => {
     });
   }, []);
 
+  // ✅ FIXED: Draw multiple cards without setTimeout
   const drawMultipleCards = useCallback((count) => {
     console.log(`📚 Drawing ${count} cards...`);
-    for (let i = 0; i < count; i++) {
-      setTimeout(() => drawCard(), i * 10); // Small delay to ensure uniqueness
-    }
-  }, [drawCard]);
+    setDeck(currentDeck => {
+      setDiscardPile(currentDiscard => {
+        let deck = [...currentDeck];
+        let discard = [...currentDiscard];
+        const drawnCards = [];
+
+        for (let i = 0; i < count; i++) {
+          if (deck.length === 0 && discard.length > 0) {
+            // Reshuffle discard into deck
+            console.log('♻️ Reshuffling', discard.length, 'cards from discard');
+            deck = shuffleDeck(discard);
+            discard = [];
+            setBattleLog(prev => [...prev, '♻️ Reshuffling discard pile into deck...']);
+          }
+
+          if (deck.length > 0) {
+            const card = deck[0];
+            deck = deck.slice(1);
+            drawnCards.push(card);
+            console.log('✋ Drawing card:', card.name, 'ID:', card.id);
+          } else {
+            setBattleLog(prev => [...prev, '⚠️ No cards left to draw!']);
+            break;
+          }
+        }
+
+        if (drawnCards.length > 0) {
+          setHand(prev => [...prev, ...drawnCards]);
+        }
+
+        setDeck(deck);
+        return discard;
+      });
+      return []; // Return empty to trigger setDeck update
+    });
+  }, [shuffleDeck]);
 
   // ✅ FIXED: Initialize deck ONLY ONCE
   useEffect(() => {
@@ -188,36 +249,10 @@ export const BattleRoute = () => {
       initialHandDrawn.current = true;
       drawMultipleCards(handSize);
     }
-  }, [deck.length]); // Only when deck changes
+  }, [deck.length, hand.length, gameState.maxHandSize, drawMultipleCards]);
 
-  // ✅ FIXED: Card playing with proper removal
-  const handleCardPlay = (card) => {
-    const modifiedCost = getModifiedCardCost(card.energyCost, playerStatuses);
-    
-    if (playerEnergy < modifiedCost) {
-      setBattleLog(prev => [...prev, '⚠️ Not enough energy!']);
-      return;
-    }
-
-    console.log('🎴 Playing card:', card.name, 'ID:', card.id);
-    console.log('✋ Hand before:', hand.length, 'cards');
-
-    setPlayerEnergy(prev => prev - modifiedCost);
-    
-    // ✅ Remove card from hand using ID
-    setHand(prev => {
-      const filtered = prev.filter(c => c.id !== card.id);
-      console.log('✋ Hand after:', filtered.length, 'cards');
-      return filtered;
-    });
-    
-    setDiscardPile(prev => [...prev, card]);
-
-    executeCard(card);
-  };
-
-  // Execute card effects (same as before)
-  const executeCard = (card) => {
+  // Execute card effects
+  const executeCard = useCallback((card) => {
     const cardType = card.type;
 
     switch (cardType) {
@@ -260,7 +295,7 @@ export const BattleRoute = () => {
         });
 
         if (card.selfDamage) {
-          setTimeout(() => {
+          setTrackedTimeout(() => {
             setPlayerHealth(prev => Math.max(0, prev - card.selfDamage));
             setBattleLog(prev => [...prev, `💥 ${card.name}: Took ${card.selfDamage} recoil damage!`]);
           }, 300);
@@ -268,7 +303,7 @@ export const BattleRoute = () => {
 
         if (card.conditional === 'execute' && enemyHealth <= maxEnemyHealth * 0.3) {
           const bonusDamage = 15;
-          setTimeout(() => {
+          setTrackedTimeout(() => {
             setEnemyHealth(prev => Math.max(0, prev - bonusDamage));
             setBattleLog(prev => [...prev, `💀 Execute bonus: ${bonusDamage} extra damage!`]);
           }, 500);
@@ -333,7 +368,10 @@ export const BattleRoute = () => {
         }
         
         if (card.effect === 'shield') {
-          setBattleLog(prev => [...prev, `🛡️ ${card.name}: Shield effect (not implemented yet)`]);
+          const shieldAmount = card.shieldAmount || 10;
+          const shieldStatus = createStatus('shield', shieldAmount);
+          setPlayerStatuses(prev => applyStatus(prev, shieldStatus));
+          setBattleLog(prev => [...prev, `🛡️ ${card.name}: Gained ${shieldAmount} shield!`]);
         }
         break;
 
@@ -369,10 +407,36 @@ export const BattleRoute = () => {
       default:
         setBattleLog(prev => [...prev, `${card.name}: Unknown card type!`]);
     }
-  };
+  }, [playerEnergy, playerStatuses, hand.length, enemyHealth, maxEnemyHealth, maxPlayerHealth, gameState, dispatch, drawCard, drawMultipleCards, setTrackedTimeout]);
+
+  // ✅ FIXED: Card playing with proper removal
+  const handleCardPlay = useCallback((card) => {
+    const modifiedCost = getModifiedCardCost(card.energyCost, playerStatuses);
+
+    if (playerEnergy < modifiedCost) {
+      setBattleLog(prev => [...prev, '⚠️ Not enough energy!']);
+      return;
+    }
+
+    console.log('🎴 Playing card:', card.name, 'ID:', card.id);
+    console.log('✋ Hand before:', hand.length, 'cards');
+
+    setPlayerEnergy(prev => prev - modifiedCost);
+
+    // ✅ Remove card from hand using ID
+    setHand(prev => {
+      const filtered = prev.filter(c => c.id !== card.id);
+      console.log('✋ Hand after:', filtered.length, 'cards');
+      return filtered;
+    });
+
+    setDiscardPile(prev => [...prev, card]);
+
+    executeCard(card);
+  }, [playerEnergy, playerStatuses, hand.length, executeCard]);
 
   // ✅ Item usage
-  const handleUseItem = (item) => {
+  const handleUseItem = useCallback((item) => {
     if (usedConsumables.includes(item.instanceId)) {
       setBattleLog(prev => [...prev, '⚠️ Item already used this battle!']);
       return;
@@ -393,10 +457,10 @@ export const BattleRoute = () => {
 
     setUsedConsumables(prev => [...prev, item.instanceId]);
     setBattleLog(prev => [...prev, `${item.emoji} Used ${item.name}!`]);
-  };
+  }, [usedConsumables, drawMultipleCards, dispatch, gameState]);
 
   // ✅ Handle end turn
-  const handleEndTurn = () => {
+  const handleEndTurn = useCallback(() => {
     if (isEnemyTurn) return;
 
     console.log('🔄 Ending turn...');
@@ -424,17 +488,17 @@ export const BattleRoute = () => {
 
     setTurnCount(prev => prev + 1);
     setIsEnemyTurn(true);
-    
-    setTimeout(() => {
-      performEnemyTurn();
-    }, 1000);
-  };
 
-  const performEnemyTurn = () => {
+    setTrackedTimeout(() => {
+      performEnemyTurnRef.current?.();
+    }, 1000);
+  }, [isEnemyTurn, playerStatuses, enemyStatuses, hand, setTrackedTimeout]);
+
+  const performEnemyTurn = useCallback(() => {
     if (shouldSkipTurn(enemyStatuses)) {
       setBattleLog(prev => [...prev, `❄️ ${currentEnemy.name} is unable to act!`]);
-      
-      setTimeout(() => {
+
+      setTrackedTimeout(() => {
         console.log('🔄 Refilling hand and energy...');
         setPlayerEnergy(maxEnergy);
         drawMultipleCards(gameState.maxHandSize || 6);
@@ -462,10 +526,21 @@ export const BattleRoute = () => {
         const damageRange = selectedAbility.damage;
         const baseDamage = Math.floor(Math.random() * (damageRange[1] - damageRange[0] + 1)) + damageRange[0];
         const modifiedDamage = getModifiedDamage(baseDamage, enemyStatuses, playerStatuses);
-        
-        setPlayerHealth(prev => Math.max(0, prev - modifiedDamage));
-        dispatch({ type: 'DAMAGE_PLAYER', amount: modifiedDamage });
-        setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} dealt ${modifiedDamage} damage!`]);
+
+        // ✅ Apply shield blocking
+        const shieldResult = applyShieldBlock(playerStatuses, modifiedDamage);
+        const finalDamage = shieldResult.damage;
+
+        setPlayerHealth(prev => Math.max(0, prev - finalDamage));
+        setPlayerStatuses(shieldResult.newStatuses);
+        dispatch({ type: 'DAMAGE_PLAYER', amount: finalDamage });
+
+        if (shieldResult.blocked > 0) {
+          setBattleLog(prev => [...prev, `🛡️ Blocked ${shieldResult.blocked} damage!`]);
+          setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} dealt ${finalDamage} damage!`]);
+        } else {
+          setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} dealt ${finalDamage} damage!`]);
+        }
         break;
 
       case 'status':
@@ -491,9 +566,20 @@ export const BattleRoute = () => {
           if (action.type === 'damage') {
             const dmg = Math.floor(Math.random() * (action.damage[1] - action.damage[0] + 1)) + action.damage[0];
             const modDmg = getModifiedDamage(dmg, enemyStatuses, playerStatuses);
-            setPlayerHealth(prev => Math.max(0, prev - modDmg));
-            dispatch({ type: 'DAMAGE_PLAYER', amount: modDmg });
-            setBattleLog(prev => [...prev, `💥 ${modDmg} damage!`]);
+
+            // ✅ Apply shield blocking
+            setPlayerStatuses(prev => {
+              const shieldResult = applyShieldBlock(prev, modDmg);
+              setPlayerHealth(h => Math.max(0, h - shieldResult.damage));
+              dispatch({ type: 'DAMAGE_PLAYER', amount: shieldResult.damage });
+
+              if (shieldResult.blocked > 0) {
+                setBattleLog(log => [...log, `🛡️ Blocked ${shieldResult.blocked} damage!`]);
+              }
+              setBattleLog(log => [...log, `💥 ${shieldResult.damage} damage!`]);
+
+              return shieldResult.newStatuses;
+            });
           } else if (action.type === 'status') {
             const actionStatus = typeof action.status === 'function' 
               ? action.status() 
@@ -514,10 +600,19 @@ export const BattleRoute = () => {
         const hitDamage = Math.floor(Math.random() * (selectedAbility.damage[1] - selectedAbility.damage[0] + 1)) + selectedAbility.damage[0];
         const totalMultiDamage = hitDamage * selectedAbility.hits;
         const modMultiDamage = getModifiedDamage(totalMultiDamage, enemyStatuses, playerStatuses);
-        
-        setPlayerHealth(prev => Math.max(0, prev - modMultiDamage));
-        dispatch({ type: 'DAMAGE_PLAYER', amount: modMultiDamage });
-        setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} hit ${selectedAbility.hits} times for ${modMultiDamage} total damage!`]);
+
+        // ✅ Apply shield blocking
+        const multiHitShieldResult = applyShieldBlock(playerStatuses, modMultiDamage);
+        const finalMultiDamage = multiHitShieldResult.damage;
+
+        setPlayerHealth(prev => Math.max(0, prev - finalMultiDamage));
+        setPlayerStatuses(multiHitShieldResult.newStatuses);
+        dispatch({ type: 'DAMAGE_PLAYER', amount: finalMultiDamage });
+
+        if (multiHitShieldResult.blocked > 0) {
+          setBattleLog(prev => [...prev, `🛡️ Blocked ${multiHitShieldResult.blocked} damage!`]);
+        }
+        setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} hit ${selectedAbility.hits} times for ${finalMultiDamage} total damage!`]);
         break;
 
       case 'rest':
@@ -532,40 +627,40 @@ export const BattleRoute = () => {
         setBattleLog(prev => [...prev, `${currentEnemy.name} did something unknown!`]);
     }
 
-    setTimeout(() => {
+    setTrackedTimeout(() => {
       console.log('🔄 Refilling hand and energy...');
       setPlayerEnergy(maxEnergy);
       drawMultipleCards(gameState.maxHandSize || 6);
       setIsEnemyTurn(false);
     }, 1500);
-  };
+  }, [currentEnemy, enemyStatuses, maxEnergy, playerStatuses, gameState.maxHandSize, drawMultipleCards, setTrackedTimeout, dispatch]);
 
+  // ✅ Keep ref updated
   useEffect(() => {
-    if (enemyHealth <= 0) {
-      handleVictory();
-    }
-  }, [enemyHealth]);
+    performEnemyTurnRef.current = performEnemyTurn;
+  }, [performEnemyTurn]);
 
+  // ✅ FIXED: Sync player health to GameContext regularly
   useEffect(() => {
-    if (playerHealth <= 0) {
-      handleDefeat();
+    if (playerHealth !== gameState.playerHealth) {
+      dispatch({ type: 'UPDATE_HEALTH', health: playerHealth });
     }
-  }, [playerHealth]);
+  }, [playerHealth, gameState.playerHealth, dispatch]);
 
-  const handleVictory = () => {
+  const handleVictory = useCallback(() => {
     setBattleLog(prev => [...prev, `🎉 Victory! ${currentEnemy.name} defeated!`]);
-    
-    const goldReward = currentEnemy.goldReward 
+
+    const goldReward = currentEnemy.goldReward
       ? Math.floor(Math.random() * (currentEnemy.goldReward[1] - currentEnemy.goldReward[0] + 1)) + currentEnemy.goldReward[0]
       : 10;
 
     dispatch({ type: 'UPDATE_HEALTH', health: playerHealth });
     dispatch({ type: 'ADD_GOLD', amount: goldReward });
     dispatch({ type: 'ADVANCE_FLOOR' });
-    
-    dispatch({ 
-      type: 'UPDATE_RUN_STATS', 
-      stats: { 
+
+    dispatch({
+      type: 'UPDATE_RUN_STATS',
+      stats: {
         enemiesKilled: 1,
         goldEarned: goldReward,
         floorsCleared: 1
@@ -582,7 +677,7 @@ export const BattleRoute = () => {
     dispatch({ type: 'SET_CARD_REWARD', rarityWeights: { common: 60, rare: 30, epic: 10 } });
 
     if (currentEnemy.isBoss) {
-      setTimeout(() => {
+      setTrackedTimeout(() => {
         navigate('/boss-reward');
       }, 2000);
       return;
@@ -593,18 +688,31 @@ export const BattleRoute = () => {
       }
     }
 
-    setTimeout(() => {
+    setTrackedTimeout(() => {
       navigate('/reward');
     }, 2000);
-  };
+  }, [currentEnemy, playerHealth, dispatch, navigate, setTrackedTimeout]);
 
-  const handleDefeat = () => {
+  const handleDefeat = useCallback(() => {
     setBattleLog(prev => [...prev, '💀 Defeat! You have been slain...']);
-    
-    setTimeout(() => {
+
+    setTrackedTimeout(() => {
       navigate('/defeat');
     }, 2000);
-  };
+  }, [navigate, setTrackedTimeout]);
+
+  // ✅ Check for victory/defeat conditions
+  useEffect(() => {
+    if (enemyHealth <= 0) {
+      handleVictory();
+    }
+  }, [enemyHealth, handleVictory]);
+
+  useEffect(() => {
+    if (playerHealth <= 0) {
+      handleDefeat();
+    }
+  }, [playerHealth, handleDefeat]);
 
   const handleForfeit = () => {
     if (window.confirm('Are you sure you want to forfeit this battle? Your run will end.')) {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Zap } from 'lucide-react';
 import { CharacterDisplay } from './CharacterDisplay';
-import { StatusEffects } from '../Battle/StatusEffects';
+import { StatusDisplay } from '../Battle/StatusDisplay';
 
 export const PlayerStats = ({ health, energy, maxHealth = 100, statuses = [] }) => {
   return (
@@ -19,9 +19,9 @@ export const PlayerStats = ({ health, energy, maxHealth = 100, statuses = [] }) 
         <Zap className="w-4 h-4 text-blue-500 mr-1" />
         <span className="text-sm font-medium">{energy} Energy</span>
       </div>
-      
+
       {/* Status Effects Display */}
-      <StatusEffects statuses={statuses} isPlayer={true} />
+      <StatusDisplay statuses={statuses} isPlayer={true} compact={false} />
     </div>
   );
 };
