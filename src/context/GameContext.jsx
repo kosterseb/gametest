@@ -412,6 +412,11 @@ const gameReducer = (state, action) => {
     case 'SET_ENEMY_FOR_BATTLE':
       const enemyData = action.enemyData;
 
+      if (!enemyData) {
+        console.error('SET_ENEMY_FOR_BATTLE: enemyData is undefined!');
+        return state;
+      }
+
       return {
         ...state,
         enemyHealth: enemyData.health,

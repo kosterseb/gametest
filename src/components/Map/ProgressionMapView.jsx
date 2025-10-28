@@ -55,7 +55,9 @@ export const ProgressionMapView = () => {
 
       case 'boss':
         const isFinalBoss = selectedNode.bossIndex === 'final';
-        const bossData = isFinalBoss ? finalBoss : bossEnemies[selectedNode.bossIndex];
+        const bossData = isFinalBoss
+          ? finalBoss
+          : bossEnemies[selectedNode.bossIndex % bossEnemies.length];
 
         dispatch({
           type: 'SET_ENEMY_FOR_BATTLE',
