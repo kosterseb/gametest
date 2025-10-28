@@ -775,8 +775,16 @@ export const BattleRoute = () => {
     dispatch({ type: 'SET_CARD_REWARD', rarityWeights: { common: 60, rare: 30, epic: 10 } });
 
     if (currentEnemy.isBoss) {
+      // Check if this is the final boss (floor 25)
+      const isFinalBoss = gameState.currentFloor === 25;
+
       setTrackedTimeout(() => {
-        navigate('/boss-reward');
+        if (isFinalBoss) {
+          console.log('🎉 Final boss defeated! Navigating to victory screen...');
+          navigate('/victory');
+        } else {
+          navigate('/boss-reward');
+        }
       }, 2000);
       return;
     } else {
