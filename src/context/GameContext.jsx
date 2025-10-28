@@ -66,6 +66,11 @@ const initialGameState = {
   discardAbilityUnlocked: false,
   inventoryUpgradeUnlocked: false,
 
+  // Upgrade Purchase Tracking
+  healthUpgradesPurchased: 0,
+  energyUpgradesPurchased: 0,
+  handSizeUpgradesPurchased: 0,
+
   // PHASE B: Status Effects
   playerStatuses: [],
   enemyStatuses: [],
@@ -465,6 +470,17 @@ const gameReducer = (state, action) => {
 
     case 'PURCHASE_DISCARD_ABILITY':
       return { ...state, hasDiscardAbility: true };
+
+    case 'TRACK_UPGRADE':
+      const { upgradeType } = action;
+      if (upgradeType === 'health') {
+        return { ...state, healthUpgradesPurchased: (state.healthUpgradesPurchased || 0) + 1 };
+      } else if (upgradeType === 'energy') {
+        return { ...state, energyUpgradesPurchased: (state.energyUpgradesPurchased || 0) + 1 };
+      } else if (upgradeType === 'handSize') {
+        return { ...state, handSizeUpgradesPurchased: (state.handSizeUpgradesPurchased || 0) + 1 };
+      }
+      return state;
 
     case 'APPLY_STATUS_TO_PLAYER':
       return {

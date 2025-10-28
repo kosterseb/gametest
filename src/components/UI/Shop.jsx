@@ -109,9 +109,16 @@ export const Shop = () => {
       return;
     }
 
+    const purchased = gameState.healthUpgradesPurchased || 0;
+    if (purchased >= 5) {
+      alert('Maximum health upgrades reached!');
+      return;
+    }
+
     if (window.confirm(`Upgrade Max Health by 10 for ${healthUpgradePrice} gold?`)) {
       dispatch({ type: 'SPEND_GOLD', amount: healthUpgradePrice });
-      dispatch({ type: 'UPGRADE_MAX_HEALTH', amount: 10 });
+      dispatch({ type: 'UPGRADE_HEALTH', amount: 10 });
+      dispatch({ type: 'TRACK_UPGRADE', upgradeType: 'health' });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Max Health increased by 10!` });
     }
   };
@@ -122,9 +129,16 @@ export const Shop = () => {
       return;
     }
 
+    const purchased = gameState.energyUpgradesPurchased || 0;
+    if (purchased >= 5) {
+      alert('Maximum energy upgrades reached!');
+      return;
+    }
+
     if (window.confirm(`Upgrade Max Energy by 1 for ${energyUpgradePrice} gold?`)) {
       dispatch({ type: 'SPEND_GOLD', amount: energyUpgradePrice });
       dispatch({ type: 'UPGRADE_MAX_ENERGY', amount: 1 });
+      dispatch({ type: 'TRACK_UPGRADE', upgradeType: 'energy' });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Max Energy increased by 1!` });
     }
   };
@@ -135,9 +149,16 @@ export const Shop = () => {
       return;
     }
 
+    const purchased = gameState.handSizeUpgradesPurchased || 0;
+    if (purchased >= 5) {
+      alert('Maximum hand size upgrades reached!');
+      return;
+    }
+
     if (window.confirm(`Upgrade Hand Size by 1 for ${handSizeUpgradePrice} gold?`)) {
       dispatch({ type: 'SPEND_GOLD', amount: handSizeUpgradePrice });
       dispatch({ type: 'UPGRADE_HAND_SIZE', amount: 1 });
+      dispatch({ type: 'TRACK_UPGRADE', upgradeType: 'handSize' });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Hand Size increased by 1!` });
     }
   };
@@ -151,7 +172,7 @@ export const Shop = () => {
 
     if (window.confirm(`Unlock Draw Card ability for ${drawAbilityPrice} gold?`)) {
       dispatch({ type: 'SPEND_GOLD', amount: drawAbilityPrice });
-      dispatch({ type: 'UNLOCK_DRAW_ABILITY' });
+      dispatch({ type: 'PURCHASE_DRAW_ABILITY' });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Unlocked Draw Card ability!` });
     }
   };
@@ -164,7 +185,7 @@ export const Shop = () => {
 
     if (window.confirm(`Unlock Discard for Energy ability for ${discardAbilityPrice} gold?`)) {
       dispatch({ type: 'SPEND_GOLD', amount: discardAbilityPrice });
-      dispatch({ type: 'UNLOCK_DISCARD_ABILITY' });
+      dispatch({ type: 'PURCHASE_DISCARD_ABILITY' });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Unlocked Discard for Energy ability!` });
     }
   };
@@ -175,6 +196,12 @@ export const Shop = () => {
 
   const playerItems = gameState.inventory?.bag?.filter(item => item !== null) || [];
   const bossesDefeated = gameState.bossesDefeated || 0;
+
+  // Track upgrade purchases
+  const healthUpgradesPurchased = gameState.healthUpgradesPurchased || 0;
+  const energyUpgradesPurchased = gameState.energyUpgradesPurchased || 0;
+  const handSizeUpgradesPurchased = gameState.handSizeUpgradesPurchased || 0;
+  const maxUpgrades = 5;
 
   return (
     <PageTransition>
@@ -297,70 +324,91 @@ export const Shop = () => {
               {/* Max Health Upgrade */}
               <button
                 onClick={handleBuyHealthUpgrade}
-                disabled={gameState.gold < healthUpgradePrice}
+                disabled={gameState.gold < healthUpgradePrice || healthUpgradesPurchased >= maxUpgrades}
                 className={`
                   bg-gradient-to-br from-red-500 to-pink-500
                   p-6 rounded-xl border-4 border-red-300
-                  ${gameState.gold >= healthUpgradePrice ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                  transition-all shadow-lg
+                  ${(gameState.gold >= healthUpgradePrice && healthUpgradesPurchased < maxUpgrades) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                  transition-all shadow-lg relative
                 `}
               >
                 <Heart className="w-12 h-12 text-white mx-auto mb-2" />
                 <div className="text-white font-bold text-xl mb-1">+10 Max HP</div>
                 <div className="text-red-100 text-sm mb-3">Permanent health increase</div>
-                <div className={`
-                  ${gameState.gold >= healthUpgradePrice ? 'bg-green-600' : 'bg-gray-600'}
-                  px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
-                `}>
-                  <Coins className="w-4 h-4" />
-                  {healthUpgradePrice}
-                </div>
+                <div className="text-white text-xs mb-2">({healthUpgradesPurchased}/{maxUpgrades} purchased)</div>
+                {healthUpgradesPurchased >= maxUpgrades ? (
+                  <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
+                    ✓ Maxed Out
+                  </div>
+                ) : (
+                  <div className={`
+                    ${gameState.gold >= healthUpgradePrice ? 'bg-green-600' : 'bg-gray-600'}
+                    px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
+                  `}>
+                    <Coins className="w-4 h-4" />
+                    {healthUpgradePrice}
+                  </div>
+                )}
               </button>
 
               {/* Max Energy Upgrade */}
               <button
                 onClick={handleBuyEnergyUpgrade}
-                disabled={gameState.gold < energyUpgradePrice}
+                disabled={gameState.gold < energyUpgradePrice || energyUpgradesPurchased >= maxUpgrades}
                 className={`
                   bg-gradient-to-br from-blue-500 to-cyan-500
                   p-6 rounded-xl border-4 border-blue-300
-                  ${gameState.gold >= energyUpgradePrice ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                  transition-all shadow-lg
+                  ${(gameState.gold >= energyUpgradePrice && energyUpgradesPurchased < maxUpgrades) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                  transition-all shadow-lg relative
                 `}
               >
                 <Zap className="w-12 h-12 text-white mx-auto mb-2" />
                 <div className="text-white font-bold text-xl mb-1">+1 Max Energy</div>
                 <div className="text-blue-100 text-sm mb-3">More energy per turn</div>
-                <div className={`
-                  ${gameState.gold >= energyUpgradePrice ? 'bg-green-600' : 'bg-gray-600'}
-                  px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
-                `}>
-                  <Coins className="w-4 h-4" />
-                  {energyUpgradePrice}
-                </div>
+                <div className="text-white text-xs mb-2">({energyUpgradesPurchased}/{maxUpgrades} purchased)</div>
+                {energyUpgradesPurchased >= maxUpgrades ? (
+                  <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
+                    ✓ Maxed Out
+                  </div>
+                ) : (
+                  <div className={`
+                    ${gameState.gold >= energyUpgradePrice ? 'bg-green-600' : 'bg-gray-600'}
+                    px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
+                  `}>
+                    <Coins className="w-4 h-4" />
+                    {energyUpgradePrice}
+                  </div>
+                )}
               </button>
 
               {/* Hand Size Upgrade */}
               <button
                 onClick={handleBuyHandSizeUpgrade}
-                disabled={gameState.gold < handSizeUpgradePrice}
+                disabled={gameState.gold < handSizeUpgradePrice || handSizeUpgradesPurchased >= maxUpgrades}
                 className={`
                   bg-gradient-to-br from-purple-500 to-indigo-500
                   p-6 rounded-xl border-4 border-purple-300
-                  ${gameState.gold >= handSizeUpgradePrice ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                  transition-all shadow-lg
+                  ${(gameState.gold >= handSizeUpgradePrice && handSizeUpgradesPurchased < maxUpgrades) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                  transition-all shadow-lg relative
                 `}
               >
                 <Users className="w-12 h-12 text-white mx-auto mb-2" />
                 <div className="text-white font-bold text-xl mb-1">+1 Hand Size</div>
                 <div className="text-purple-100 text-sm mb-3">Hold more cards</div>
-                <div className={`
-                  ${gameState.gold >= handSizeUpgradePrice ? 'bg-green-600' : 'bg-gray-600'}
-                  px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
-                `}>
-                  <Coins className="w-4 h-4" />
-                  {handSizeUpgradePrice}
-                </div>
+                <div className="text-white text-xs mb-2">({handSizeUpgradesPurchased}/{maxUpgrades} purchased)</div>
+                {handSizeUpgradesPurchased >= maxUpgrades ? (
+                  <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
+                    ✓ Maxed Out
+                  </div>
+                ) : (
+                  <div className={`
+                    ${gameState.gold >= handSizeUpgradePrice ? 'bg-green-600' : 'bg-gray-600'}
+                    px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
+                  `}>
+                    <Coins className="w-4 h-4" />
+                    {handSizeUpgradePrice}
+                  </div>
+                )}
               </button>
             </div>
           </div>
