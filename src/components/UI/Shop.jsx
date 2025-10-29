@@ -12,8 +12,11 @@ export const Shop = () => {
   const { navigate } = useRouter();
 
   const [shopOffers, setShopOffers] = useState({ cards: [], items: [] });
+  const [purchasedCardIndices, setPurchasedCardIndices] = useState([]);
+  const [purchasedItemIndices, setPurchasedItemIndices] = useState([]);
   const cardPrice = 50;
   const cardRemovalRefund = 20;
+  const rerollPrice = 50;
 
   // Permanent upgrade prices
   const healthUpgradePrice = 100;
@@ -25,7 +28,7 @@ export const Shop = () => {
   const consumableSlotPrice = 100;
   const passiveSlotPrice = 150;
 
-  useEffect(() => {
+  const generateShopOffers = () => {
     // Generate shop offers
     const cardOffers = [];
     for (let i = 0; i < 3; i++) {
@@ -47,11 +50,35 @@ export const Shop = () => {
     }
 
     setShopOffers({ cards: cardOffers, items: itemOffers });
+    setPurchasedCardIndices([]);
+    setPurchasedItemIndices([]);
+  };
+
+  useEffect(() => {
+    generateShopOffers();
   }, []);
 
-  const handleBuyCard = (card) => {
+  const handleReroll = () => {
+    if (gameState.gold < rerollPrice) {
+      alert('Not enough gold to reroll!');
+      return;
+    }
+
+    if (window.confirm(`Reroll shop for ${rerollPrice} gold?`)) {
+      dispatch({ type: 'SPEND_GOLD', amount: rerollPrice });
+      generateShopOffers();
+      dispatch({ type: 'ADD_BATTLE_LOG', message: `Rerolled shop for ${rerollPrice} gold!` });
+    }
+  };
+
+  const handleBuyCard = (card, index) => {
     if (gameState.gold < cardPrice) {
       alert('Not enough gold!');
+      return;
+    }
+
+    if (purchasedCardIndices.includes(index)) {
+      alert('Already purchased this card!');
       return;
     }
 
@@ -63,6 +90,7 @@ export const Shop = () => {
     dispatch({ type: 'SPEND_GOLD', amount: cardPrice });
     dispatch({ type: 'UNLOCK_CARD', card });
     dispatch({ type: 'ADD_BATTLE_LOG', message: `Purchased ${card.name} for ${cardPrice} gold!` });
+    setPurchasedCardIndices([...purchasedCardIndices, index]);
   };
 
   const handleRemoveCard = (card) => {
@@ -78,9 +106,14 @@ export const Shop = () => {
     }
   };
 
-  const handleBuyItem = (item) => {
+  const handleBuyItem = (item, index) => {
     if (gameState.gold < item.price) {
       alert('Not enough gold!');
+      return;
+    }
+
+    if (purchasedItemIndices.includes(index)) {
+      alert('Already purchased this item!');
       return;
     }
 
@@ -93,6 +126,7 @@ export const Shop = () => {
     dispatch({ type: 'SPEND_GOLD', amount: item.price });
     dispatch({ type: 'ADD_ITEM_TO_BAG', item });
     dispatch({ type: 'ADD_BATTLE_LOG', message: `Purchased ${item.name} for ${item.price} gold!` });
+    setPurchasedItemIndices([...purchasedItemIndices, index]);
   };
 
   const handleSellItem = (item) => {
@@ -287,11 +321,27 @@ export const Shop = () => {
                 </div>
               </div>
 
-              {/* Gold Display */}
-              <div className="bg-gradient-to-r from-yellow-400 to-amber-500 px-6 py-3 rounded-lg border-4 border-yellow-300 shadow-lg">
-                <div className="flex items-center gap-2">
-                  <Coins className="w-6 h-6 text-yellow-900" />
-                  <span className="text-3xl font-bold text-yellow-900">{gameState.gold}</span>
+              <div className="flex items-center gap-4">
+                {/* Reroll Button */}
+                <button
+                  onClick={handleReroll}
+                  disabled={gameState.gold < rerollPrice}
+                  className={`
+                    ${gameState.gold >= rerollPrice ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-400 cursor-not-allowed'}
+                    text-white px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105 shadow-lg
+                    flex items-center gap-2
+                  `}
+                >
+                  <TrendingUp className="w-5 h-5" />
+                  Reroll ({rerollPrice} <Coins className="w-4 h-4 inline" />)
+                </button>
+
+                {/* Gold Display */}
+                <div className="bg-gradient-to-r from-yellow-400 to-amber-500 px-6 py-3 rounded-lg border-4 border-yellow-300 shadow-lg">
+                  <div className="flex items-center gap-2">
+                    <Coins className="w-6 h-6 text-yellow-900" />
+                    <span className="text-3xl font-bold text-yellow-900">{gameState.gold}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -308,18 +358,27 @@ export const Shop = () => {
               <div className="flex flex-col gap-6 items-center">
                 {shopOffers.cards.map((card, index) => {
                   const alreadyOwned = gameState.unlockedCards?.some(c => c.name === card.name);
+                  const alreadyPurchased = purchasedCardIndices.includes(index);
                   const canAfford = gameState.gold >= cardPrice;
 
                   return (
                     <div key={index} className="relative">
                       <CardCompact
                         card={card}
-                        onClick={() => !alreadyOwned && canAfford && handleBuyCard(card)}
-                        disabled={!canAfford || alreadyOwned}
+                        onClick={() => !alreadyOwned && !alreadyPurchased && canAfford && handleBuyCard(card, index)}
+                        disabled={!canAfford || alreadyOwned || alreadyPurchased}
                         owned={alreadyOwned}
                       />
 
-                      {!alreadyOwned && (
+                      {alreadyPurchased && !alreadyOwned && (
+                        <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
+                          <div className="bg-gray-600 text-white px-4 py-2 rounded-full font-bold text-lg flex items-center gap-2 shadow-lg border-2 border-white">
+                            ✓ Purchased
+                          </div>
+                        </div>
+                      )}
+
+                      {!alreadyOwned && !alreadyPurchased && (
                         <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
                           <div className={`
                             ${canAfford ? 'bg-green-600' : 'bg-red-600'}
@@ -346,17 +405,18 @@ export const Shop = () => {
 
               <div className="space-y-4">
                 {shopOffers.items.map((item, index) => {
+                  const alreadyPurchased = purchasedItemIndices.includes(index);
                   const canAfford = gameState.gold >= item.price;
 
                   return (
                     <button
                       key={index}
-                      onClick={() => canAfford && handleBuyItem(item)}
-                      disabled={!canAfford}
+                      onClick={() => !alreadyPurchased && canAfford && handleBuyItem(item, index)}
+                      disabled={!canAfford || alreadyPurchased}
                       className={`
                         w-full bg-gradient-to-r from-purple-500 to-indigo-500
                         p-4 rounded-xl border-4 border-purple-300
-                        ${canAfford ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                        ${(canAfford && !alreadyPurchased) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
                         transition-all shadow-lg flex items-center gap-4
                       `}
                     >
@@ -366,12 +426,18 @@ export const Shop = () => {
                         <div className="text-purple-100 text-sm">{item.description}</div>
                       </div>
                       <div className={`
-                        ${canAfford ? 'bg-green-500' : 'bg-red-500'}
+                        ${alreadyPurchased ? 'bg-gray-600' : (canAfford ? 'bg-green-500' : 'bg-red-500')}
                         px-4 py-2 rounded-full text-white font-bold
                         flex items-center gap-1
                       `}>
-                        <Coins className="w-4 h-4" />
-                        {item.price}
+                        {alreadyPurchased ? (
+                          <>✓ Purchased</>
+                        ) : (
+                          <>
+                            <Coins className="w-4 h-4" />
+                            {item.price}
+                          </>
+                        )}
                       </div>
                     </button>
                   );
