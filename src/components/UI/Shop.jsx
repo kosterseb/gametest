@@ -5,7 +5,7 @@ import { cardTemplates, rollCardRarity } from '../../data/cards';
 import { ITEMS, createItemInstance } from '../../data/items';
 import { CardCompact } from '../Cards/Card';
 import { PageTransition } from './PageTransition';
-import { ShoppingCart, ArrowLeft, Coins, Trash2, Package, Heart, Zap, Users, TrendingUp } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Coins, Trash2, Package, Heart, Zap, Users, TrendingUp, CreditCard } from 'lucide-react';
 
 export const Shop = () => {
   const { gameState, dispatch } = useGame();
@@ -751,7 +751,7 @@ export const Shop = () => {
                       className="w-full bg-gradient-to-r from-red-500 to-orange-500 p-3 rounded-lg border-2 border-red-300 hover:scale-105 transition-all shadow-lg flex items-center justify-between group"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="text-2xl">🗑️</div>
+                        <CreditCard className="w-8 h-8 text-white" />
                         <div className="text-left">
                           <div className="text-white font-bold">{card.name}</div>
                           <div className="text-red-100 text-sm">{card.description}</div>
