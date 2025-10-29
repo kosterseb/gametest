@@ -865,20 +865,19 @@ export const BattleRoute = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-900 to-black p-4">
-        <div className="max-w-7xl mx-auto">
-          <GameHeader
-            battleNumber={gameState.currentFloor}
-            gold={gameState.gold}
-            turnCount={turnCount}
-          />
-
-          <div className="mb-4 flex justify-end">
+      <div className="h-screen overflow-hidden bg-gradient-to-br from-gray-800 via-gray-900 to-black p-2">
+        <div className="max-w-7xl mx-auto h-full flex flex-col">
+          <div className="flex justify-between items-center mb-1">
+            <GameHeader
+              battleNumber={gameState.currentFloor}
+              gold={gameState.gold}
+              turnCount={turnCount}
+            />
             <button
               onClick={handleForfeit}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all"
+              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-sm rounded-lg flex items-center gap-1 transition-all"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-3 h-3" />
               Forfeit
             </button>
           </div>
@@ -898,9 +897,9 @@ export const BattleRoute = () => {
           />
 
           {equippedConsumables.length > 0 && (
-            <div className="bg-white bg-opacity-90 p-4 rounded-xl mb-4 shadow-lg">
-              <h3 className="text-lg font-bold mb-3">⚡ Battle Items</h3>
-              <div className="flex gap-3 flex-wrap">
+            <div className="bg-white bg-opacity-90 p-2 rounded-xl mb-1 shadow-lg">
+              <h3 className="text-sm font-bold mb-2">⚡ Battle Items</h3>
+              <div className="flex gap-2 flex-wrap">
                 {equippedConsumables.map((item, index) => (
                   <ItemButton
                     key={index}
@@ -914,16 +913,16 @@ export const BattleRoute = () => {
             </div>
           )}
 
-          <div className="bg-white bg-opacity-90 p-6 rounded-xl shadow-lg">
-            <div className="flex justify-between items-center mb-4">
+          <div className="bg-white bg-opacity-90 p-3 rounded-xl shadow-lg flex-1 flex flex-col overflow-hidden">
+            <div className="flex justify-between items-center mb-2">
               <div>
-                <h2 className="text-2xl font-bold">Your Hand ({hand.length}/{gameState.maxHandSize})</h2>
+                <h2 className="text-lg font-bold">Your Hand ({hand.length}/{gameState.maxHandSize})</h2>
               </div>
               <button
                 onClick={handleEndTurn}
                 disabled={isEnemyTurn}
                 className={`
-                  px-6 py-3 rounded-lg font-bold text-lg transition-all
+                  px-4 py-2 rounded-lg font-bold text-sm transition-all
                   ${isEnemyTurn
                     ? 'bg-gray-400 cursor-not-allowed text-gray-600'
                     : 'bg-red-600 hover:bg-red-700 text-white shadow-lg hover:scale-105'}
@@ -935,7 +934,7 @@ export const BattleRoute = () => {
 
             {/* Boss Abilities */}
             {(gameState.hasDrawAbility || gameState.hasDiscardAbility) && (
-              <div className="mb-4 flex gap-2">
+              <div className="mb-2 flex gap-2">
                 {gameState.hasDrawAbility && (
                   <button
                     onClick={() => {
@@ -952,14 +951,14 @@ export const BattleRoute = () => {
                     }}
                     disabled={isEnemyTurn || isBattleOver || playerEnergy < 3 || hasUsedDrawAbility}
                     className={`
-                      px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all
+                      px-3 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1 transition-all
                       ${playerEnergy >= 3 && !isEnemyTurn && !isBattleOver && !hasUsedDrawAbility
                         ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
                         : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'}
                     `}
                   >
-                    <span className="text-xl">🎴</span>
-                    Draw Card (3⚡) {hasUsedDrawAbility && '✓'}
+                    <span className="text-sm">🎴</span>
+                    Draw (3⚡) {hasUsedDrawAbility && '✓'}
                   </button>
                 )}
 
@@ -980,20 +979,20 @@ export const BattleRoute = () => {
                     }}
                     disabled={isEnemyTurn || isBattleOver || hand.length === 0 || hasUsedDiscardAbility}
                     className={`
-                      px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all
+                      px-3 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1 transition-all
                       ${hand.length > 0 && !isEnemyTurn && !isBattleOver && !hasUsedDiscardAbility
                         ? 'bg-orange-600 hover:bg-orange-700 text-white cursor-pointer'
                         : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'}
                     `}
                   >
-                    <span className="text-xl">🗑️</span>
-                    Discard for Energy {hasUsedDiscardAbility && '✓'}
+                    <span className="text-sm">🗑️</span>
+                    Discard {hasUsedDiscardAbility && '✓'}
                   </button>
                 )}
               </div>
             )}
 
-            <div className="flex gap-4 overflow-x-auto pb-4">
+            <div className="flex gap-2 overflow-x-auto pb-1 flex-shrink-0">
               {hand.map((card) => (
                 <Card
                   key={card.id}
@@ -1002,12 +1001,13 @@ export const BattleRoute = () => {
                   disabled={isEnemyTurn || isBattleOver}
                   playerEnergy={playerEnergy}
                   playerStatuses={playerStatuses}
+                  compact={true}
                 />
               ))}
             </div>
 
             {hand.length === 0 && (
-              <div className="text-center text-gray-500 py-8">
+              <div className="text-center text-gray-500 py-4 text-sm">
                 No cards in hand. End your turn to draw new cards!
               </div>
             )}

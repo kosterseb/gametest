@@ -41,29 +41,29 @@ export const BattleField = ({
   };
 
   return (
-    <div className="bg-white bg-opacity-90 p-6 rounded-xl mb-4 shadow-lg">
+    <div className="bg-white bg-opacity-90 p-3 rounded-xl mb-2 shadow-lg">
       {/* Battle Arena */}
-      <div className="grid grid-cols-3 gap-8 mb-6">
+      <div className="grid grid-cols-3 gap-4 mb-2">
         {/* Player Side */}
-        <div className="flex flex-col items-center space-y-4">
-          <div className="text-3xl font-bold text-blue-600">YOU</div>
-          
+        <div className="flex flex-col items-center space-y-2">
+          <div className="text-lg font-bold text-blue-600">YOU</div>
+
           {/* Player Avatar Placeholder */}
-          <div className="text-6xl">🧙‍♂️</div>
+          <div className="text-4xl">🧙‍♂️</div>
 
           {/* Player Health Bar */}
           <div className="w-full">
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-0.5">
               <div className="flex items-center gap-1">
-                <Heart className="w-4 h-4 text-red-500" />
+                <Heart className="w-3 h-3 text-red-500" />
                 <span className="text-xs font-semibold text-gray-600">HP</span>
               </div>
-              <span className="text-sm font-bold text-gray-800">
+              <span className="text-xs font-bold text-gray-800">
                 {playerHealth}/{maxPlayerHealth}
               </span>
             </div>
-            <div className="w-full h-4 bg-gray-300 rounded-full overflow-hidden border-2 border-gray-400">
-              <div 
+            <div className="w-full h-3 bg-gray-300 rounded-full overflow-hidden border border-gray-400">
+              <div
                 className="h-full bg-gradient-to-r from-red-500 to-pink-500 transition-all duration-300"
                 style={{ width: `${playerHealthPercentage}%` }}
               />
@@ -72,17 +72,17 @@ export const BattleField = ({
 
           {/* Player Energy Bar */}
           <div className="w-full">
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-0.5">
               <div className="flex items-center gap-1">
-                <Zap className="w-4 h-4 text-blue-500" />
+                <Zap className="w-3 h-3 text-blue-500" />
                 <span className="text-xs font-semibold text-gray-600">ENERGY</span>
               </div>
-              <span className="text-sm font-bold text-gray-800">
+              <span className="text-xs font-bold text-gray-800">
                 {playerEnergy}/{maxEnergy}
               </span>
             </div>
-            <div className="w-full h-4 bg-gray-300 rounded-full overflow-hidden border-2 border-gray-400">
-              <div 
+            <div className="w-full h-3 bg-gray-300 rounded-full overflow-hidden border border-gray-400">
+              <div
                 className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-300"
                 style={{ width: `${energyPercentage}%` }}
               />
@@ -97,14 +97,14 @@ export const BattleField = ({
           )}
 
           {/* Player Battle Log */}
-          <div className="w-full bg-blue-50 border-2 border-blue-300 p-3 rounded-lg">
-            <h4 className="text-xs font-bold text-blue-700 mb-2">YOUR ACTIONS:</h4>
-            <div className="space-y-1 max-h-24 overflow-y-auto">
+          <div className="w-full bg-blue-50 border border-blue-300 p-2 rounded-lg">
+            <h4 className="text-xs font-bold text-blue-700 mb-1">YOUR ACTIONS:</h4>
+            <div className="space-y-0.5 max-h-16 overflow-y-auto text-xs">
               {playerLogs.length === 0 ? (
                 <p className="text-xs text-gray-500 italic">No actions yet...</p>
               ) : (
-                playerLogs.slice(-4).map((log, index) => (
-                  <p key={index} className="text-xs text-gray-700">
+                playerLogs.slice(-3).map((log, index) => (
+                  <p key={index} className="text-xs text-gray-700 leading-tight">
                     {log}
                   </p>
                 ))
@@ -115,8 +115,8 @@ export const BattleField = ({
 
         {/* VS Indicator */}
         <div className="flex flex-col items-center justify-center">
-          <Swords className={`w-16 h-16 ${isEnemyTurn ? 'text-red-600 animate-pulse' : 'text-gray-400'} mb-4`} />
-          <div className={`text-lg font-bold px-4 py-2 rounded-lg ${
+          <Swords className={`w-10 h-10 ${isEnemyTurn ? 'text-red-600 animate-pulse' : 'text-gray-400'} mb-2`} />
+          <div className={`text-sm font-bold px-3 py-1 rounded-lg ${
             isEnemyTurn ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
           }`}>
             {isEnemyTurn ? 'ENEMY TURN' : 'YOUR TURN'}
@@ -124,40 +124,40 @@ export const BattleField = ({
         </div>
 
         {/* Enemy Side */}
-        <div className="flex flex-col items-center space-y-4">
+        <div className="flex flex-col items-center space-y-2">
           {/* Enemy Type Badge */}
           <div className="flex items-center space-x-2">
             {enemy.isElite && (
-              <span className="bg-orange-500 text-white font-bold text-xs px-3 py-1 rounded-full">⭐ ELITE</span>
+              <span className="bg-orange-500 text-white font-bold text-xs px-2 py-0.5 rounded-full">⭐ ELITE</span>
             )}
             {enemy.isBoss && (
-              <span className="bg-purple-600 text-white font-bold text-xs px-3 py-1 rounded-full">👑 BOSS</span>
+              <span className="bg-purple-600 text-white font-bold text-xs px-2 py-0.5 rounded-full">👑 BOSS</span>
             )}
             {!enemy.isElite && !enemy.isBoss && (
               <span className="text-gray-500 font-bold text-xs">ENEMY</span>
             )}
           </div>
-          
+
           {/* Enemy Avatar */}
-          <div className={`text-6xl ${isEnemyTurn ? 'animate-bounce' : ''}`}>
+          <div className={`text-4xl ${isEnemyTurn ? 'animate-bounce' : ''}`}>
             {getEnemyIcon()}
           </div>
-          
-          <div className="text-xl font-bold text-gray-800">{enemy.name || 'Unknown Enemy'}</div>
+
+          <div className="text-base font-bold text-gray-800">{enemy.name || 'Unknown Enemy'}</div>
 
           {/* Enemy Health Bar */}
           <div className="w-full">
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-0.5">
               <div className="flex items-center gap-1">
-                <Skull className="w-4 h-4 text-gray-700" />
+                <Skull className="w-3 h-3 text-gray-700" />
                 <span className="text-xs font-semibold text-gray-600">HP</span>
               </div>
-              <span className="text-sm font-bold text-gray-800">
+              <span className="text-xs font-bold text-gray-800">
                 {enemyHealth}/{maxEnemyHealth}
               </span>
             </div>
-            <div className="w-full h-4 bg-gray-300 rounded-full overflow-hidden border-2 border-gray-400">
-              <div 
+            <div className="w-full h-3 bg-gray-300 rounded-full overflow-hidden border border-gray-400">
+              <div
                 className="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-300"
                 style={{ width: `${enemyHealthPercentage}%` }}
               />
@@ -172,14 +172,14 @@ export const BattleField = ({
           )}
 
           {/* Enemy Battle Log */}
-          <div className="w-full bg-red-50 border-2 border-red-300 p-3 rounded-lg">
-            <h4 className="text-xs font-bold text-red-700 mb-2">ENEMY ACTIONS:</h4>
-            <div className="space-y-1 max-h-24 overflow-y-auto">
+          <div className="w-full bg-red-50 border border-red-300 p-2 rounded-lg">
+            <h4 className="text-xs font-bold text-red-700 mb-1">ENEMY ACTIONS:</h4>
+            <div className="space-y-0.5 max-h-16 overflow-y-auto text-xs">
               {enemyLogs.length === 0 ? (
                 <p className="text-xs text-gray-500 italic">No actions yet...</p>
               ) : (
-                enemyLogs.slice(-4).map((log, index) => (
-                  <p key={index} className="text-xs text-gray-700">
+                enemyLogs.slice(-3).map((log, index) => (
+                  <p key={index} className="text-xs text-gray-700 leading-tight">
                     {log}
                   </p>
                 ))
