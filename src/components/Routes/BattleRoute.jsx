@@ -12,6 +12,7 @@ import { BattleField } from '../Battle/BattleField';
 import { GameHeader } from '../Battle/GameHeader';
 import { PageTransition } from '../UI/PageTransition';
 import { ItemButton } from '../Cards/ItemButton';
+import { DiceRoll } from '../Battle/DiceRoll';
 import {
   applyStatus,
   tickStatuses,
@@ -192,6 +193,10 @@ export const BattleRoute = () => {
   const [hasUsedDrawAbility, setHasUsedDrawAbility] = useState(false);
   const [hasUsedDiscardAbility, setHasUsedDiscardAbility] = useState(false);
 
+  // ✅ Track dice roll state
+  const [showDiceRoll, setShowDiceRoll] = useState(false);
+  const [pendingDiceCard, setPendingDiceCard] = useState(null);
+
   // If no enemy, redirect to map
   useEffect(() => {
     if (!currentEnemy) {
@@ -350,14 +355,14 @@ export const BattleRoute = () => {
   }, [deck.length]); // Only trigger when deck length changes (deck initialized)
 
   // Execute card effects
-  const executeCard = useCallback((card) => {
+  const executeCard = useCallback((card, diceResult = null) => {
     const cardType = card.type;
 
     switch (cardType) {
       case 'damage':
         let diceRoll = null;
         if (card.diceRoll) {
-          diceRoll = Math.floor(Math.random() * 6) + 1;
+          diceRoll = diceResult || Math.floor(Math.random() * 6) + 1;
           setBattleLog(prev => [...prev, `🎲 Rolled a ${diceRoll}!`]);
         }
 
@@ -409,7 +414,12 @@ export const BattleRoute = () => {
         break;
 
       case 'heal':
-        const healing = card.baseHeal || 0;
+        let healing = card.baseHeal || 0;
+        if (card.diceRoll) {
+          const roll = diceResult || Math.floor(Math.random() * 6) + 1;
+          setBattleLog(prev => [...prev, `🎲 Rolled a ${roll}!`]);
+          healing = healing + (roll * 2); // Add dice result * 2 to healing
+        }
         setPlayerHealth(prev => Math.min(maxPlayerHealth, prev + healing));
         setBattleLog(prev => [...prev, `💚 ${card.name}: Restored ${healing} HP!`]);
         
@@ -439,7 +449,7 @@ export const BattleRoute = () => {
           setBattleLog(prev => [...prev, `📖 ${card.name}: Drew 1 card!`]);
         }
         if (card.effect === 'drawRoll') {
-          const roll = Math.floor(Math.random() * 6) + 1;
+          const roll = diceResult || Math.floor(Math.random() * 6) + 1;
           setBattleLog(prev => [...prev, `🎲 Rolled ${roll}!`]);
           drawMultipleCards(roll);
           setBattleLog(prev => [...prev, `📖 Drew ${roll} cards!`]);
@@ -535,8 +545,25 @@ export const BattleRoute = () => {
 
     console.log('✋ Hand after:', hand.length - 1, 'cards');
 
-    executeCard(card);
+    // Check if card requires dice roll
+    if (card.diceRoll) {
+      setPendingDiceCard(card);
+      setShowDiceRoll(true);
+    } else {
+      executeCard(card);
+    }
   }, [isBattleOver, playerEnergy, playerStatuses, hand.length, executeCard]);
+
+  // ✅ Handle dice roll completion
+  const handleDiceComplete = useCallback((diceResult) => {
+    setShowDiceRoll(false);
+
+    if (pendingDiceCard) {
+      // Execute card with dice result
+      executeCard(pendingDiceCard, diceResult);
+      setPendingDiceCard(null);
+    }
+  }, [pendingDiceCard, executeCard]);
 
   // ✅ Item usage
   const handleUseItem = useCallback((item) => {
@@ -1014,6 +1041,15 @@ export const BattleRoute = () => {
           </div>
         </div>
       </div>
+
+      {/* Dice Roll Overlay */}
+      {showDiceRoll && (
+        <DiceRoll
+          onRollComplete={handleDiceComplete}
+          minValue={1}
+          maxValue={6}
+        />
+      )}
     </PageTransition>
   );
 };
