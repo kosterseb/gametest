@@ -911,26 +911,74 @@ export const BattleRoute = () => {
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h2 className="text-2xl font-bold">Your Hand ({hand.length}/{gameState.maxHandSize})</h2>
-                <div className="flex items-center gap-2 mt-1">
-                  <Zap className="w-5 h-5 text-blue-600" />
-                  <span className="text-lg font-semibold text-blue-600">
-                    {playerEnergy}/{maxEnergy} Energy
-                  </span>
-                </div>
               </div>
               <button
                 onClick={handleEndTurn}
                 disabled={isEnemyTurn}
                 className={`
                   px-6 py-3 rounded-lg font-bold text-lg transition-all
-                  ${isEnemyTurn 
-                    ? 'bg-gray-400 cursor-not-allowed text-gray-600' 
+                  ${isEnemyTurn
+                    ? 'bg-gray-400 cursor-not-allowed text-gray-600'
                     : 'bg-red-600 hover:bg-red-700 text-white shadow-lg hover:scale-105'}
                 `}
               >
                 {isEnemyTurn ? 'Enemy Turn...' : 'End Turn'}
               </button>
             </div>
+
+            {/* Boss Abilities */}
+            {(gameState.hasDrawAbility || gameState.hasDiscardAbility) && (
+              <div className="mb-4 flex gap-2">
+                {gameState.hasDrawAbility && (
+                  <button
+                    onClick={() => {
+                      if (playerEnergy >= 3) {
+                        setPlayerEnergy(prev => prev - 3);
+                        drawCard();
+                        setBattleLog(prev => [...prev, '🎴 Drew 1 card for 3 energy']);
+                      } else {
+                        setBattleLog(prev => [...prev, '⚠️ Not enough energy to draw!']);
+                      }
+                    }}
+                    disabled={isEnemyTurn || isBattleOver || playerEnergy < 3}
+                    className={`
+                      px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all
+                      ${playerEnergy >= 3 && !isEnemyTurn && !isBattleOver
+                        ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
+                        : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'}
+                    `}
+                  >
+                    <span className="text-xl">🎴</span>
+                    Draw Card (3⚡)
+                  </button>
+                )}
+
+                {gameState.hasDiscardAbility && (
+                  <button
+                    onClick={() => {
+                      if (hand.length > 0) {
+                        const cardToDiscard = hand[0];
+                        dispatchCardState({ type: 'PLAY_CARD', card: cardToDiscard });
+                        setPlayerEnergy(prev => prev + 1);
+                        setBattleLog(prev => [...prev, `🗑️ Discarded ${cardToDiscard.name} for 1 energy`]);
+                      } else {
+                        setBattleLog(prev => [...prev, '⚠️ No cards to discard!']);
+                      }
+                    }}
+                    disabled={isEnemyTurn || isBattleOver || hand.length === 0}
+                    className={`
+                      px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all
+                      ${hand.length > 0 && !isEnemyTurn && !isBattleOver
+                        ? 'bg-orange-600 hover:bg-orange-700 text-white cursor-pointer'
+                        : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'}
+                    `}
+                  >
+                    <span className="text-xl">🗑️</span>
+                    Discard for Energy
+                  </button>
+                )}
+              </div>
+            )}
 
             <div className="flex gap-4 overflow-x-auto pb-4">
               {hand.map((card) => (
