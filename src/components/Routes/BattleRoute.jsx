@@ -14,6 +14,7 @@ import { PageTransition } from '../UI/PageTransition';
 import { ItemButton } from '../Cards/ItemButton';
 import { DiceRoll } from '../Battle/DiceRoll';
 import { CoinFlip } from '../Battle/CoinFlip';
+import { SpaceBackground } from '../Battle/SpaceBackground';
 import {
   applyStatus,
   tickStatuses,
@@ -924,57 +925,73 @@ export const BattleRoute = () => {
 
   const equippedConsumables = gameState.inventory?.toolBelt?.consumables?.filter(item => item !== null) || [];
 
+  // Determine enemy type for background
+  const getEnemyType = () => {
+    if (!currentEnemy) return 'normal';
+    if (currentEnemy.isBoss) return 'boss';
+    if (currentEnemy.isElite) return 'elite';
+    return 'normal';
+  };
+
   return (
     <PageTransition>
-      <div className="h-screen overflow-hidden bg-gradient-to-br from-gray-800 via-gray-900 to-black p-2">
+      {/* Space Background */}
+      <SpaceBackground enemyType={getEnemyType()} />
+
+      <div className="h-screen overflow-hidden relative">
         <div className="max-w-7xl mx-auto h-full flex flex-col">
-          <div className="flex justify-between items-center mb-1">
+          {/* Header - 10% */}
+          <div className="h-[10%] flex justify-between items-center px-4 py-2">
+            <button
+              onClick={handleForfeit}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-lg"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Forfeit
+            </button>
             <GameHeader
               battleNumber={gameState.currentFloor}
               gold={gameState.gold}
               turnCount={turnCount}
             />
-            <button
-              onClick={handleForfeit}
-              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-sm rounded-lg flex items-center gap-1 transition-all"
-            >
-              <ArrowLeft className="w-3 h-3" />
-              Forfeit
-            </button>
           </div>
 
-          <BattleField
-            enemy={currentEnemy}
-            enemyHealth={enemyHealth}
-            maxEnemyHealth={maxEnemyHealth}
-            isEnemyTurn={isEnemyTurn}
-            battleLog={battleLog}
-            playerHealth={playerHealth}
-            maxPlayerHealth={maxPlayerHealth}
-            playerEnergy={playerEnergy}
-            maxEnergy={maxEnergy}
-            playerStatuses={playerStatuses}
-            enemyStatuses={enemyStatuses}
-          />
+          {/* Battle Area - 65% */}
+          <div className="h-[65%] flex flex-col overflow-hidden">
+            <BattleField
+              enemy={currentEnemy}
+              enemyHealth={enemyHealth}
+              maxEnemyHealth={maxEnemyHealth}
+              isEnemyTurn={isEnemyTurn}
+              battleLog={battleLog}
+              playerHealth={playerHealth}
+              maxPlayerHealth={maxPlayerHealth}
+              playerEnergy={playerEnergy}
+              maxEnergy={maxEnergy}
+              playerStatuses={playerStatuses}
+              enemyStatuses={enemyStatuses}
+            />
 
-          {equippedConsumables.length > 0 && (
-            <div className="bg-white bg-opacity-90 p-2 rounded-xl mb-1 shadow-lg">
-              <h3 className="text-sm font-bold mb-2">⚡ Battle Items</h3>
-              <div className="flex gap-2 flex-wrap">
-                {equippedConsumables.map((item, index) => (
-                  <ItemButton
-                    key={index}
-                    item={item}
-                    onUse={handleUseItem}
-                    disabled={isEnemyTurn}
-                    isUsed={usedConsumables.includes(item.instanceId)}
-                  />
-                ))}
+            {equippedConsumables.length > 0 && (
+              <div className="bg-white bg-opacity-90 p-2 rounded-xl mb-1 shadow-lg mx-2">
+                <h3 className="text-xs font-bold mb-1">⚡ Battle Items</h3>
+                <div className="flex gap-2 flex-wrap">
+                  {equippedConsumables.map((item, index) => (
+                    <ItemButton
+                      key={index}
+                      item={item}
+                      onUse={handleUseItem}
+                      disabled={isEnemyTurn}
+                      isUsed={usedConsumables.includes(item.instanceId)}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          <div className="bg-white bg-opacity-90 p-3 rounded-xl shadow-lg flex-1 flex flex-col overflow-hidden">
+          {/* Cards Area - 25% */}
+          <div className="h-[25%] bg-white bg-opacity-90 px-3 py-2 rounded-t-xl shadow-lg flex flex-col overflow-hidden">
             <div className="flex justify-between items-center mb-2">
               <div>
                 <h2 className="text-lg font-bold">Your Hand ({hand.length}/{gameState.maxHandSize})</h2>
