@@ -13,6 +13,7 @@ import { GameHeader } from '../Battle/GameHeader';
 import { PageTransition } from '../UI/PageTransition';
 import { ItemButton } from '../Cards/ItemButton';
 import { DiceRoll } from '../Battle/DiceRoll';
+import { CoinFlip } from '../Battle/CoinFlip';
 import {
   applyStatus,
   tickStatuses,
@@ -197,6 +198,10 @@ export const BattleRoute = () => {
   const [showDiceRoll, setShowDiceRoll] = useState(false);
   const [pendingDiceCard, setPendingDiceCard] = useState(null);
 
+  // ✅ Track coin flip state
+  const [showCoinFlip, setShowCoinFlip] = useState(false);
+  const [turnOrderDecided, setTurnOrderDecided] = useState(false);
+
   // If no enemy, redirect to map
   useEffect(() => {
     if (!currentEnemy) {
@@ -338,10 +343,18 @@ export const BattleRoute = () => {
     deckInitialized.current = true;
   }, []); // Empty deps - only run once
 
-  // ✅ FIXED: Draw initial hand ONLY ONCE
+  // ✅ Show coin flip after deck is initialized
   useEffect(() => {
-    // Guard: Only run if we have cards in deck, empty hand, and haven't drawn yet
-    if (deck.length > 0 && hand.length === 0 && !initialHandDrawn.current) {
+    if (deck.length > 0 && !turnOrderDecided && !showCoinFlip) {
+      console.log('🪙 Showing coin flip for turn order');
+      setShowCoinFlip(true);
+    }
+  }, [deck.length, turnOrderDecided, showCoinFlip]);
+
+  // ✅ FIXED: Draw initial hand ONLY ONCE (after turn order is decided)
+  useEffect(() => {
+    // Guard: Only run if we have cards in deck, empty hand, haven't drawn yet, AND turn order is decided
+    if (deck.length > 0 && hand.length === 0 && !initialHandDrawn.current && turnOrderDecided) {
       const handSize = gameState.maxHandSize || 6;
       console.log(`✋ Drawing initial hand of ${handSize} cards (deck has ${deck.length} cards)`);
 
@@ -352,7 +365,7 @@ export const BattleRoute = () => {
       drawMultipleCards(handSize);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deck.length]); // Only trigger when deck length changes (deck initialized)
+  }, [deck.length, turnOrderDecided]); // Trigger when deck or turn order changes
 
   // Execute card effects
   const executeCard = useCallback((card, diceResult = null) => {
@@ -564,6 +577,27 @@ export const BattleRoute = () => {
       setPendingDiceCard(null);
     }
   }, [pendingDiceCard, executeCard]);
+
+  // ✅ Handle coin flip completion
+  const handleCoinFlipComplete = useCallback((winner) => {
+    console.log('🪙 Coin flip result:', winner);
+    setShowCoinFlip(false);
+    setTurnOrderDecided(true);
+
+    if (winner === 'enemy') {
+      setBattleLog(prev => [...prev, '🪙 Enemy won the coin flip and attacks first!']);
+      setIsEnemyTurn(true);
+      // Trigger enemy turn after a delay
+      setTimeout(() => {
+        if (performEnemyTurnRef.current) {
+          performEnemyTurnRef.current();
+        }
+      }, 1000);
+    } else {
+      setBattleLog(prev => [...prev, '🪙 You won the coin flip! Your turn to attack!']);
+      setIsEnemyTurn(false);
+    }
+  }, []);
 
   // ✅ Item usage
   const handleUseItem = useCallback((item) => {
@@ -1041,6 +1075,15 @@ export const BattleRoute = () => {
           </div>
         </div>
       </div>
+
+      {/* Coin Flip Overlay */}
+      {showCoinFlip && (
+        <CoinFlip
+          onFlipComplete={handleCoinFlipComplete}
+          playerName="YOU"
+          enemyName={currentEnemy?.name || "ENEMY"}
+        />
+      )}
 
       {/* Dice Roll Overlay */}
       {showDiceRoll && (
