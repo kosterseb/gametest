@@ -334,6 +334,9 @@ const gameReducer = (state, action) => {
     case 'HEAL_PLAYER':
       return { ...state, playerHealth: Math.min(state.maxPlayerHealth, state.playerHealth + action.amount) };
 
+    case 'UPDATE_HEALTH':
+      return { ...state, playerHealth: action.health };
+
     case 'HEAL_ENEMY':
       const enemyMaxHealth = state.currentEnemyData?.health || 70;
       return { ...state, enemyHealth: Math.min(enemyMaxHealth, state.enemyHealth + action.amount) };
@@ -634,6 +637,20 @@ const gameReducer = (state, action) => {
           bag: state.inventory.bag.map(item =>
             item?.instanceId === action.instanceId ? null : item
           )
+        }
+      };
+
+    case 'REMOVE_CONSUMABLE_FROM_TOOLBELT':
+      return {
+        ...state,
+        inventory: {
+          ...state.inventory,
+          toolBelt: {
+            ...state.inventory.toolBelt,
+            consumables: state.inventory.toolBelt.consumables.map(item =>
+              item?.instanceId === action.instanceId ? null : item
+            )
+          }
         }
       };
 

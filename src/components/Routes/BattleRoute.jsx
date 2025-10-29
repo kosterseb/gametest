@@ -546,8 +546,14 @@ export const BattleRoute = () => {
       item.effect(dispatch, gameState);
     }
 
+    // Mark as used for this battle
     setUsedConsumables(prev => [...prev, item.instanceId]);
     setBattleLog(prev => [...prev, `${item.emoji} Used ${item.name}!`]);
+
+    // Remove consumable from toolBelt inventory
+    if (item.type === 'consumable') {
+      dispatch({ type: 'REMOVE_CONSUMABLE_FROM_TOOLBELT', instanceId: item.instanceId });
+    }
   }, [usedConsumables, drawMultipleCards, dispatch, gameState]);
 
   // ✅ Handle end turn
@@ -729,6 +735,14 @@ export const BattleRoute = () => {
   useEffect(() => {
     performEnemyTurnRef.current = performEnemyTurn;
   }, [performEnemyTurn]);
+
+  // ✅ Sync local playerHealth when global health changes (from consumable use)
+  useEffect(() => {
+    if (gameState.playerHealth !== playerHealth && gameState.playerHealth > 0) {
+      console.log(`💚 Syncing health: ${playerHealth} -> ${gameState.playerHealth}`);
+      setPlayerHealth(gameState.playerHealth);
+    }
+  }, [gameState.playerHealth, playerHealth]);
 
   const handleVictory = useCallback(() => {
     setIsBattleOver(true);
