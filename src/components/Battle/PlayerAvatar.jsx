@@ -15,9 +15,12 @@ export const PlayerAvatar = ({
 
       const timer = setTimeout(() => {
         setShowHitEffect(false);
-      }, 4000);
+      }, 3500); // 3.5 seconds for visual effect
 
       return () => clearTimeout(timer);
+    } else {
+      // Immediately clear effect when attack ends
+      setShowHitEffect(false);
     }
   }, [isBeingAttacked]);
 

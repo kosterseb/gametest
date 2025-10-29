@@ -14,7 +14,7 @@ import { PageTransition } from '../UI/PageTransition';
 import { ItemButton } from '../Cards/ItemButton';
 import { DiceRoll } from '../Battle/DiceRoll';
 import { CoinFlip } from '../Battle/CoinFlip';
-import { GridBackground } from '../Battle/GridBackground';
+import { ThreeBackground } from '../Battle/ThreeBackground';
 import {
   applyStatus,
   tickStatuses,
@@ -938,13 +938,13 @@ export const BattleRoute = () => {
 
   return (
     <PageTransition>
-      {/* Grid Background */}
-      <GridBackground enemyType={getEnemyType()} />
+      {/* Three.js Background */}
+      <ThreeBackground enemyType={getEnemyType()} />
 
       <div className="h-screen overflow-hidden relative">
         <div className="max-w-7xl mx-auto h-full flex flex-col">
-          {/* Header - 8% */}
-          <div className="h-[8%] flex justify-between items-center px-4 py-2">
+          {/* Header - 10% */}
+          <div className="h-[10%] flex justify-between items-center px-4 py-2">
             <button
               onClick={handleForfeit}
               className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-lg"
@@ -959,8 +959,8 @@ export const BattleRoute = () => {
             />
           </div>
 
-          {/* Battle Area - 72% */}
-          <div className="h-[72%] flex flex-col overflow-hidden">
+          {/* Battle Area - 62% */}
+          <div className="h-[62%] flex flex-col overflow-hidden">
             <BattleField
               enemy={currentEnemy}
               enemyHealth={enemyHealth}
@@ -995,8 +995,8 @@ export const BattleRoute = () => {
             )}
           </div>
 
-          {/* Cards Area - 20% */}
-          <div className="h-[20%] bg-white bg-opacity-90 px-3 py-2 rounded-t-xl shadow-lg flex flex-col overflow-hidden">
+          {/* Cards Area - 28% */}
+          <div className="h-[28%] bg-white bg-opacity-90 px-3 py-2 rounded-t-xl shadow-lg flex flex-col overflow-hidden">
             <div className="flex justify-between items-center mb-2">
               <div>
                 <h2 className="text-lg font-bold">Your Hand ({hand.length}/{gameState.maxHandSize})</h2>
