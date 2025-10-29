@@ -32,6 +32,10 @@ export const ThreeBackground = ({ enemyType = 'normal' }) => {
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Limit pixel ratio for performance
+    renderer.domElement.style.display = 'block';
+    renderer.domElement.style.position = 'absolute';
+    renderer.domElement.style.top = '0';
+    renderer.domElement.style.left = '0';
     rendererRef.current = renderer;
     mountRef.current.appendChild(renderer.domElement);
 
@@ -152,10 +156,11 @@ export const ThreeBackground = ({ enemyType = 'normal' }) => {
         position: 'fixed',
         top: 0,
         left: 0,
-        width: '100%',
-        height: '100%',
+        width: '100vw',
+        height: '100vh',
         zIndex: -10,
-        pointerEvents: 'none'
+        pointerEvents: 'none',
+        overflow: 'hidden'
       }}
     />
   );

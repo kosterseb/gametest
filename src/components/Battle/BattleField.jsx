@@ -71,7 +71,7 @@ export const BattleField = ({
   };
 
   return (
-    <div className="bg-white bg-opacity-90 p-3 rounded-xl mb-2 shadow-lg">
+    <div className="bg-white bg-opacity-90 p-3 rounded-xl shadow-lg h-full overflow-auto">
       {/* Battle Arena */}
       <div className="grid grid-cols-3 gap-4 mb-2">
         {/* Player Side */}
@@ -174,7 +174,7 @@ export const BattleField = ({
           </div>
 
           {/* Enemy Avatar */}
-          <div className={`text-4xl ${isEnemyTurn ? 'animate-bounce' : ''}`}>
+          <div className={`text-8xl ${isEnemyTurn ? 'animate-bounce' : ''}`}>
             {getEnemyIcon()}
           </div>
 

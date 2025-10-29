@@ -26,7 +26,7 @@ export const PlayerAvatar = ({
 
   // DiceBear API URL - using notionists style
   const getAvatarUrl = () => {
-    return `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&size=180`;
+    return `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&size=240`;
   };
 
   return (
@@ -61,7 +61,7 @@ export const PlayerAvatar = ({
         <img
           src={getAvatarUrl()}
           alt="Player Avatar"
-          className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-2xl bg-gradient-to-br from-blue-400 to-purple-500"
+          className="w-48 h-48 md:w-56 md:h-56 rounded-full border-4 border-white shadow-2xl bg-gradient-to-br from-blue-400 to-purple-500"
         />
       </div>
     </div>
