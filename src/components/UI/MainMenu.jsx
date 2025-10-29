@@ -2,6 +2,7 @@ import React from 'react';
 import { useGame } from '../../context/GameContext';
 import { useRouter } from '../../hooks/useRouter';
 import { Swords, Settings } from 'lucide-react';
+import { AnimatedTitle } from './AnimatedTitle';
 
 export const MainMenu = () => {
   const { gameState, dispatch } = useGame();
@@ -17,14 +18,18 @@ export const MainMenu = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-red-500 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-red-500 flex flex-col items-center justify-center p-4">
+      {/* Animated Title */}
+      <div className="mb-8">
+        <AnimatedTitle text="CARD QUEST" />
+        <p className="text-center text-white text-xl drop-shadow-lg mt-4">
+          A Roguelike Card Adventure
+        </p>
+      </div>
+
       <div className="bg-white p-12 rounded-2xl shadow-2xl max-w-md w-full">
         <div className="text-center mb-8">
-          <Swords className="w-20 h-20 mx-auto mb-4 text-purple-600" />
-          <h1 className="text-5xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Card Quest
-          </h1>
-          <p className="text-gray-600">A Roguelike Card Adventure</p>
+          <Swords className="w-20 h-20 mx-auto text-purple-600" />
         </div>
 
         <div className="space-y-4">

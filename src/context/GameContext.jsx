@@ -59,6 +59,10 @@ const initialGameState = {
 
   gold: 0,
 
+  // Boss/Elite tracking
+  bossesDefeated: 0,
+  elitesDefeated: 0,
+
   // PHASE C: Ability Unlocks
   hasDrawAbility: false,
   hasDiscardAbility: false,
@@ -481,6 +485,12 @@ const gameReducer = (state, action) => {
         return { ...state, handSizeUpgradesPurchased: (state.handSizeUpgradesPurchased || 0) + 1 };
       }
       return state;
+
+    case 'INCREMENT_BOSSES_DEFEATED':
+      return { ...state, bossesDefeated: (state.bossesDefeated || 0) + 1 };
+
+    case 'INCREMENT_ELITES_DEFEATED':
+      return { ...state, elitesDefeated: (state.elitesDefeated || 0) + 1 };
 
     case 'APPLY_STATUS_TO_PLAYER':
       return {
