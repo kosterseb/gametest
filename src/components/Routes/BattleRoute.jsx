@@ -870,8 +870,8 @@ export const BattleRoute = () => {
     dispatch({ type: 'SET_CARD_REWARD', rarityWeights: { common: 60, rare: 30, epic: 10 } });
 
     if (currentEnemy.isBoss) {
-      // Check if this is the final boss (floor 25)
-      const isFinalBoss = gameState.currentFloor === 25;
+      // Check if this is the final boss
+      const isFinalBoss = currentEnemy.isFinalBoss === true;
 
       setTrackedTimeout(() => {
         if (isFinalBoss) {

@@ -530,6 +530,7 @@ export const finalBoss = {
   health: 200,
   goldReward: [150, 200],
   isBoss: true,
+  isFinalBoss: true,
   abilities: [
     {
       name: "Shadow Claw",
