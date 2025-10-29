@@ -478,6 +478,39 @@ const gameReducer = (state, action) => {
     case 'PURCHASE_DISCARD_ABILITY':
       return { ...state, hasDiscardAbility: true };
 
+    case 'EXPAND_BAG_SIZE':
+      return {
+        ...state,
+        inventory: {
+          ...state.inventory,
+          bag: [...state.inventory.bag, null]
+        }
+      };
+
+    case 'EXPAND_CONSUMABLE_SIZE':
+      return {
+        ...state,
+        inventory: {
+          ...state.inventory,
+          toolBelt: {
+            ...state.inventory.toolBelt,
+            consumables: [...state.inventory.toolBelt.consumables, null]
+          }
+        }
+      };
+
+    case 'EXPAND_PASSIVE_SIZE':
+      return {
+        ...state,
+        inventory: {
+          ...state.inventory,
+          toolBelt: {
+            ...state.inventory.toolBelt,
+            passives: [...state.inventory.toolBelt.passives, null]
+          }
+        }
+      };
+
     case 'TRACK_UPGRADE':
       const { upgradeType } = action;
       if (upgradeType === 'health') {

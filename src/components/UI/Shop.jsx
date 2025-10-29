@@ -21,6 +21,9 @@ export const Shop = () => {
   const handSizeUpgradePrice = 120;
   const drawAbilityPrice = 75;
   const discardAbilityPrice = 75;
+  const bagSlotPrice = 100;
+  const consumableSlotPrice = 100;
+  const passiveSlotPrice = 150;
 
   useEffect(() => {
     // Generate shop offers
@@ -190,12 +193,76 @@ export const Shop = () => {
     }
   };
 
+  // Inventory Upgrades
+  const handleBuyBagSlot = () => {
+    if (gameState.gold < bagSlotPrice) {
+      alert('Not enough gold!');
+      return;
+    }
+
+    const currentBagSize = gameState.inventory?.bag?.length || 6;
+    if (currentBagSize >= 12) {
+      alert('Maximum bag size reached!');
+      return;
+    }
+
+    if (window.confirm(`Add +1 Bag Slot for ${bagSlotPrice} gold?`)) {
+      dispatch({ type: 'SPEND_GOLD', amount: bagSlotPrice });
+      dispatch({ type: 'EXPAND_BAG_SIZE' });
+      dispatch({ type: 'ADD_BATTLE_LOG', message: `Bag size increased!` });
+    }
+  };
+
+  const handleBuyConsumableSlot = () => {
+    if (gameState.gold < consumableSlotPrice) {
+      alert('Not enough gold!');
+      return;
+    }
+
+    const currentConsumableSize = gameState.inventory?.toolBelt?.consumables?.length || 4;
+    if (currentConsumableSize >= 8) {
+      alert('Maximum consumable slots reached!');
+      return;
+    }
+
+    if (window.confirm(`Add +1 Consumable Slot for ${consumableSlotPrice} gold?`)) {
+      dispatch({ type: 'SPEND_GOLD', amount: consumableSlotPrice });
+      dispatch({ type: 'EXPAND_CONSUMABLE_SIZE' });
+      dispatch({ type: 'ADD_BATTLE_LOG', message: `Consumable slots increased!` });
+    }
+  };
+
+  const handleBuyPassiveSlot = () => {
+    if (gameState.gold < passiveSlotPrice) {
+      alert('Not enough gold!');
+      return;
+    }
+
+    const currentPassiveSize = gameState.inventory?.toolBelt?.passives?.length || 3;
+    if (currentPassiveSize >= 6) {
+      alert('Maximum passive slots reached!');
+      return;
+    }
+
+    if (window.confirm(`Add +1 Passive Slot for ${passiveSlotPrice} gold?`)) {
+      dispatch({ type: 'SPEND_GOLD', amount: passiveSlotPrice });
+      dispatch({ type: 'EXPAND_PASSIVE_SIZE' });
+      dispatch({ type: 'ADD_BATTLE_LOG', message: `Passive slots increased!` });
+    }
+  };
+
   const handleLeaveShop = () => {
     navigate('/map');
   };
 
   const playerItems = gameState.inventory?.bag?.filter(item => item !== null) || [];
   const bossesDefeated = gameState.bossesDefeated || 0;
+  const inventoryUnlocked = gameState.inventoryUpgradeUnlocked || false;
+
+  // Current inventory sizes
+  const currentBagSize = gameState.inventory?.bag?.length || 6;
+  const currentConsumableSize = gameState.inventory?.toolBelt?.consumables?.length || 4;
+  const currentPassiveSize = gameState.inventory?.toolBelt?.passives?.length || 3;
 
   // Track upgrade purchases
   const healthUpgradesPurchased = gameState.healthUpgradesPurchased || 0;
@@ -496,6 +563,109 @@ export const Shop = () => {
               </div>
             </div>
           </div>
+
+          {/* INVENTORY UPGRADES Section */}
+          {inventoryUnlocked && (
+            <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl mb-6">
+              <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 flex items-center justify-center gap-2">
+                <Package className="w-8 h-8 text-indigo-600" />
+                Inventory Upgrades
+                <span className="text-sm font-normal text-gray-600">(Unlocked at Floor 15)</span>
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Bag Slot Upgrade */}
+                <button
+                  onClick={handleBuyBagSlot}
+                  disabled={gameState.gold < bagSlotPrice || currentBagSize >= 12}
+                  className={`
+                    bg-gradient-to-br from-amber-500 to-orange-500
+                    p-6 rounded-xl border-4 border-amber-300
+                    ${(gameState.gold >= bagSlotPrice && currentBagSize < 12) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                    transition-all shadow-lg relative
+                  `}
+                >
+                  <Package className="w-12 h-12 text-white mx-auto mb-2" />
+                  <div className="text-white font-bold text-xl mb-1">+1 Bag Slot</div>
+                  <div className="text-amber-100 text-sm mb-3">Carry more items</div>
+                  <div className="text-white text-xs mb-2">Current: {currentBagSize}/12 slots</div>
+                  {currentBagSize >= 12 ? (
+                    <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
+                      ✓ Maxed Out
+                    </div>
+                  ) : (
+                    <div className={`
+                      ${gameState.gold >= bagSlotPrice ? 'bg-green-600' : 'bg-gray-600'}
+                      px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
+                    `}>
+                      <Coins className="w-4 h-4" />
+                      {bagSlotPrice}
+                    </div>
+                  )}
+                </button>
+
+                {/* Consumable Slot Upgrade */}
+                <button
+                  onClick={handleBuyConsumableSlot}
+                  disabled={gameState.gold < consumableSlotPrice || currentConsumableSize >= 8}
+                  className={`
+                    bg-gradient-to-br from-green-500 to-emerald-500
+                    p-6 rounded-xl border-4 border-green-300
+                    ${(gameState.gold >= consumableSlotPrice && currentConsumableSize < 8) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                    transition-all shadow-lg relative
+                  `}
+                >
+                  <Heart className="w-12 h-12 text-white mx-auto mb-2" />
+                  <div className="text-white font-bold text-xl mb-1">+1 Consumable Slot</div>
+                  <div className="text-green-100 text-sm mb-3">Use more consumables</div>
+                  <div className="text-white text-xs mb-2">Current: {currentConsumableSize}/8 slots</div>
+                  {currentConsumableSize >= 8 ? (
+                    <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
+                      ✓ Maxed Out
+                    </div>
+                  ) : (
+                    <div className={`
+                      ${gameState.gold >= consumableSlotPrice ? 'bg-green-600' : 'bg-gray-600'}
+                      px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
+                    `}>
+                      <Coins className="w-4 h-4" />
+                      {consumableSlotPrice}
+                    </div>
+                  )}
+                </button>
+
+                {/* Passive Slot Upgrade */}
+                <button
+                  onClick={handleBuyPassiveSlot}
+                  disabled={gameState.gold < passiveSlotPrice || currentPassiveSize >= 6}
+                  className={`
+                    bg-gradient-to-br from-purple-500 to-indigo-500
+                    p-6 rounded-xl border-4 border-purple-300
+                    ${(gameState.gold >= passiveSlotPrice && currentPassiveSize < 6) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                    transition-all shadow-lg relative
+                  `}
+                >
+                  <Zap className="w-12 h-12 text-white mx-auto mb-2" />
+                  <div className="text-white font-bold text-xl mb-1">+1 Passive Slot</div>
+                  <div className="text-purple-100 text-sm mb-3">Equip more passives</div>
+                  <div className="text-white text-xs mb-2">Current: {currentPassiveSize}/6 slots</div>
+                  {currentPassiveSize >= 6 ? (
+                    <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
+                      ✓ Maxed Out
+                    </div>
+                  ) : (
+                    <div className={`
+                      ${gameState.gold >= passiveSlotPrice ? 'bg-green-600' : 'bg-gray-600'}
+                      px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
+                    `}>
+                      <Coins className="w-4 h-4" />
+                      {passiveSlotPrice}
+                    </div>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* REMOVE CARDS Section */}
