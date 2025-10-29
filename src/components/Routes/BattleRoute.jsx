@@ -351,10 +351,10 @@ export const BattleRoute = () => {
     }
   }, [deck.length, turnOrderDecided, showCoinFlip]);
 
-  // ✅ FIXED: Draw initial hand ONLY ONCE (after turn order is decided)
+  // ✅ FIXED: Draw initial hand ONLY ONCE (after turn order is decided AND if it's player's turn)
   useEffect(() => {
-    // Guard: Only run if we have cards in deck, empty hand, haven't drawn yet, AND turn order is decided
-    if (deck.length > 0 && hand.length === 0 && !initialHandDrawn.current && turnOrderDecided) {
+    // Guard: Only run if we have cards in deck, empty hand, haven't drawn yet, turn order is decided, AND it's not enemy's turn
+    if (deck.length > 0 && hand.length === 0 && !initialHandDrawn.current && turnOrderDecided && !isEnemyTurn) {
       const handSize = gameState.maxHandSize || 6;
       console.log(`✋ Drawing initial hand of ${handSize} cards (deck has ${deck.length} cards)`);
 
@@ -365,7 +365,7 @@ export const BattleRoute = () => {
       drawMultipleCards(handSize);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deck.length, turnOrderDecided]); // Trigger when deck or turn order changes
+  }, [deck.length, turnOrderDecided, isEnemyTurn]); // Trigger when deck, turn order, or enemy turn changes
 
   // Execute card effects
   const executeCard = useCallback((card, diceResult = null) => {
