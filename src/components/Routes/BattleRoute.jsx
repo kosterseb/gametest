@@ -188,6 +188,10 @@ export const BattleRoute = () => {
   // ✅ Track used consumables
   const [usedConsumables, setUsedConsumables] = useState([]);
 
+  // ✅ Track boss ability usage (once per turn)
+  const [hasUsedDrawAbility, setHasUsedDrawAbility] = useState(false);
+  const [hasUsedDiscardAbility, setHasUsedDiscardAbility] = useState(false);
+
   // If no enemy, redirect to map
   useEffect(() => {
     if (!currentEnemy) {
@@ -736,6 +740,9 @@ export const BattleRoute = () => {
       setPlayerEnergy(maxEnergy);
       drawMultipleCards(gameState.maxHandSize || 6);
       setIsEnemyTurn(false);
+      // Reset boss ability usage for new turn
+      setHasUsedDrawAbility(false);
+      setHasUsedDiscardAbility(false);
     }, 1500);
   }, [currentEnemy, enemyStatuses, maxEnergy, playerStatuses, gameState.maxHandSize, drawMultipleCards, setTrackedTimeout, dispatch]);
 
@@ -932,49 +939,55 @@ export const BattleRoute = () => {
                 {gameState.hasDrawAbility && (
                   <button
                     onClick={() => {
-                      if (playerEnergy >= 3) {
+                      if (hasUsedDrawAbility) {
+                        setBattleLog(prev => [...prev, '⚠️ Already used Draw Card this turn!']);
+                      } else if (playerEnergy >= 3) {
                         setPlayerEnergy(prev => prev - 3);
                         drawCard();
+                        setHasUsedDrawAbility(true);
                         setBattleLog(prev => [...prev, '🎴 Drew 1 card for 3 energy']);
                       } else {
                         setBattleLog(prev => [...prev, '⚠️ Not enough energy to draw!']);
                       }
                     }}
-                    disabled={isEnemyTurn || isBattleOver || playerEnergy < 3}
+                    disabled={isEnemyTurn || isBattleOver || playerEnergy < 3 || hasUsedDrawAbility}
                     className={`
                       px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all
-                      ${playerEnergy >= 3 && !isEnemyTurn && !isBattleOver
+                      ${playerEnergy >= 3 && !isEnemyTurn && !isBattleOver && !hasUsedDrawAbility
                         ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
                         : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'}
                     `}
                   >
                     <span className="text-xl">🎴</span>
-                    Draw Card (3⚡)
+                    Draw Card (3⚡) {hasUsedDrawAbility && '✓'}
                   </button>
                 )}
 
                 {gameState.hasDiscardAbility && (
                   <button
                     onClick={() => {
-                      if (hand.length > 0) {
+                      if (hasUsedDiscardAbility) {
+                        setBattleLog(prev => [...prev, '⚠️ Already used Discard this turn!']);
+                      } else if (hand.length > 0) {
                         const cardToDiscard = hand[0];
                         dispatchCardState({ type: 'PLAY_CARD', card: cardToDiscard });
                         setPlayerEnergy(prev => prev + 1);
+                        setHasUsedDiscardAbility(true);
                         setBattleLog(prev => [...prev, `🗑️ Discarded ${cardToDiscard.name} for 1 energy`]);
                       } else {
                         setBattleLog(prev => [...prev, '⚠️ No cards to discard!']);
                       }
                     }}
-                    disabled={isEnemyTurn || isBattleOver || hand.length === 0}
+                    disabled={isEnemyTurn || isBattleOver || hand.length === 0 || hasUsedDiscardAbility}
                     className={`
                       px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all
-                      ${hand.length > 0 && !isEnemyTurn && !isBattleOver
+                      ${hand.length > 0 && !isEnemyTurn && !isBattleOver && !hasUsedDiscardAbility
                         ? 'bg-orange-600 hover:bg-orange-700 text-white cursor-pointer'
                         : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'}
                     `}
                   >
                     <span className="text-xl">🗑️</span>
-                    Discard for Energy
+                    Discard for Energy {hasUsedDiscardAbility && '✓'}
                   </button>
                 )}
               </div>
