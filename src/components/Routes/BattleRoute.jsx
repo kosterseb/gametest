@@ -14,7 +14,7 @@ import { PageTransition } from '../UI/PageTransition';
 import { ItemButton } from '../Cards/ItemButton';
 import { DiceRoll } from '../Battle/DiceRoll';
 import { CoinFlip } from '../Battle/CoinFlip';
-import { SpaceBackground } from '../Battle/SpaceBackground';
+import { GridBackground } from '../Battle/GridBackground';
 import {
   applyStatus,
   tickStatuses,
@@ -202,6 +202,9 @@ export const BattleRoute = () => {
   // ✅ Track coin flip state
   const [showCoinFlip, setShowCoinFlip] = useState(false);
   const [turnOrderDecided, setTurnOrderDecided] = useState(false);
+
+  // ✅ Track attack animation pause
+  const [isAttackAnimationPlaying, setIsAttackAnimationPlaying] = useState(false);
 
   // If no enemy, redirect to map
   useEffect(() => {
@@ -935,13 +938,13 @@ export const BattleRoute = () => {
 
   return (
     <PageTransition>
-      {/* Space Background */}
-      <SpaceBackground enemyType={getEnemyType()} />
+      {/* Grid Background */}
+      <GridBackground enemyType={getEnemyType()} />
 
       <div className="h-screen overflow-hidden relative">
         <div className="max-w-7xl mx-auto h-full flex flex-col">
-          {/* Header - 10% */}
-          <div className="h-[10%] flex justify-between items-center px-4 py-2">
+          {/* Header - 8% */}
+          <div className="h-[8%] flex justify-between items-center px-4 py-2">
             <button
               onClick={handleForfeit}
               className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-lg"
@@ -956,8 +959,8 @@ export const BattleRoute = () => {
             />
           </div>
 
-          {/* Battle Area - 65% */}
-          <div className="h-[65%] flex flex-col overflow-hidden">
+          {/* Battle Area - 72% */}
+          <div className="h-[72%] flex flex-col overflow-hidden">
             <BattleField
               enemy={currentEnemy}
               enemyHealth={enemyHealth}
@@ -970,6 +973,8 @@ export const BattleRoute = () => {
               maxEnergy={maxEnergy}
               playerStatuses={playerStatuses}
               enemyStatuses={enemyStatuses}
+              avatarSeed={gameState.profile?.avatarSeed || 'default'}
+              onAttackAnimationChange={setIsAttackAnimationPlaying}
             />
 
             {equippedConsumables.length > 0 && (
@@ -981,7 +986,7 @@ export const BattleRoute = () => {
                       key={index}
                       item={item}
                       onUse={handleUseItem}
-                      disabled={isEnemyTurn}
+                      disabled={isEnemyTurn || isAttackAnimationPlaying}
                       isUsed={usedConsumables.includes(item.instanceId)}
                     />
                   ))}
@@ -990,18 +995,18 @@ export const BattleRoute = () => {
             )}
           </div>
 
-          {/* Cards Area - 25% */}
-          <div className="h-[25%] bg-white bg-opacity-90 px-3 py-2 rounded-t-xl shadow-lg flex flex-col overflow-hidden">
+          {/* Cards Area - 20% */}
+          <div className="h-[20%] bg-white bg-opacity-90 px-3 py-2 rounded-t-xl shadow-lg flex flex-col overflow-hidden">
             <div className="flex justify-between items-center mb-2">
               <div>
                 <h2 className="text-lg font-bold">Your Hand ({hand.length}/{gameState.maxHandSize})</h2>
               </div>
               <button
                 onClick={handleEndTurn}
-                disabled={isEnemyTurn}
+                disabled={isEnemyTurn || isAttackAnimationPlaying}
                 className={`
                   px-4 py-2 rounded-lg font-bold text-sm transition-all
-                  ${isEnemyTurn
+                  ${isEnemyTurn || isAttackAnimationPlaying
                     ? 'bg-gray-400 cursor-not-allowed text-gray-600'
                     : 'bg-red-600 hover:bg-red-700 text-white shadow-lg hover:scale-105'}
                 `}
@@ -1027,10 +1032,10 @@ export const BattleRoute = () => {
                         setBattleLog(prev => [...prev, '⚠️ Not enough energy to draw!']);
                       }
                     }}
-                    disabled={isEnemyTurn || isBattleOver || playerEnergy < 3 || hasUsedDrawAbility}
+                    disabled={isEnemyTurn || isBattleOver || playerEnergy < 3 || hasUsedDrawAbility || isAttackAnimationPlaying}
                     className={`
                       px-3 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1 transition-all
-                      ${playerEnergy >= 3 && !isEnemyTurn && !isBattleOver && !hasUsedDrawAbility
+                      ${playerEnergy >= 3 && !isEnemyTurn && !isBattleOver && !hasUsedDrawAbility && !isAttackAnimationPlaying
                         ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
                         : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'}
                     `}
@@ -1055,10 +1060,10 @@ export const BattleRoute = () => {
                         setBattleLog(prev => [...prev, '⚠️ No cards to discard!']);
                       }
                     }}
-                    disabled={isEnemyTurn || isBattleOver || hand.length === 0 || hasUsedDiscardAbility}
+                    disabled={isEnemyTurn || isBattleOver || hand.length === 0 || hasUsedDiscardAbility || isAttackAnimationPlaying}
                     className={`
                       px-3 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1 transition-all
-                      ${hand.length > 0 && !isEnemyTurn && !isBattleOver && !hasUsedDiscardAbility
+                      ${hand.length > 0 && !isEnemyTurn && !isBattleOver && !hasUsedDiscardAbility && !isAttackAnimationPlaying
                         ? 'bg-orange-600 hover:bg-orange-700 text-white cursor-pointer'
                         : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'}
                     `}
@@ -1075,8 +1080,8 @@ export const BattleRoute = () => {
                 <Card
                   key={card.id}
                   card={card}
-                  onClick={() => !isEnemyTurn && !isBattleOver && handleCardPlay(card)}
-                  disabled={isEnemyTurn || isBattleOver}
+                  onClick={() => !isEnemyTurn && !isBattleOver && !isAttackAnimationPlaying && handleCardPlay(card)}
+                  disabled={isEnemyTurn || isBattleOver || isAttackAnimationPlaying}
                   playerEnergy={playerEnergy}
                   playerStatuses={playerStatuses}
                   compact={true}

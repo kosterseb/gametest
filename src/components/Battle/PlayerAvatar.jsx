@@ -6,54 +6,24 @@ export const PlayerAvatar = ({
   isBeingAttacked = false,
   seed = 'player'
 }) => {
-  const [expression, setExpression] = useState('happy');
   const [showHitEffect, setShowHitEffect] = useState(false);
 
-  // Update expression based on health
-  useEffect(() => {
-    const healthPercent = (playerHealth / maxPlayerHealth) * 100;
-    if (healthPercent > 70) {
-      setExpression('happy');
-    } else if (healthPercent > 40) {
-      setExpression('default');
-    } else {
-      setExpression('sad');
-    }
-  }, [playerHealth, maxPlayerHealth]);
-
-  // Show hurt expression when attacked
+  // Show hurt effect when attacked
   useEffect(() => {
     if (isBeingAttacked) {
-      setExpression('sad');
       setShowHitEffect(true);
 
       const timer = setTimeout(() => {
         setShowHitEffect(false);
-        // Revert expression after 4 seconds
-        const healthPercent = (playerHealth / maxPlayerHealth) * 100;
-        if (healthPercent > 70) {
-          setExpression('happy');
-        } else if (healthPercent > 40) {
-          setExpression('default');
-        }
       }, 4000);
 
       return () => clearTimeout(timer);
     }
-  }, [isBeingAttacked, playerHealth, maxPlayerHealth]);
+  }, [isBeingAttacked]);
 
-  // DiceBear API URL - using "avataaars" style which supports expressions
-  // We use mood parameter to change expressions
+  // DiceBear API URL - using notionists style
   const getAvatarUrl = () => {
-    const style = 'avataaars';
-    const moodMap = {
-      'happy': 'happy',
-      'default': 'default',
-      'sad': 'sad'
-    };
-    const mood = moodMap[expression] || 'default';
-
-    return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&mood=${mood}&size=180`;
+    return `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&size=180`;
   };
 
   return (

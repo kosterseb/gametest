@@ -14,7 +14,9 @@ export const BattleField = ({
   playerEnergy,
   maxEnergy,
   playerStatuses = [],
-  enemyStatuses = []
+  enemyStatuses = [],
+  avatarSeed = 'default',
+  onAttackAnimationChange = () => {}
 }) => {
   const [isPlayerBeingAttacked, setIsPlayerBeingAttacked] = useState(false);
   const [prevPlayerHealth, setPrevPlayerHealth] = useState(playerHealth);
@@ -23,13 +25,25 @@ export const BattleField = ({
   useEffect(() => {
     if (playerHealth < prevPlayerHealth) {
       setIsPlayerBeingAttacked(true);
-      const timer = setTimeout(() => {
+      onAttackAnimationChange(true); // Notify parent that animation started
+
+      // 3 seconds of animation pause
+      const pauseTimer = setTimeout(() => {
+        onAttackAnimationChange(false); // Animation pause complete
+      }, 3000);
+
+      // 4 seconds total for full visual effect
+      const fullTimer = setTimeout(() => {
         setIsPlayerBeingAttacked(false);
       }, 4000);
-      return () => clearTimeout(timer);
+
+      return () => {
+        clearTimeout(pauseTimer);
+        clearTimeout(fullTimer);
+      };
     }
     setPrevPlayerHealth(playerHealth);
-  }, [playerHealth, prevPlayerHealth]);
+  }, [playerHealth, prevPlayerHealth, onAttackAnimationChange]);
 
   // Safety checks
   if (!enemy) {
@@ -69,7 +83,7 @@ export const BattleField = ({
             playerHealth={playerHealth}
             maxPlayerHealth={maxPlayerHealth}
             isBeingAttacked={isPlayerBeingAttacked}
-            seed="battle-hero"
+            seed={avatarSeed}
           />
 
           {/* Player Health Bar */}
