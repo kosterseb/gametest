@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, Zap, Skull, Swords } from 'lucide-react';
 import { StatusDisplay } from './StatusDisplay';
+import { PlayerAvatar } from './PlayerAvatar';
 
-export const BattleField = ({ 
-  enemy, 
-  enemyHealth, 
-  maxEnemyHealth, 
-  isEnemyTurn, 
+export const BattleField = ({
+  enemy,
+  enemyHealth,
+  maxEnemyHealth,
+  isEnemyTurn,
   battleLog = [],
   playerHealth,
   maxPlayerHealth,
@@ -15,6 +16,21 @@ export const BattleField = ({
   playerStatuses = [],
   enemyStatuses = []
 }) => {
+  const [isPlayerBeingAttacked, setIsPlayerBeingAttacked] = useState(false);
+  const [prevPlayerHealth, setPrevPlayerHealth] = useState(playerHealth);
+
+  // Detect when player is being attacked (health decreases)
+  useEffect(() => {
+    if (playerHealth < prevPlayerHealth) {
+      setIsPlayerBeingAttacked(true);
+      const timer = setTimeout(() => {
+        setIsPlayerBeingAttacked(false);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+    setPrevPlayerHealth(playerHealth);
+  }, [playerHealth, prevPlayerHealth]);
+
   // Safety checks
   if (!enemy) {
     return <div className="text-center p-8">Loading battle...</div>;
@@ -48,8 +64,13 @@ export const BattleField = ({
         <div className="flex flex-col items-center space-y-2">
           <div className="text-lg font-bold text-blue-600">YOU</div>
 
-          {/* Player Avatar Placeholder */}
-          <div className="text-4xl">🧙‍♂️</div>
+          {/* Player Avatar */}
+          <PlayerAvatar
+            playerHealth={playerHealth}
+            maxPlayerHealth={maxPlayerHealth}
+            isBeingAttacked={isPlayerBeingAttacked}
+            seed="battle-hero"
+          />
 
           {/* Player Health Bar */}
           <div className="w-full">
