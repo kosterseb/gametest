@@ -143,6 +143,7 @@ export const BattleRoute = () => {
   const deckInitialized = useRef(false);
   const initialHandDrawn = useRef(false);
   const isDrawingCards = useRef(false); // Prevent concurrent draws
+  const lastSyncedHealth = useRef(0); // Track last synced health value
 
   // ✅ Track all timeouts for cleanup
   const timeoutsRef = useRef([]);
@@ -155,6 +156,13 @@ export const BattleRoute = () => {
   const [maxPlayerHealth] = useState(gameState.maxPlayerHealth || 100);
   const [enemyHealth, setEnemyHealth] = useState(currentEnemy?.health || 100);
   const [maxEnemyHealth] = useState(currentEnemy?.health || 100);
+
+  // Initialize lastSyncedHealth with starting health
+  useEffect(() => {
+    if (lastSyncedHealth.current === 0) {
+      lastSyncedHealth.current = gameState.playerHealth || 100;
+    }
+  }, [gameState.playerHealth]);
 
   const [playerEnergy, setPlayerEnergy] = useState(gameState.maxEnergy || 10);
   const [maxEnergy] = useState(gameState.maxEnergy || 10);
@@ -736,11 +744,16 @@ export const BattleRoute = () => {
     performEnemyTurnRef.current = performEnemyTurn;
   }, [performEnemyTurn]);
 
-  // ✅ Sync local playerHealth when global health changes (from consumable use)
+  // ✅ Sync local playerHealth when global health INCREASES (from consumable use)
   useEffect(() => {
-    if (gameState.playerHealth !== playerHealth && gameState.playerHealth > 0) {
-      console.log(`💚 Syncing health: ${playerHealth} -> ${gameState.playerHealth}`);
+    // Only sync if global health increased (healing from consumable)
+    if (gameState.playerHealth > lastSyncedHealth.current && gameState.playerHealth > playerHealth) {
+      console.log(`💚 Healing: ${playerHealth} -> ${gameState.playerHealth}`);
       setPlayerHealth(gameState.playerHealth);
+      lastSyncedHealth.current = gameState.playerHealth;
+    } else if (gameState.playerHealth !== lastSyncedHealth.current) {
+      // Update ref but don't override local battle health
+      lastSyncedHealth.current = gameState.playerHealth;
     }
   }, [gameState.playerHealth, playerHealth]);
 
