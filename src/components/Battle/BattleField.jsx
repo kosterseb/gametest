@@ -40,8 +40,6 @@ export const BattleField = ({
         setIsPlayerBeingAttacked(false);
       }, 2000);
 
-      setPrevPlayerHealth(playerHealth);
-
       return () => {
         clearTimeout(pauseTimer);
         clearTimeout(fullTimer);
@@ -62,14 +60,17 @@ export const BattleField = ({
         setIsPlayerHealing(false);
       }, 2000);
 
-      setPrevPlayerHealth(playerHealth);
-
       return () => {
         clearTimeout(pauseTimer);
         clearTimeout(fullTimer);
       };
     }
-  }, [playerHealth, onAttackAnimationChange]); // Removed prevPlayerHealth from dependencies to prevent retrigger bug
+  }, [playerHealth, onAttackAnimationChange]);
+
+  // Update previous health separately to avoid retrigger loop
+  useEffect(() => {
+    setPrevPlayerHealth(playerHealth);
+  }, [playerHealth]);
 
   // Safety checks
   if (!enemy) {
