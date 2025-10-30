@@ -947,7 +947,7 @@ export const BattleRoute = () => {
       <div className="h-screen overflow-hidden relative">
         <div className="max-w-7xl mx-auto h-full flex flex-col gap-2 p-2">
           {/* Header - 10% */}
-          <div className="h-[10%] bg-white bg-opacity-75 rounded-xl shadow-lg flex justify-between items-center px-4 py-2">
+          <div className="h-[10%] bg-white bg-opacity-45 rounded-xl shadow-lg flex justify-between items-center px-4 py-2">
             <GameHeader
               battleNumber={gameState.currentFloor}
               gold={gameState.gold}
@@ -975,7 +975,7 @@ export const BattleRoute = () => {
             />
 
             {equippedConsumables.length > 0 && (
-              <div className="bg-white bg-opacity-75 p-2 rounded-xl shadow-lg">
+              <div className="bg-white bg-opacity-45 p-2 rounded-xl shadow-lg">
                 <div className="flex justify-between items-center mb-1">
                   <h3 className="text-xs font-bold">⚡ Battle Items ({equippedConsumables.length})</h3>
                   <button
@@ -1003,7 +1003,7 @@ export const BattleRoute = () => {
           </div>
 
           {/* Cards Area - 28% */}
-          <div className="h-[28%] bg-white bg-opacity-75 px-3 py-2 rounded-xl shadow-lg flex flex-col overflow-hidden">
+          <div className="h-[28%] bg-white bg-opacity-45 px-3 py-2 rounded-xl shadow-lg flex flex-col overflow-hidden">
             <div className="flex justify-between items-center mb-2">
               <div>
                 <h2 className="text-lg font-bold">Your Hand ({hand.length}/{gameState.maxHandSize})</h2>

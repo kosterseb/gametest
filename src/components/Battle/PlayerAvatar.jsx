@@ -33,7 +33,7 @@ export const PlayerAvatar = ({
 
       const timer = setTimeout(() => {
         setShowHealEffect(false);
-      }, 1000); // 1 second for heal effect
+      }, 3500); // 3.5 seconds for heal effect (matching damage timing)
 
       return () => clearTimeout(timer);
     }

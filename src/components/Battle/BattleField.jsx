@@ -46,12 +46,22 @@ export const BattleField = ({
     } else if (playerHealth > prevPlayerHealth) {
       // Player healed
       setIsPlayerHealing(true);
+      onAttackAnimationChange(true); // Notify parent that heal animation started
 
-      const timer = setTimeout(() => {
+      // 3 seconds of animation pause (matching damage)
+      const pauseTimer = setTimeout(() => {
+        onAttackAnimationChange(false); // Animation pause complete
+      }, 3000);
+
+      // 4 seconds total for full visual effect
+      const fullTimer = setTimeout(() => {
         setIsPlayerHealing(false);
-      }, 1000);
+      }, 4000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(pauseTimer);
+        clearTimeout(fullTimer);
+      };
     }
     setPrevPlayerHealth(playerHealth);
   }, [playerHealth, prevPlayerHealth, onAttackAnimationChange]);
@@ -82,7 +92,7 @@ export const BattleField = ({
   };
 
   return (
-    <div className="bg-white bg-opacity-75 p-3 rounded-xl shadow-lg h-full overflow-auto">
+    <div className="bg-white bg-opacity-45 p-3 rounded-xl shadow-lg h-full overflow-auto">
       {/* Battle Arena */}
       <div className="grid grid-cols-3 gap-4 mb-2">
         {/* Player Side */}
