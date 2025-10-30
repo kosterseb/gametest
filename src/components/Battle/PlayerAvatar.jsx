@@ -14,10 +14,11 @@ export const PlayerAvatar = ({
   useEffect(() => {
     if (isBeingAttacked) {
       setShowHitEffect(true);
+      setShowHealEffect(false); // Ensure heal effect is off
 
       const timer = setTimeout(() => {
         setShowHitEffect(false);
-      }, 3500); // 3.5 seconds for visual effect
+      }, 2000); // 2 seconds for visual effect
 
       return () => clearTimeout(timer);
     } else {
@@ -30,10 +31,11 @@ export const PlayerAvatar = ({
   useEffect(() => {
     if (isHealing) {
       setShowHealEffect(true);
+      setShowHitEffect(false); // Ensure damage effect is off
 
       const timer = setTimeout(() => {
         setShowHealEffect(false);
-      }, 3500); // 3.5 seconds for heal effect (matching damage timing)
+      }, 2000); // 2 seconds for heal effect (matching damage timing)
 
       return () => clearTimeout(timer);
     }

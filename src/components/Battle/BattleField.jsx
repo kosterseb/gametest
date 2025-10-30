@@ -27,17 +27,20 @@ export const BattleField = ({
     if (playerHealth < prevPlayerHealth) {
       // Player took damage
       setIsPlayerBeingAttacked(true);
+      setIsPlayerHealing(false); // Ensure heal effect is off
       onAttackAnimationChange(true); // Notify parent that animation started
 
-      // 3 seconds of animation pause
+      // 1.5 seconds of animation pause
       const pauseTimer = setTimeout(() => {
         onAttackAnimationChange(false); // Animation pause complete
-      }, 3000);
+      }, 1500);
 
-      // 4 seconds total for full visual effect
+      // 2 seconds total for full visual effect
       const fullTimer = setTimeout(() => {
         setIsPlayerBeingAttacked(false);
-      }, 4000);
+      }, 2000);
+
+      setPrevPlayerHealth(playerHealth);
 
       return () => {
         clearTimeout(pauseTimer);
@@ -46,25 +49,27 @@ export const BattleField = ({
     } else if (playerHealth > prevPlayerHealth) {
       // Player healed
       setIsPlayerHealing(true);
+      setIsPlayerBeingAttacked(false); // Ensure damage effect is off
       onAttackAnimationChange(true); // Notify parent that heal animation started
 
-      // 3 seconds of animation pause (matching damage)
+      // 1.5 seconds of animation pause
       const pauseTimer = setTimeout(() => {
         onAttackAnimationChange(false); // Animation pause complete
-      }, 3000);
+      }, 1500);
 
-      // 4 seconds total for full visual effect
+      // 2 seconds total for full visual effect
       const fullTimer = setTimeout(() => {
         setIsPlayerHealing(false);
-      }, 4000);
+      }, 2000);
+
+      setPrevPlayerHealth(playerHealth);
 
       return () => {
         clearTimeout(pauseTimer);
         clearTimeout(fullTimer);
       };
     }
-    setPrevPlayerHealth(playerHealth);
-  }, [playerHealth, prevPlayerHealth, onAttackAnimationChange]);
+  }, [playerHealth, onAttackAnimationChange]); // Removed prevPlayerHealth from dependencies to prevent retrigger bug
 
   // Safety checks
   if (!enemy) {
