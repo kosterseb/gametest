@@ -21,25 +21,33 @@ export const BattleField = ({
   const [isPlayerBeingAttacked, setIsPlayerBeingAttacked] = useState(false);
   const [isPlayerHealing, setIsPlayerHealing] = useState(false);
   const prevPlayerHealthRef = useRef(playerHealth);
+  const animationInProgressRef = useRef(false);
 
   // Detect when player is being attacked (health decreases) or healing (health increases)
   useEffect(() => {
     const prevHealth = prevPlayerHealthRef.current;
 
+    // Only trigger if health actually changed AND no animation is already playing
+    if (playerHealth === prevHealth || animationInProgressRef.current) {
+      return;
+    }
+
     if (playerHealth < prevHealth) {
       // Player took damage
+      console.log('🩸 Damage detected:', prevHealth, '->', playerHealth);
+      animationInProgressRef.current = true;
       setIsPlayerBeingAttacked(true);
-      setIsPlayerHealing(false); // Ensure heal effect is off
-      onAttackAnimationChange(true); // Notify parent that animation started
+      setIsPlayerHealing(false);
+      onAttackAnimationChange(true);
+      prevPlayerHealthRef.current = playerHealth; // Update ref immediately
 
-      // 1.5 seconds of animation pause
       const pauseTimer = setTimeout(() => {
-        onAttackAnimationChange(false); // Animation pause complete
+        onAttackAnimationChange(false);
       }, 1500);
 
-      // 2 seconds total for full visual effect
       const fullTimer = setTimeout(() => {
         setIsPlayerBeingAttacked(false);
+        animationInProgressRef.current = false;
       }, 2000);
 
       return () => {
@@ -48,18 +56,20 @@ export const BattleField = ({
       };
     } else if (playerHealth > prevHealth) {
       // Player healed
+      console.log('💚 Healing detected:', prevHealth, '->', playerHealth);
+      animationInProgressRef.current = true;
       setIsPlayerHealing(true);
-      setIsPlayerBeingAttacked(false); // Ensure damage effect is off
-      onAttackAnimationChange(true); // Notify parent that heal animation started
+      setIsPlayerBeingAttacked(false);
+      onAttackAnimationChange(true);
+      prevPlayerHealthRef.current = playerHealth; // Update ref immediately
 
-      // 1.5 seconds of animation pause
       const pauseTimer = setTimeout(() => {
-        onAttackAnimationChange(false); // Animation pause complete
+        onAttackAnimationChange(false);
       }, 1500);
 
-      // 2 seconds total for full visual effect
       const fullTimer = setTimeout(() => {
         setIsPlayerHealing(false);
+        animationInProgressRef.current = false;
       }, 2000);
 
       return () => {
@@ -67,9 +77,6 @@ export const BattleField = ({
         clearTimeout(fullTimer);
       };
     }
-
-    // Update ref for next comparison (doesn't cause re-render)
-    prevPlayerHealthRef.current = playerHealth;
   }, [playerHealth, onAttackAnimationChange]);
 
   // Safety checks

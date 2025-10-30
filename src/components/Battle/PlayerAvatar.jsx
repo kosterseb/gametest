@@ -13,27 +13,28 @@ export const PlayerAvatar = ({
   // Show hurt effect when attacked
   useEffect(() => {
     if (isBeingAttacked) {
+      console.log('🩸 Avatar: Showing damage effect');
       setShowHitEffect(true);
       setShowHealEffect(false); // Ensure heal effect is off
 
       const timer = setTimeout(() => {
+        console.log('🩸 Avatar: Clearing damage effect');
         setShowHitEffect(false);
       }, 2000); // 2 seconds for visual effect
 
       return () => clearTimeout(timer);
-    } else {
-      // Immediately clear effect when attack ends
-      setShowHitEffect(false);
     }
   }, [isBeingAttacked]);
 
   // Show heal effect when healing
   useEffect(() => {
     if (isHealing) {
+      console.log('💚 Avatar: Showing heal effect');
       setShowHealEffect(true);
       setShowHitEffect(false); // Ensure damage effect is off
 
       const timer = setTimeout(() => {
+        console.log('💚 Avatar: Clearing heal effect');
         setShowHealEffect(false);
       }, 2000); // 2 seconds for heal effect (matching damage timing)
 
