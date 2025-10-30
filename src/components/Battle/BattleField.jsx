@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Heart, Zap, Skull, Swords } from 'lucide-react';
 import { StatusDisplay } from './StatusDisplay';
 import { PlayerAvatar } from './PlayerAvatar';
@@ -20,11 +20,13 @@ export const BattleField = ({
 }) => {
   const [isPlayerBeingAttacked, setIsPlayerBeingAttacked] = useState(false);
   const [isPlayerHealing, setIsPlayerHealing] = useState(false);
-  const [prevPlayerHealth, setPrevPlayerHealth] = useState(playerHealth);
+  const prevPlayerHealthRef = useRef(playerHealth);
 
   // Detect when player is being attacked (health decreases) or healing (health increases)
   useEffect(() => {
-    if (playerHealth < prevPlayerHealth) {
+    const prevHealth = prevPlayerHealthRef.current;
+
+    if (playerHealth < prevHealth) {
       // Player took damage
       setIsPlayerBeingAttacked(true);
       setIsPlayerHealing(false); // Ensure heal effect is off
@@ -44,7 +46,7 @@ export const BattleField = ({
         clearTimeout(pauseTimer);
         clearTimeout(fullTimer);
       };
-    } else if (playerHealth > prevPlayerHealth) {
+    } else if (playerHealth > prevHealth) {
       // Player healed
       setIsPlayerHealing(true);
       setIsPlayerBeingAttacked(false); // Ensure damage effect is off
@@ -65,12 +67,10 @@ export const BattleField = ({
         clearTimeout(fullTimer);
       };
     }
-  }, [playerHealth, onAttackAnimationChange]);
 
-  // Update previous health separately to avoid retrigger loop
-  useEffect(() => {
-    setPrevPlayerHealth(playerHealth);
-  }, [playerHealth]);
+    // Update ref for next comparison (doesn't cause re-render)
+    prevPlayerHealthRef.current = playerHealth;
+  }, [playerHealth, onAttackAnimationChange]);
 
   // Safety checks
   if (!enemy) {
