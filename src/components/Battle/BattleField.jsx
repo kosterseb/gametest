@@ -19,11 +19,13 @@ export const BattleField = ({
   onAttackAnimationChange = () => {}
 }) => {
   const [isPlayerBeingAttacked, setIsPlayerBeingAttacked] = useState(false);
+  const [isPlayerHealing, setIsPlayerHealing] = useState(false);
   const [prevPlayerHealth, setPrevPlayerHealth] = useState(playerHealth);
 
-  // Detect when player is being attacked (health decreases)
+  // Detect when player is being attacked (health decreases) or healing (health increases)
   useEffect(() => {
     if (playerHealth < prevPlayerHealth) {
+      // Player took damage
       setIsPlayerBeingAttacked(true);
       onAttackAnimationChange(true); // Notify parent that animation started
 
@@ -41,6 +43,15 @@ export const BattleField = ({
         clearTimeout(pauseTimer);
         clearTimeout(fullTimer);
       };
+    } else if (playerHealth > prevPlayerHealth) {
+      // Player healed
+      setIsPlayerHealing(true);
+
+      const timer = setTimeout(() => {
+        setIsPlayerHealing(false);
+      }, 1000);
+
+      return () => clearTimeout(timer);
     }
     setPrevPlayerHealth(playerHealth);
   }, [playerHealth, prevPlayerHealth, onAttackAnimationChange]);
@@ -71,7 +82,7 @@ export const BattleField = ({
   };
 
   return (
-    <div className="bg-white bg-opacity-90 p-3 rounded-xl shadow-lg h-full overflow-auto">
+    <div className="bg-white bg-opacity-75 p-3 rounded-xl shadow-lg h-full overflow-auto">
       {/* Battle Arena */}
       <div className="grid grid-cols-3 gap-4 mb-2">
         {/* Player Side */}
@@ -83,6 +94,7 @@ export const BattleField = ({
             playerHealth={playerHealth}
             maxPlayerHealth={maxPlayerHealth}
             isBeingAttacked={isPlayerBeingAttacked}
+            isHealing={isPlayerHealing}
             seed={avatarSeed}
           />
 

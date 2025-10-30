@@ -4,9 +4,11 @@ export const PlayerAvatar = ({
   playerHealth,
   maxPlayerHealth,
   isBeingAttacked = false,
+  isHealing = false,
   seed = 'player'
 }) => {
   const [showHitEffect, setShowHitEffect] = useState(false);
+  const [showHealEffect, setShowHealEffect] = useState(false);
 
   // Show hurt effect when attacked
   useEffect(() => {
@@ -23,6 +25,19 @@ export const PlayerAvatar = ({
       setShowHitEffect(false);
     }
   }, [isBeingAttacked]);
+
+  // Show heal effect when healing
+  useEffect(() => {
+    if (isHealing) {
+      setShowHealEffect(true);
+
+      const timer = setTimeout(() => {
+        setShowHealEffect(false);
+      }, 1000); // 1 second for heal effect
+
+      return () => clearTimeout(timer);
+    }
+  }, [isHealing]);
 
   // DiceBear API URL - using notionists style
   const getAvatarUrl = () => {
@@ -53,10 +68,49 @@ export const PlayerAvatar = ({
         </div>
       )}
 
+      {/* Heal effect overlay */}
+      {showHealEffect && (
+        <div className="absolute inset-0 pointer-events-none z-20">
+          {/* Green glow */}
+          <div className="absolute inset-0 bg-green-400 opacity-40 rounded-full animate-pulse"
+               style={{ animationDuration: '0.6s' }}></div>
+
+          {/* Healing sparkles */}
+          {[...Array(12)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 bg-green-300 rounded-full animate-ping"
+              style={{
+                left: `${50 + Math.cos((i * Math.PI * 2) / 12) * 30}%`,
+                top: `${50 + Math.sin((i * Math.PI * 2) / 12) * 30}%`,
+                animationDelay: `${i * 0.08}s`,
+                animationDuration: '0.8s'
+              }}
+            />
+          ))}
+
+          {/* Plus symbols floating up */}
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={`plus-${i}`}
+              className="absolute text-green-400 font-bold text-2xl opacity-80"
+              style={{
+                left: `${40 + i * 15}%`,
+                top: '50%',
+                animation: 'floatUp 1s ease-out forwards',
+                animationDelay: `${i * 0.2}s`
+              }}
+            >
+              +
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Avatar */}
       <div className={`
         relative transition-all duration-300
-        ${showHitEffect ? 'animate-shake scale-95' : 'scale-100'}
+        ${showHitEffect ? 'animate-shake scale-95' : showHealEffect ? 'scale-105' : 'scale-100'}
       `}>
         <img
           src={getAvatarUrl()}

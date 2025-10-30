@@ -206,6 +206,9 @@ export const BattleRoute = () => {
   // ✅ Track attack animation pause
   const [isAttackAnimationPlaying, setIsAttackAnimationPlaying] = useState(false);
 
+  // ✅ Track consumable belt expansion
+  const [consumablesBeltExpanded, setConsumablesBeltExpanded] = useState(false);
+
   // If no enemy, redirect to map
   useEffect(() => {
     if (!currentEnemy) {
@@ -944,18 +947,12 @@ export const BattleRoute = () => {
       <div className="h-screen overflow-hidden relative">
         <div className="max-w-7xl mx-auto h-full flex flex-col gap-2 p-2">
           {/* Header - 10% */}
-          <div className="h-[10%] bg-white bg-opacity-90 rounded-xl shadow-lg flex justify-between items-center px-4 py-2">
-            <button
-              onClick={handleForfeit}
-              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 transition-all shadow-lg text-sm"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Forfeit
-            </button>
+          <div className="h-[10%] bg-white bg-opacity-75 rounded-xl shadow-lg flex justify-between items-center px-4 py-2">
             <GameHeader
               battleNumber={gameState.currentFloor}
               gold={gameState.gold}
               turnCount={turnCount}
+              onForfeit={handleForfeit}
             />
           </div>
 
@@ -978,25 +975,35 @@ export const BattleRoute = () => {
             />
 
             {equippedConsumables.length > 0 && (
-              <div className="bg-white bg-opacity-90 p-2 rounded-xl shadow-lg">
-                <h3 className="text-xs font-bold mb-1">⚡ Battle Items</h3>
-                <div className="flex gap-2 flex-wrap">
-                  {equippedConsumables.map((item, index) => (
-                    <ItemButton
-                      key={index}
-                      item={item}
-                      onUse={handleUseItem}
-                      disabled={isEnemyTurn || isAttackAnimationPlaying}
-                      isUsed={usedConsumables.includes(item.instanceId)}
-                    />
-                  ))}
+              <div className="bg-white bg-opacity-75 p-2 rounded-xl shadow-lg">
+                <div className="flex justify-between items-center mb-1">
+                  <h3 className="text-xs font-bold">⚡ Battle Items ({equippedConsumables.length})</h3>
+                  <button
+                    onClick={() => setConsumablesBeltExpanded(!consumablesBeltExpanded)}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-semibold transition-all"
+                  >
+                    {consumablesBeltExpanded ? '▲ Collapse' : '▼ Expand'}
+                  </button>
                 </div>
+                {consumablesBeltExpanded && (
+                  <div className="flex gap-2 flex-wrap">
+                    {equippedConsumables.map((item, index) => (
+                      <ItemButton
+                        key={index}
+                        item={item}
+                        onUse={handleUseItem}
+                        disabled={isEnemyTurn || isAttackAnimationPlaying}
+                        isUsed={usedConsumables.includes(item.instanceId)}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
 
           {/* Cards Area - 28% */}
-          <div className="h-[28%] bg-white bg-opacity-90 px-3 py-2 rounded-xl shadow-lg flex flex-col overflow-hidden">
+          <div className="h-[28%] bg-white bg-opacity-75 px-3 py-2 rounded-xl shadow-lg flex flex-col overflow-hidden">
             <div className="flex justify-between items-center mb-2">
               <div>
                 <h2 className="text-lg font-bold">Your Hand ({hand.length}/{gameState.maxHandSize})</h2>

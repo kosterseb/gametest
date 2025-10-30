@@ -82,7 +82,7 @@ export const StatusDisplay = ({ statuses, isPlayer = true, compact = false }) =>
                 className={`
                   absolute ${isPlayer ? 'left-0' : 'right-0'} top-full mt-2 z-50
                   bg-gray-900 text-white p-3 rounded-lg shadow-2xl
-                  min-w-[200px] max-w-[250px]
+                  min-w-[190px] max-w-[238px]
                   border-2 ${statusType.borderColor}
                   animate-fadeIn
                 `}
