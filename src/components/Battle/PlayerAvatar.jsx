@@ -9,6 +9,7 @@ export const PlayerAvatar = ({
 }) => {
   const [showHitEffect, setShowHitEffect] = useState(false);
   const [showHealEffect, setShowHealEffect] = useState(false);
+  const [avatarVariant, setAvatarVariant] = useState(null);
 
   // Show hurt effect when attacked
   useEffect(() => {
@@ -17,19 +18,30 @@ export const PlayerAvatar = ({
       setShowHitEffect(true);
       setShowHealEffect(false);
 
+      // Pick random damage variant
+      const damageGestures = ['waveLongArm', 'waveLongArms'];
+      const damageLips = ['variant07', 'variant11'];
+      const gesture = damageGestures[Math.floor(Math.random() * damageGestures.length)];
+      const lips = damageLips[Math.floor(Math.random() * damageLips.length)];
+
+      setAvatarVariant({ gesture, lips });
+
       const timer = setTimeout(() => {
         console.log('🩸 Avatar: Clearing damage effect (timeout)');
         setShowHitEffect(false);
+        setAvatarVariant(null);
       }, 2000);
 
       return () => {
         console.log('🩸 Avatar: Cleanup - clearing damage effect');
         clearTimeout(timer);
         setShowHitEffect(false);
+        setAvatarVariant(null);
       };
     } else {
       // Prop is false, immediately clear effect
       setShowHitEffect(false);
+      setAvatarVariant(null);
     }
   }, [isBeingAttacked]);
 
@@ -40,25 +52,44 @@ export const PlayerAvatar = ({
       setShowHealEffect(true);
       setShowHitEffect(false);
 
+      // Pick random heal variant
+      const healGestures = ['okLongArm', 'okWaveLongArm'];
+      const healLips = ['variant03', 'variant08'];
+      const gesture = healGestures[Math.floor(Math.random() * healGestures.length)];
+      const lips = healLips[Math.floor(Math.random() * healLips.length)];
+
+      setAvatarVariant({ gesture, lips, eyes: 'variant03' });
+
       const timer = setTimeout(() => {
         console.log('💚 Avatar: Clearing heal effect (timeout)');
         setShowHealEffect(false);
+        setAvatarVariant(null);
       }, 2000);
 
       return () => {
         console.log('💚 Avatar: Cleanup - clearing heal effect');
         clearTimeout(timer);
         setShowHealEffect(false);
+        setAvatarVariant(null);
       };
     } else {
       // Prop is false, immediately clear effect
       setShowHealEffect(false);
+      setAvatarVariant(null);
     }
   }, [isHealing]);
 
   // DiceBear API URL - using notionists style
   const getAvatarUrl = () => {
-    return `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&size=240`;
+    let url = `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&size=240`;
+
+    if (avatarVariant) {
+      if (avatarVariant.gesture) url += `&gesture=${avatarVariant.gesture}`;
+      if (avatarVariant.lips) url += `&mouth=${avatarVariant.lips}`;
+      if (avatarVariant.eyes) url += `&eyes=${avatarVariant.eyes}`;
+    }
+
+    return url;
   };
 
   return (
