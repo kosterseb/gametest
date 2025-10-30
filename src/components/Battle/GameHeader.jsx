@@ -1,13 +1,14 @@
 import React from 'react';
-import { Coins, Map, Clock } from 'lucide-react';
+import { Coins, Map, Clock, ArrowLeft } from 'lucide-react';
 
-export const GameHeader = ({ 
-  battleNumber, 
+export const GameHeader = ({
+  battleNumber,
   gold,
-  turnCount
+  turnCount,
+  onForfeit
 }) => {
   return (
-    <div className="bg-white bg-opacity-90 p-4 rounded-xl mb-4 shadow-lg">
+    <div className="bg-white bg-opacity-75 p-4 rounded-xl mb-4 shadow-lg">
       <div className="flex justify-between items-center">
         {/* Floor Number */}
         <div className="flex items-center space-x-3 bg-purple-100 px-6 py-2 rounded-lg">
@@ -35,6 +36,17 @@ export const GameHeader = ({
             <span className="text-2xl font-bold text-yellow-700">{gold}</span>
           </div>
         </div>
+
+        {/* Forfeit Button */}
+        {onForfeit && (
+          <button
+            onClick={onForfeit}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Forfeit
+          </button>
+        )}
       </div>
     </div>
   );

@@ -65,6 +65,13 @@ export const BattleRoute = () => {
   // ✅ Track used consumables
   const [usedConsumables, setUsedConsumables] = useState([]);
 
+  // ✅ Visual effect triggers
+  const [playerDamageTrigger, setPlayerDamageTrigger] = useState(0);
+  const [playerHealTrigger, setPlayerHealTrigger] = useState(0);
+
+  // ✅ Consumables belt expansion
+  const [consumablesBeltExpanded, setConsumablesBeltExpanded] = useState(false);
+
   // If no enemy, redirect to map
   useEffect(() => {
     if (!currentEnemy) {
@@ -314,12 +321,13 @@ export const BattleRoute = () => {
         const healing = card.baseHeal || 0;
         setPlayerHealth(prev => Math.min(maxPlayerHealth, prev + healing));
         setBattleLog(prev => [...prev, `💚 ${card.name}: Restored ${healing} HP!`]);
-        
+        setPlayerHealTrigger(prev => prev + 1); // ✅ Trigger heal visual effect
+
         if (card.bonusEffect === 'draw') {
           drawCard();
           setBattleLog(prev => [...prev, `📖 Drew 1 card!`]);
         }
-        
+
         if (card.bonusEffect === 'cleanse_all') {
           setPlayerStatuses([]);
           setBattleLog(prev => [...prev, `✨ All status effects removed!`]);
@@ -364,6 +372,7 @@ export const BattleRoute = () => {
           drawMultipleCards(2);
           setPlayerEnergy(prev => prev + 4);
           setPlayerHealth(prev => Math.min(maxPlayerHealth, prev + 10));
+          setPlayerHealTrigger(prev => prev + 1); // ✅ Trigger heal visual effect
           setBattleLog(prev => [...prev, `🔥 ${card.name}: Drew 2 cards, gained 4 energy, and healed 10 HP!`]);
         }
         
@@ -389,6 +398,7 @@ export const BattleRoute = () => {
           const healAmount = card.baseHeal || 0;
           if (healAmount > 0) {
             setPlayerHealth(prev => Math.min(maxPlayerHealth, prev + healAmount));
+            setPlayerHealTrigger(prev => prev + 1); // ✅ Trigger heal visual effect
             setBattleLog(prev => [...prev, `✨💚 ${card.name}: Removed Bleed and healed ${healAmount} HP!`]);
           }
         }
@@ -397,6 +407,7 @@ export const BattleRoute = () => {
           const healAmount = card.baseHeal || 0;
           if (healAmount > 0) {
             setPlayerHealth(prev => Math.min(maxPlayerHealth, prev + healAmount));
+            setPlayerHealTrigger(prev => prev + 1); // ✅ Trigger heal visual effect
             setBattleLog(prev => [...prev, `✨💚 ${card.name}: Removed all statuses and healed ${healAmount} HP!`]);
           } else {
             setBattleLog(prev => [...prev, `✨ ${card.name}: Removed all status effects!`]);
@@ -533,6 +544,7 @@ export const BattleRoute = () => {
 
         setPlayerHealth(prev => Math.max(0, prev - finalDamage));
         setPlayerStatuses(shieldResult.newStatuses);
+        setPlayerDamageTrigger(prev => prev + 1); // ✅ Trigger damage visual effect
         dispatch({ type: 'DAMAGE_PLAYER', amount: finalDamage });
 
         if (shieldResult.blocked > 0) {
@@ -571,6 +583,7 @@ export const BattleRoute = () => {
             setPlayerStatuses(prev => {
               const shieldResult = applyShieldBlock(prev, modDmg);
               setPlayerHealth(h => Math.max(0, h - shieldResult.damage));
+              setPlayerDamageTrigger(t => t + 1); // ✅ Trigger damage visual effect
               dispatch({ type: 'DAMAGE_PLAYER', amount: shieldResult.damage });
 
               if (shieldResult.blocked > 0) {
@@ -607,6 +620,7 @@ export const BattleRoute = () => {
 
         setPlayerHealth(prev => Math.max(0, prev - finalMultiDamage));
         setPlayerStatuses(multiHitShieldResult.newStatuses);
+        setPlayerDamageTrigger(prev => prev + 1); // ✅ Trigger damage visual effect
         dispatch({ type: 'DAMAGE_PLAYER', amount: finalMultiDamage });
 
         if (multiHitShieldResult.blocked > 0) {
@@ -730,17 +744,8 @@ export const BattleRoute = () => {
             battleNumber={gameState.currentFloor}
             gold={gameState.gold}
             turnCount={turnCount}
+            onForfeit={handleForfeit}
           />
-
-          <div className="mb-4 flex justify-end">
-            <button
-              onClick={handleForfeit}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Forfeit
-            </button>
-          </div>
 
           <BattleField
             enemy={currentEnemy}
@@ -754,26 +759,38 @@ export const BattleRoute = () => {
             maxEnergy={maxEnergy}
             playerStatuses={playerStatuses}
             enemyStatuses={enemyStatuses}
+            playerDamageTrigger={playerDamageTrigger}
+            playerHealTrigger={playerHealTrigger}
           />
 
           {equippedConsumables.length > 0 && (
-            <div className="bg-white bg-opacity-90 p-4 rounded-xl mb-4 shadow-lg">
-              <h3 className="text-lg font-bold mb-3">⚡ Battle Items</h3>
-              <div className="flex gap-3 flex-wrap">
-                {equippedConsumables.map((item, index) => (
-                  <ItemButton
-                    key={index}
-                    item={item}
-                    onUse={handleUseItem}
-                    disabled={isEnemyTurn}
-                    isUsed={usedConsumables.includes(item.instanceId)}
-                  />
-                ))}
+            <div className="bg-white bg-opacity-75 p-4 rounded-xl mb-4 shadow-lg">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-bold">⚡ Battle Items ({equippedConsumables.length})</h3>
+                <button
+                  onClick={() => setConsumablesBeltExpanded(!consumablesBeltExpanded)}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg transition-all text-sm font-semibold"
+                >
+                  {consumablesBeltExpanded ? '▲ Collapse' : '▼ Expand'}
+                </button>
               </div>
+              {consumablesBeltExpanded && (
+                <div className="flex gap-3 flex-wrap">
+                  {equippedConsumables.map((item, index) => (
+                    <ItemButton
+                      key={index}
+                      item={item}
+                      onUse={handleUseItem}
+                      disabled={isEnemyTurn}
+                      isUsed={usedConsumables.includes(item.instanceId)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
-          <div className="bg-white bg-opacity-90 p-6 rounded-xl shadow-lg">
+          <div className="bg-white bg-opacity-75 p-6 rounded-xl shadow-lg">
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h2 className="text-2xl font-bold">Your Hand ({hand.length}/{gameState.maxHandSize})</h2>

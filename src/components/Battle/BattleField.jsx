@@ -1,20 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, Zap, Skull, Swords } from 'lucide-react';
 import { StatusDisplay } from './StatusDisplay';
 
-export const BattleField = ({ 
-  enemy, 
-  enemyHealth, 
-  maxEnemyHealth, 
-  isEnemyTurn, 
+export const BattleField = ({
+  enemy,
+  enemyHealth,
+  maxEnemyHealth,
+  isEnemyTurn,
   battleLog = [],
   playerHealth,
   maxPlayerHealth,
   playerEnergy,
   maxEnergy,
   playerStatuses = [],
-  enemyStatuses = []
+  enemyStatuses = [],
+  playerDamageTrigger,
+  playerHealTrigger
 }) => {
+  const [showDamageEffect, setShowDamageEffect] = useState(false);
+  const [showHealEffect, setShowHealEffect] = useState(false);
+
+  // Trigger damage effect when enemy attacks
+  useEffect(() => {
+    if (playerDamageTrigger) {
+      setShowDamageEffect(true);
+      const timer = setTimeout(() => setShowDamageEffect(false), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [playerDamageTrigger]);
+
+  // Trigger heal effect when player heals
+  useEffect(() => {
+    if (playerHealTrigger) {
+      setShowHealEffect(true);
+      const timer = setTimeout(() => setShowHealEffect(false), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [playerHealTrigger]);
+
   // Safety checks
   if (!enemy) {
     return <div className="text-center p-8">Loading battle...</div>;
@@ -41,15 +64,17 @@ export const BattleField = ({
   };
 
   return (
-    <div className="bg-white bg-opacity-90 p-6 rounded-xl mb-4 shadow-lg">
+    <div className="bg-white bg-opacity-75 p-6 rounded-xl mb-4 shadow-lg">
       {/* Battle Arena */}
       <div className="grid grid-cols-3 gap-8 mb-6">
         {/* Player Side */}
         <div className="flex flex-col items-center space-y-4">
           <div className="text-3xl font-bold text-blue-600">YOU</div>
-          
-          {/* Player Avatar Placeholder */}
-          <div className="text-6xl">🧙‍♂️</div>
+
+          {/* Player Avatar with Effects */}
+          <div className={`text-6xl ${showDamageEffect ? 'animate-damage' : ''} ${showHealEffect ? 'animate-heal' : ''}`}>
+            🧙‍♂️
+          </div>
 
           {/* Player Health Bar */}
           <div className="w-full">
