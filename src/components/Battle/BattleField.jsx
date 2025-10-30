@@ -35,43 +35,49 @@ export const BattleField = ({
     if (playerHealth < prevHealth) {
       // Player took damage
       console.log('🩸 Damage detected:', prevHealth, '->', playerHealth);
+      prevPlayerHealthRef.current = playerHealth; // Update ref immediately
       animationInProgressRef.current = true;
       setIsPlayerBeingAttacked(true);
       setIsPlayerHealing(false);
       onAttackAnimationChange(true);
-      prevPlayerHealthRef.current = playerHealth; // Update ref immediately
 
       const pauseTimer = setTimeout(() => {
         onAttackAnimationChange(false);
       }, 1500);
 
       const fullTimer = setTimeout(() => {
+        console.log('🩸 Clearing damage animation');
         setIsPlayerBeingAttacked(false);
         animationInProgressRef.current = false;
       }, 2000);
 
+      // Cleanup is critical - clear timeouts if effect reruns
       return () => {
         clearTimeout(pauseTimer);
         clearTimeout(fullTimer);
       };
-    } else if (playerHealth > prevHealth) {
+    }
+
+    if (playerHealth > prevHealth) {
       // Player healed
       console.log('💚 Healing detected:', prevHealth, '->', playerHealth);
+      prevPlayerHealthRef.current = playerHealth; // Update ref immediately
       animationInProgressRef.current = true;
       setIsPlayerHealing(true);
       setIsPlayerBeingAttacked(false);
       onAttackAnimationChange(true);
-      prevPlayerHealthRef.current = playerHealth; // Update ref immediately
 
       const pauseTimer = setTimeout(() => {
         onAttackAnimationChange(false);
       }, 1500);
 
       const fullTimer = setTimeout(() => {
+        console.log('💚 Clearing heal animation');
         setIsPlayerHealing(false);
         animationInProgressRef.current = false;
       }, 2000);
 
+      // Cleanup is critical - clear timeouts if effect reruns
       return () => {
         clearTimeout(pauseTimer);
         clearTimeout(fullTimer);

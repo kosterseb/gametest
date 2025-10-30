@@ -15,14 +15,21 @@ export const PlayerAvatar = ({
     if (isBeingAttacked) {
       console.log('🩸 Avatar: Showing damage effect');
       setShowHitEffect(true);
-      setShowHealEffect(false); // Ensure heal effect is off
+      setShowHealEffect(false);
 
       const timer = setTimeout(() => {
-        console.log('🩸 Avatar: Clearing damage effect');
+        console.log('🩸 Avatar: Clearing damage effect (timeout)');
         setShowHitEffect(false);
-      }, 2000); // 2 seconds for visual effect
+      }, 2000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        console.log('🩸 Avatar: Cleanup - clearing damage effect');
+        clearTimeout(timer);
+        setShowHitEffect(false);
+      };
+    } else {
+      // Prop is false, immediately clear effect
+      setShowHitEffect(false);
     }
   }, [isBeingAttacked]);
 
@@ -31,14 +38,21 @@ export const PlayerAvatar = ({
     if (isHealing) {
       console.log('💚 Avatar: Showing heal effect');
       setShowHealEffect(true);
-      setShowHitEffect(false); // Ensure damage effect is off
+      setShowHitEffect(false);
 
       const timer = setTimeout(() => {
-        console.log('💚 Avatar: Clearing heal effect');
+        console.log('💚 Avatar: Clearing heal effect (timeout)');
         setShowHealEffect(false);
-      }, 2000); // 2 seconds for heal effect (matching damage timing)
+      }, 2000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        console.log('💚 Avatar: Cleanup - clearing heal effect');
+        clearTimeout(timer);
+        setShowHealEffect(false);
+      };
+    } else {
+      // Prop is false, immediately clear effect
+      setShowHealEffect(false);
     }
   }, [isHealing]);
 
