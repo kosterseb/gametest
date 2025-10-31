@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
 
+// Gesture-compatible seeds that work with the gesture parameter
+const GESTURE_SEEDS = [
+  'John', 'Sarah', 'Michael', 'Emma', 'David', 'Lisa',
+  'James', 'Maria', 'Robert', 'Jennifer', 'William', 'Linda',
+  'Richard', 'Patricia', 'Charles', 'Barbara', 'Thomas', 'Susan'
+];
+
 export const PlayerAvatar = ({
   playerHealth,
   maxPlayerHealth,
@@ -24,7 +31,10 @@ export const PlayerAvatar = ({
       const gesture = damageGestures[Math.floor(Math.random() * damageGestures.length)];
       const lips = damageLips[Math.floor(Math.random() * damageLips.length)];
 
-      setAvatarVariant({ gesture, lips });
+      // Pick a random gesture-compatible seed
+      const gestureSeed = GESTURE_SEEDS[Math.floor(Math.random() * GESTURE_SEEDS.length)];
+
+      setAvatarVariant({ gesture, lips, gestureSeed });
 
       const timer = setTimeout(() => {
         console.log('🩸 Avatar: Clearing damage effect (timeout)');
@@ -58,7 +68,10 @@ export const PlayerAvatar = ({
       const gesture = healGestures[Math.floor(Math.random() * healGestures.length)];
       const lips = healLips[Math.floor(Math.random() * healLips.length)];
 
-      setAvatarVariant({ gesture, lips, eyes: 'variant03' });
+      // Pick a random gesture-compatible seed
+      const gestureSeed = GESTURE_SEEDS[Math.floor(Math.random() * GESTURE_SEEDS.length)];
+
+      setAvatarVariant({ gesture, lips, eyes: 'variant03', gestureSeed });
 
       const timer = setTimeout(() => {
         console.log('💚 Avatar: Clearing heal effect (timeout)');
@@ -81,11 +94,13 @@ export const PlayerAvatar = ({
 
   // DiceBear API URL - using notionists style
   const getAvatarUrl = () => {
-    let url = `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&size=240`;
+    // Use gesture-compatible seed during effects, otherwise use player's seed
+    const currentSeed = avatarVariant?.gestureSeed || seed;
+    let url = `https://api.dicebear.com/9.x/notionists/svg?seed=${currentSeed}&size=240`;
 
     if (avatarVariant) {
       if (avatarVariant.gesture) url += `&gesture=${avatarVariant.gesture}`;
-      if (avatarVariant.lips) url += `&mouth=${avatarVariant.lips}`;
+      if (avatarVariant.lips) url += `&lips=${avatarVariant.lips}`;
       if (avatarVariant.eyes) url += `&eyes=${avatarVariant.eyes}`;
     }
 
