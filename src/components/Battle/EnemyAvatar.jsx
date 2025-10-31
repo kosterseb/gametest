@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 export const EnemyAvatar = ({
   enemyName = 'enemy',
   isBoss = false,
+  customAvatarParams = null,
   isBeingAttacked = false,
   isHealing = false,
   isAttacking = false
@@ -96,14 +97,38 @@ export const EnemyAvatar = ({
     const seed = getSeedFromName(enemyName);
     let url = `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&size=240&flip=true`;
 
-    if (avatarVariant) {
-      if (avatarVariant.lips) url += `&lips=${avatarVariant.lips}`;
-      if (avatarVariant.eyes) url += `&eyes=${avatarVariant.eyes}`;
-      if (avatarVariant.eyebrows) url += `&eyebrows=${avatarVariant.eyebrows}`;
+    // For bosses with custom params, use those as base
+    if (customAvatarParams) {
+      if (customAvatarParams.body) url += `&body=${customAvatarParams.body}`;
+      if (customAvatarParams.beard) url += `&beard=${customAvatarParams.beard}`;
+      if (customAvatarParams.hair) url += `&hair=${customAvatarParams.hair}`;
+
+      // During animations, overlay variant params on top of custom params
+      if (avatarVariant) {
+        if (avatarVariant.lips) url += `&lips=${avatarVariant.lips}`;
+        if (avatarVariant.eyes) url += `&eyes=${avatarVariant.eyes}`;
+        if (avatarVariant.eyebrows) url += `&eyebrows=${avatarVariant.eyebrows}`;
+      } else {
+        // When not animating, use boss's default facial expressions
+        if (customAvatarParams.lips) url += `&lips=${customAvatarParams.lips}`;
+        if (customAvatarParams.eyes) url += `&eyes=${customAvatarParams.eyes}`;
+      }
+    } else {
+      // Regular enemies - only add variant params during animations
+      if (avatarVariant) {
+        if (avatarVariant.lips) url += `&lips=${avatarVariant.lips}`;
+        if (avatarVariant.eyes) url += `&eyes=${avatarVariant.eyes}`;
+        if (avatarVariant.eyebrows) url += `&eyebrows=${avatarVariant.eyebrows}`;
+      }
     }
 
     return url;
   };
+
+  // Different border styling for bosses
+  const borderClass = isBoss
+    ? "border-4 border-white shadow-2xl bg-gradient-to-br from-purple-600 to-red-600"
+    : "border-4 border-white shadow-2xl bg-gradient-to-br from-red-400 to-orange-500";
 
   return (
     <div className="relative">
@@ -114,7 +139,7 @@ export const EnemyAvatar = ({
         <img
           src={getAvatarUrl()}
           alt={`${enemyName} Avatar`}
-          className="w-48 h-48 md:w-56 md:h-56 rounded-full border-4 border-white shadow-2xl bg-gradient-to-br from-red-400 to-orange-500"
+          className={`w-48 h-48 md:w-56 md:h-56 rounded-full ${borderClass}`}
         />
 
         {/* Damage Hit Effect */}

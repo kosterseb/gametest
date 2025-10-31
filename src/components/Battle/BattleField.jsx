@@ -194,17 +194,9 @@ export const BattleField = ({
   const playerLogs = battleLog.filter(log => 
     !log.includes(enemy.name) || log.includes('Victory') || log.includes('Turn ended')
   );
-  const enemyLogs = battleLog.filter(log => 
+  const enemyLogs = battleLog.filter(log =>
     log.includes(enemy.name) && !log.includes('Victory')
   );
-
-  // Get enemy emoji/icon
-  const getEnemyIcon = () => {
-    if (enemy.emoji) return enemy.emoji;
-    if (enemy.isBoss) return '👑';
-    if (enemy.isElite) return '⭐';
-    return '👹';
-  };
 
   return (
     <div className="bg-white bg-opacity-45 p-3 rounded-xl shadow-lg h-full overflow-auto">
@@ -312,19 +304,14 @@ export const BattleField = ({
           </div>
 
           {/* Enemy Avatar */}
-          {enemy.isBoss ? (
-            <div className={`text-8xl ${isEnemyTurn ? 'animate-bounce' : ''}`}>
-              {getEnemyIcon()}
-            </div>
-          ) : (
-            <EnemyAvatar
-              enemyName={enemy.name}
-              isBoss={enemy.isBoss}
-              isBeingAttacked={isEnemyBeingAttacked}
-              isHealing={isEnemyHealing}
-              isAttacking={isEnemyAttacking}
-            />
-          )}
+          <EnemyAvatar
+            enemyName={enemy.name}
+            isBoss={enemy.isBoss}
+            customAvatarParams={enemy.avatarParams}
+            isBeingAttacked={isEnemyBeingAttacked}
+            isHealing={isEnemyHealing}
+            isAttacking={isEnemyAttacking}
+          />
 
           <div className="text-base font-bold text-gray-800">{enemy.name || 'Unknown Enemy'}</div>
 
