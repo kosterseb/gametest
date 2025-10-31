@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Heart, Zap, Skull, Swords } from 'lucide-react';
 import { StatusDisplay } from './StatusDisplay';
 import { PlayerAvatar } from './PlayerAvatar';
+import { EnemyAvatar } from './EnemyAvatar';
 
 export const BattleField = ({
   enemy,
@@ -257,9 +258,13 @@ export const BattleField = ({
           </div>
 
           {/* Enemy Avatar */}
-          <div className={`text-8xl ${isEnemyTurn ? 'animate-bounce' : ''}`}>
-            {getEnemyIcon()}
-          </div>
+          {enemy.isBoss ? (
+            <div className={`text-8xl ${isEnemyTurn ? 'animate-bounce' : ''}`}>
+              {getEnemyIcon()}
+            </div>
+          ) : (
+            <EnemyAvatar enemyName={enemy.name} isBoss={enemy.isBoss} />
+          )}
 
           <div className="text-base font-bold text-gray-800">{enemy.name || 'Unknown Enemy'}</div>
 
