@@ -20,7 +20,9 @@ export const BattleField = ({
 }) => {
   const [isPlayerBeingAttacked, setIsPlayerBeingAttacked] = useState(false);
   const [isPlayerHealing, setIsPlayerHealing] = useState(false);
+  const [isPlayerAttacking, setIsPlayerAttacking] = useState(false);
   const prevPlayerHealthRef = useRef(playerHealth);
+  const prevEnemyHealthRef = useRef(enemyHealth);
   const animationInProgressRef = useRef(false);
 
   // Detect when player is being attacked (health decreases) or healing (health increases)
@@ -39,6 +41,7 @@ export const BattleField = ({
       animationInProgressRef.current = true;
       setIsPlayerBeingAttacked(true);
       setIsPlayerHealing(false);
+      setIsPlayerAttacking(false);
       onAttackAnimationChange(true);
 
       const pauseTimer = setTimeout(() => {
@@ -65,6 +68,7 @@ export const BattleField = ({
       animationInProgressRef.current = true;
       setIsPlayerHealing(true);
       setIsPlayerBeingAttacked(false);
+      setIsPlayerAttacking(false);
       onAttackAnimationChange(true);
 
       const pauseTimer = setTimeout(() => {
@@ -84,6 +88,43 @@ export const BattleField = ({
       };
     }
   }, [playerHealth, onAttackAnimationChange]);
+
+  // Detect when player attacks (enemy health decreases)
+  useEffect(() => {
+    const prevHealth = prevEnemyHealthRef.current;
+
+    // Only trigger if enemy health actually changed AND no animation is already playing
+    if (enemyHealth === prevHealth || animationInProgressRef.current) {
+      return;
+    }
+
+    if (enemyHealth < prevHealth) {
+      // Player attacked enemy
+      console.log('⚔️ Attack detected:', prevHealth, '->', enemyHealth);
+      prevEnemyHealthRef.current = enemyHealth; // Update ref immediately
+      animationInProgressRef.current = true;
+      setIsPlayerAttacking(true);
+      setIsPlayerBeingAttacked(false);
+      setIsPlayerHealing(false);
+      onAttackAnimationChange(true);
+
+      const pauseTimer = setTimeout(() => {
+        onAttackAnimationChange(false);
+      }, 1500);
+
+      const fullTimer = setTimeout(() => {
+        console.log('⚔️ Clearing attack animation');
+        setIsPlayerAttacking(false);
+        animationInProgressRef.current = false;
+      }, 2000);
+
+      // Cleanup is critical - clear timeouts if effect reruns
+      return () => {
+        clearTimeout(pauseTimer);
+        clearTimeout(fullTimer);
+      };
+    }
+  }, [enemyHealth, onAttackAnimationChange]);
 
   // Safety checks
   if (!enemy) {
@@ -124,6 +165,7 @@ export const BattleField = ({
             maxPlayerHealth={maxPlayerHealth}
             isBeingAttacked={isPlayerBeingAttacked}
             isHealing={isPlayerHealing}
+            isAttacking={isPlayerAttacking}
             seed={avatarSeed}
           />
 

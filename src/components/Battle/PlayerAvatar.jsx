@@ -5,10 +5,12 @@ export const PlayerAvatar = ({
   maxPlayerHealth,
   isBeingAttacked = false,
   isHealing = false,
+  isAttacking = false,
   seed = 'player'
 }) => {
   const [showHitEffect, setShowHitEffect] = useState(false);
   const [showHealEffect, setShowHealEffect] = useState(false);
+  const [showAttackEffect, setShowAttackEffect] = useState(false);
   const [avatarVariant, setAvatarVariant] = useState(null);
 
   // Show hurt effect when attacked
@@ -17,6 +19,7 @@ export const PlayerAvatar = ({
       console.log('🩸 Avatar: Showing damage effect');
       setShowHitEffect(true);
       setShowHealEffect(false);
+      setShowAttackEffect(false);
 
       // Pick random damage lips
       const damageLips = ['variant07', 'variant11'];
@@ -49,6 +52,7 @@ export const PlayerAvatar = ({
       console.log('💚 Avatar: Showing heal effect');
       setShowHealEffect(true);
       setShowHitEffect(false);
+      setShowAttackEffect(false);
 
       // Pick random heal lips
       const healLips = ['variant03', 'variant08'];
@@ -75,6 +79,41 @@ export const PlayerAvatar = ({
     }
   }, [isHealing]);
 
+  // Show attack effect when attacking
+  useEffect(() => {
+    if (isAttacking) {
+      console.log('⚔️ Avatar: Showing attack effect');
+      setShowAttackEffect(true);
+      setShowHitEffect(false);
+      setShowHealEffect(false);
+
+      // Pick random attack variants
+      const attackLips = ['variant14', 'variant15'];
+      const attackBrows = ['variant02', 'variant05'];
+      const lips = attackLips[Math.floor(Math.random() * attackLips.length)];
+      const brows = attackBrows[Math.floor(Math.random() * attackBrows.length)];
+
+      setAvatarVariant({ lips, eyes: 'variant04', eyebrows: brows });
+
+      const timer = setTimeout(() => {
+        console.log('⚔️ Avatar: Clearing attack effect (timeout)');
+        setShowAttackEffect(false);
+        setAvatarVariant(null);
+      }, 2000);
+
+      return () => {
+        console.log('⚔️ Avatar: Cleanup - clearing attack effect');
+        clearTimeout(timer);
+        setShowAttackEffect(false);
+        setAvatarVariant(null);
+      };
+    } else {
+      // Prop is false, immediately clear effect
+      setShowAttackEffect(false);
+      setAvatarVariant(null);
+    }
+  }, [isAttacking]);
+
   // DiceBear API URL - using notionists style
   const getAvatarUrl = () => {
     // Always use player's seed
@@ -83,6 +122,7 @@ export const PlayerAvatar = ({
     if (avatarVariant) {
       if (avatarVariant.lips) url += `&lips=${avatarVariant.lips}`;
       if (avatarVariant.eyes) url += `&eyes=${avatarVariant.eyes}`;
+      if (avatarVariant.eyebrows) url += `&eyebrows=${avatarVariant.eyebrows}`;
     }
 
     return url;
