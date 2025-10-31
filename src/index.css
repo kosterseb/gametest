@@ -43,3 +43,7 @@
       opacity: 0;
     }
   }
+
+  .animate-float-up {
+    animation: floatUp 1s ease-out forwards;
+  }
