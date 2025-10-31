@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-// Gesture-compatible seeds that work with the gesture parameter
-const GESTURE_SEEDS = [
-  'John', 'Sarah', 'Michael', 'Emma', 'David', 'Lisa',
-  'James', 'Maria', 'Robert', 'Jennifer', 'William', 'Linda',
-  'Richard', 'Patricia', 'Charles', 'Barbara', 'Thomas', 'Susan'
-];
-
 export const PlayerAvatar = ({
   playerHealth,
   maxPlayerHealth,
@@ -25,16 +18,11 @@ export const PlayerAvatar = ({
       setShowHitEffect(true);
       setShowHealEffect(false);
 
-      // Pick random damage variant
-      const damageGestures = ['waveLongArm', 'waveLongArms'];
+      // Pick random damage lips
       const damageLips = ['variant07', 'variant11'];
-      const gesture = damageGestures[Math.floor(Math.random() * damageGestures.length)];
       const lips = damageLips[Math.floor(Math.random() * damageLips.length)];
 
-      // Pick a random gesture-compatible seed
-      const gestureSeed = GESTURE_SEEDS[Math.floor(Math.random() * GESTURE_SEEDS.length)];
-
-      setAvatarVariant({ gesture, lips, gestureSeed });
+      setAvatarVariant({ lips });
 
       const timer = setTimeout(() => {
         console.log('🩸 Avatar: Clearing damage effect (timeout)');
@@ -62,16 +50,11 @@ export const PlayerAvatar = ({
       setShowHealEffect(true);
       setShowHitEffect(false);
 
-      // Pick random heal variant
-      const healGestures = ['okLongArm', 'okWaveLongArm'];
+      // Pick random heal lips
       const healLips = ['variant03', 'variant08'];
-      const gesture = healGestures[Math.floor(Math.random() * healGestures.length)];
       const lips = healLips[Math.floor(Math.random() * healLips.length)];
 
-      // Pick a random gesture-compatible seed
-      const gestureSeed = GESTURE_SEEDS[Math.floor(Math.random() * GESTURE_SEEDS.length)];
-
-      setAvatarVariant({ gesture, lips, eyes: 'variant03', gestureSeed });
+      setAvatarVariant({ lips, eyes: 'variant03' });
 
       const timer = setTimeout(() => {
         console.log('💚 Avatar: Clearing heal effect (timeout)');
@@ -94,12 +77,10 @@ export const PlayerAvatar = ({
 
   // DiceBear API URL - using notionists style
   const getAvatarUrl = () => {
-    // Use gesture-compatible seed during effects, otherwise use player's seed
-    const currentSeed = avatarVariant?.gestureSeed || seed;
-    let url = `https://api.dicebear.com/9.x/notionists/svg?seed=${currentSeed}&size=240`;
+    // Always use player's seed
+    let url = `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&size=240`;
 
     if (avatarVariant) {
-      if (avatarVariant.gesture) url += `&gesture=${avatarVariant.gesture}`;
       if (avatarVariant.lips) url += `&lips=${avatarVariant.lips}`;
       if (avatarVariant.eyes) url += `&eyes=${avatarVariant.eyes}`;
     }
