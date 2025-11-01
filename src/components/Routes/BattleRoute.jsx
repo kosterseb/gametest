@@ -964,7 +964,7 @@ export const BattleRoute = () => {
         baseRotation={0}
       />
 
-      <div className="h-screen overflow-hidden relative z-10">
+      <div className="h-screen overflow-hidden relative">
         <div className="max-w-7xl mx-auto h-full flex flex-col gap-2 p-2">
           {/* Header - 10% */}
           <div className="h-[10%] bg-white bg-opacity-45 rounded-xl shadow-lg flex justify-between items-center px-4 py-2">

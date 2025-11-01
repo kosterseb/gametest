@@ -24,9 +24,13 @@ export const TorusTunnelBackground = ({
   // Store original colors for each torus
   const originalColorsRef = useRef([]);
 
-  // Dynamic speed and rotation based on combat
-  const [currentSpeed, setCurrentSpeed] = useState(baseSpeed);
-  const [currentRotation, setCurrentRotation] = useState(baseRotation);
+  // Speed and rotation refs for smooth interpolation
+  const currentSpeedRef = useRef(baseSpeed);
+  const currentRotationRef = useRef(baseRotation);
+  const targetSpeedRef = useRef(baseSpeed);
+  const targetRotationRef = useRef(baseRotation);
+
+  const [currentColor, setCurrentColor] = useState(null);
 
   // Color palette - different shades of blue, red, and green
   const colorPalette = [
@@ -58,13 +62,15 @@ export const TorusTunnelBackground = ({
   // Handle combat effects - Player Actions
   useEffect(() => {
     if (isPlayerAttacking) {
-      // Player attacking - speed up, intense rotation
-      setCurrentSpeed(baseSpeed * 2.5);
-      setCurrentRotation(baseRotation + 8);
+      // Player attacking - orange flash, speed up, intense rotation
+      setCurrentColor(new THREE.Color(0xff4500)); // Orange-red
+      targetSpeedRef.current = baseSpeed * 2.5;
+      targetRotationRef.current = baseRotation + 8;
 
       const timer = setTimeout(() => {
-        setCurrentSpeed(baseSpeed);
-        setCurrentRotation(baseRotation);
+        setCurrentColor(null);
+        targetSpeedRef.current = baseSpeed;
+        targetRotationRef.current = baseRotation;
       }, 2000);
 
       return () => clearTimeout(timer);
@@ -73,13 +79,15 @@ export const TorusTunnelBackground = ({
 
   useEffect(() => {
     if (isPlayerHealing) {
-      // Player healing - slow gentle rotation
-      setCurrentSpeed(baseSpeed * 0.8);
-      setCurrentRotation(baseRotation + 3);
+      // Player healing - green flash, slow gentle rotation
+      setCurrentColor(new THREE.Color(0x00ff66)); // Bright green
+      targetSpeedRef.current = baseSpeed * 0.8;
+      targetRotationRef.current = baseRotation + 3;
 
       const timer = setTimeout(() => {
-        setCurrentSpeed(baseSpeed);
-        setCurrentRotation(baseRotation);
+        setCurrentColor(null);
+        targetSpeedRef.current = baseSpeed;
+        targetRotationRef.current = baseRotation;
       }, 2000);
 
       return () => clearTimeout(timer);
@@ -88,13 +96,15 @@ export const TorusTunnelBackground = ({
 
   useEffect(() => {
     if (isPlayerDamaged) {
-      // Player damaged - shake effect
-      setCurrentSpeed(baseSpeed * 1.5);
-      setCurrentRotation(baseRotation + 10);
+      // Player damaged - red flash, shake effect
+      setCurrentColor(new THREE.Color(0xff0000)); // Red
+      targetSpeedRef.current = baseSpeed * 1.5;
+      targetRotationRef.current = baseRotation + 10;
 
       const timer = setTimeout(() => {
-        setCurrentSpeed(baseSpeed);
-        setCurrentRotation(baseRotation);
+        setCurrentColor(null);
+        targetSpeedRef.current = baseSpeed;
+        targetRotationRef.current = baseRotation;
       }, 2000);
 
       return () => clearTimeout(timer);
@@ -104,13 +114,15 @@ export const TorusTunnelBackground = ({
   // Handle combat effects - Enemy Actions
   useEffect(() => {
     if (isEnemyAttacking) {
-      // Enemy attacking - moderate speed boost
-      setCurrentSpeed(baseSpeed * 2);
-      setCurrentRotation(baseRotation + 7);
+      // Enemy attacking - dark red flash, moderate speed boost
+      setCurrentColor(new THREE.Color(0xcc0000)); // Dark red
+      targetSpeedRef.current = baseSpeed * 2;
+      targetRotationRef.current = baseRotation + 7;
 
       const timer = setTimeout(() => {
-        setCurrentSpeed(baseSpeed);
-        setCurrentRotation(baseRotation);
+        setCurrentColor(null);
+        targetSpeedRef.current = baseSpeed;
+        targetRotationRef.current = baseRotation;
       }, 2000);
 
       return () => clearTimeout(timer);
@@ -119,13 +131,15 @@ export const TorusTunnelBackground = ({
 
   useEffect(() => {
     if (isEnemyHealing) {
-      // Enemy healing - gentle motion
-      setCurrentSpeed(baseSpeed * 0.9);
-      setCurrentRotation(baseRotation + 2);
+      // Enemy healing - yellow-green flash, gentle motion
+      setCurrentColor(new THREE.Color(0x88ff00)); // Yellow-green
+      targetSpeedRef.current = baseSpeed * 0.9;
+      targetRotationRef.current = baseRotation + 2;
 
       const timer = setTimeout(() => {
-        setCurrentSpeed(baseSpeed);
-        setCurrentRotation(baseRotation);
+        setCurrentColor(null);
+        targetSpeedRef.current = baseSpeed;
+        targetRotationRef.current = baseRotation;
       }, 2000);
 
       return () => clearTimeout(timer);
@@ -134,13 +148,15 @@ export const TorusTunnelBackground = ({
 
   useEffect(() => {
     if (isEnemyDamaged) {
-      // Enemy damaged - strong speed boost
-      setCurrentSpeed(baseSpeed * 2.2);
-      setCurrentRotation(baseRotation + 9);
+      // Enemy damaged - blue flash, strong speed boost
+      setCurrentColor(new THREE.Color(0x0088ff)); // Blue
+      targetSpeedRef.current = baseSpeed * 2.2;
+      targetRotationRef.current = baseRotation + 9;
 
       const timer = setTimeout(() => {
-        setCurrentSpeed(baseSpeed);
-        setCurrentRotation(baseRotation);
+        setCurrentColor(null);
+        targetSpeedRef.current = baseSpeed;
+        targetRotationRef.current = baseRotation;
       }, 2000);
 
       return () => clearTimeout(timer);
@@ -213,14 +229,19 @@ export const TorusTunnelBackground = ({
     const animate = () => {
       animationFrameRef.current = requestAnimationFrame(animate);
 
+      // Smooth interpolation for speed and rotation
+      const lerpFactor = 0.05; // Smoothness factor (lower = smoother but slower)
+      currentSpeedRef.current += (targetSpeedRef.current - currentSpeedRef.current) * lerpFactor;
+      currentRotationRef.current += (targetRotationRef.current - currentRotationRef.current) * lerpFactor;
+
       // Update camera position for smooth mouse tracking
       camera.position.x += (mouseXRef.current - camera.position.x) * 0.05;
       camera.position.y += (-mouseYRef.current - camera.position.y) * 0.05;
 
       // Update torus positions and rotations
       tabTorusRef.current.forEach((torus, i) => {
-        torus.mesh.position.z += currentSpeed;
-        torus.mesh.rotation.z += i * currentRotation / 10000;
+        torus.mesh.position.z += currentSpeedRef.current;
+        torus.mesh.rotation.z += i * currentRotationRef.current / 10000;
 
         if (torus.mesh.position.z > 0) {
           torus.mesh.position.z = -1000;
@@ -252,7 +273,27 @@ export const TorusTunnelBackground = ({
 
       renderer.dispose();
     };
-  }, [currentSpeed, currentRotation]);
+  }, []); // Only run once on mount
+
+  // Update materials when color changes
+  useEffect(() => {
+    if (!sceneRef.current || tabTorusRef.current.length === 0) return;
+
+    tabTorusRef.current.forEach((torus, index) => {
+      const oldMaterial = torus.mesh.material;
+
+      if (currentColor) {
+        // Combat effect - flash all tori to the same combat color
+        torus.mesh.material = new THREE.MeshBasicMaterial({ color: currentColor });
+      } else {
+        // Return to original individual colors
+        const originalColor = originalColorsRef.current[index];
+        torus.mesh.material = new THREE.MeshBasicMaterial({ color: originalColor });
+      }
+
+      oldMaterial.dispose();
+    });
+  }, [currentColor]);
 
   return (
     <div
@@ -263,7 +304,7 @@ export const TorusTunnelBackground = ({
         left: 0,
         width: '100%',
         height: '100%',
-        zIndex: 0,
+        zIndex: 1,
         pointerEvents: 'none'
       }}
     />
