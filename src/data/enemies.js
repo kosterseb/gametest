@@ -406,9 +406,12 @@ export const bossEnemies = [
     avatarParams: {
       body: 'variant07',
       beard: 'variant08',
+      beardProbability: '100',
       lips: 'variant04',
       hair: 'hat',
-      eyes: 'variant05'
+      eyes: 'variant05',
+      brows: 'variant05',
+      glassesProbability: '0'
     },
     abilities: [
       {

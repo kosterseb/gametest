@@ -101,7 +101,9 @@ export const EnemyAvatar = ({
     if (customAvatarParams) {
       if (customAvatarParams.body) url += `&body=${customAvatarParams.body}`;
       if (customAvatarParams.beard) url += `&beard=${customAvatarParams.beard}`;
+      if (customAvatarParams.beardProbability) url += `&beardProbability=${customAvatarParams.beardProbability}`;
       if (customAvatarParams.hair) url += `&hair=${customAvatarParams.hair}`;
+      if (customAvatarParams.glassesProbability) url += `&glassesProbability=${customAvatarParams.glassesProbability}`;
 
       // During animations, overlay variant params on top of custom params
       if (avatarVariant) {
@@ -112,6 +114,7 @@ export const EnemyAvatar = ({
         // When not animating, use boss's default facial expressions
         if (customAvatarParams.lips) url += `&lips=${customAvatarParams.lips}`;
         if (customAvatarParams.eyes) url += `&eyes=${customAvatarParams.eyes}`;
+        if (customAvatarParams.brows) url += `&eyebrows=${customAvatarParams.brows}`;
       }
     } else {
       // Regular enemies - only add variant params during animations
