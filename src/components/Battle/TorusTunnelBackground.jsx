@@ -27,7 +27,6 @@ export const TorusTunnelBackground = ({
   // Dynamic speed and rotation based on combat
   const [currentSpeed, setCurrentSpeed] = useState(baseSpeed);
   const [currentRotation, setCurrentRotation] = useState(baseRotation);
-  const [currentColor, setCurrentColor] = useState(null);
 
   // Color palette - different shades of blue, red, and green
   const colorPalette = [
@@ -59,13 +58,11 @@ export const TorusTunnelBackground = ({
   // Handle combat effects - Player Actions
   useEffect(() => {
     if (isPlayerAttacking) {
-      // Player attacking - orange flash, speed up
-      setCurrentColor(new THREE.Color(0xff4500)); // Orange-red
+      // Player attacking - speed up, intense rotation
       setCurrentSpeed(baseSpeed * 2.5);
       setCurrentRotation(baseRotation + 8);
 
       const timer = setTimeout(() => {
-        setCurrentColor(null);
         setCurrentSpeed(baseSpeed);
         setCurrentRotation(baseRotation);
       }, 2000);
@@ -76,13 +73,11 @@ export const TorusTunnelBackground = ({
 
   useEffect(() => {
     if (isPlayerHealing) {
-      // Player healing - green flash, slow gentle rotation
-      setCurrentColor(new THREE.Color(0x00ff66)); // Bright green
+      // Player healing - slow gentle rotation
       setCurrentSpeed(baseSpeed * 0.8);
       setCurrentRotation(baseRotation + 3);
 
       const timer = setTimeout(() => {
-        setCurrentColor(null);
         setCurrentSpeed(baseSpeed);
         setCurrentRotation(baseRotation);
       }, 2000);
@@ -93,13 +88,11 @@ export const TorusTunnelBackground = ({
 
   useEffect(() => {
     if (isPlayerDamaged) {
-      // Player damaged - red flash, shake effect
-      setCurrentColor(new THREE.Color(0xff0000)); // Red
+      // Player damaged - shake effect
       setCurrentSpeed(baseSpeed * 1.5);
       setCurrentRotation(baseRotation + 10);
 
       const timer = setTimeout(() => {
-        setCurrentColor(null);
         setCurrentSpeed(baseSpeed);
         setCurrentRotation(baseRotation);
       }, 2000);
@@ -111,13 +104,11 @@ export const TorusTunnelBackground = ({
   // Handle combat effects - Enemy Actions
   useEffect(() => {
     if (isEnemyAttacking) {
-      // Enemy attacking - dark red flash
-      setCurrentColor(new THREE.Color(0xcc0000)); // Dark red
+      // Enemy attacking - moderate speed boost
       setCurrentSpeed(baseSpeed * 2);
       setCurrentRotation(baseRotation + 7);
 
       const timer = setTimeout(() => {
-        setCurrentColor(null);
         setCurrentSpeed(baseSpeed);
         setCurrentRotation(baseRotation);
       }, 2000);
@@ -128,13 +119,11 @@ export const TorusTunnelBackground = ({
 
   useEffect(() => {
     if (isEnemyHealing) {
-      // Enemy healing - yellow-green flash
-      setCurrentColor(new THREE.Color(0x88ff00)); // Yellow-green
+      // Enemy healing - gentle motion
       setCurrentSpeed(baseSpeed * 0.9);
       setCurrentRotation(baseRotation + 2);
 
       const timer = setTimeout(() => {
-        setCurrentColor(null);
         setCurrentSpeed(baseSpeed);
         setCurrentRotation(baseRotation);
       }, 2000);
@@ -145,13 +134,11 @@ export const TorusTunnelBackground = ({
 
   useEffect(() => {
     if (isEnemyDamaged) {
-      // Enemy damaged - blue flash (player's attack color)
-      setCurrentColor(new THREE.Color(0x0088ff)); // Blue
+      // Enemy damaged - strong speed boost
       setCurrentSpeed(baseSpeed * 2.2);
       setCurrentRotation(baseRotation + 9);
 
       const timer = setTimeout(() => {
-        setCurrentColor(null);
         setCurrentSpeed(baseSpeed);
         setCurrentRotation(baseRotation);
       }, 2000);
@@ -265,27 +252,7 @@ export const TorusTunnelBackground = ({
 
       renderer.dispose();
     };
-  }, [currentSpeed, currentRotation, currentColor]);
-
-  // Update materials when color changes
-  useEffect(() => {
-    if (!sceneRef.current || tabTorusRef.current.length === 0) return;
-
-    tabTorusRef.current.forEach((torus, index) => {
-      const oldMaterial = torus.mesh.material;
-
-      if (currentColor) {
-        // Combat effect - flash all tori to the same combat color
-        torus.mesh.material = new THREE.MeshBasicMaterial({ color: currentColor });
-      } else {
-        // Return to original individual colors
-        const originalColor = originalColorsRef.current[index];
-        torus.mesh.material = new THREE.MeshBasicMaterial({ color: originalColor });
-      }
-
-      oldMaterial.dispose();
-    });
-  }, [currentColor]);
+  }, [currentSpeed, currentRotation]);
 
   return (
     <div
@@ -296,7 +263,7 @@ export const TorusTunnelBackground = ({
         left: 0,
         width: '100%',
         height: '100%',
-        zIndex: -1,
+        zIndex: 0,
         pointerEvents: 'none'
       }}
     />
