@@ -17,7 +17,8 @@ export const BattleField = ({
   playerStatuses = [],
   enemyStatuses = [],
   avatarSeed = 'default',
-  onAttackAnimationChange = () => {}
+  onAttackAnimationChange = () => {},
+  onCombatStateChange = () => {}
 }) => {
   // Player animation states
   const [isPlayerBeingAttacked, setIsPlayerBeingAttacked] = useState(false);
@@ -62,6 +63,14 @@ export const BattleField = ({
       setIsEnemyHealing(false);
 
       onAttackAnimationChange(true);
+      onCombatStateChange({
+        isPlayerAttacking: false,
+        isPlayerHealing: false,
+        isPlayerDamaged: true,
+        isEnemyAttacking: true,
+        isEnemyHealing: false,
+        isEnemyDamaged: false
+      });
 
       const pauseTimer = setTimeout(() => {
         onAttackAnimationChange(false);
@@ -73,6 +82,14 @@ export const BattleField = ({
         setIsEnemyAttacking(false);
         playerAnimationInProgressRef.current = false;
         enemyAnimationInProgressRef.current = false;
+        onCombatStateChange({
+          isPlayerAttacking: false,
+          isPlayerHealing: false,
+          isPlayerDamaged: false,
+          isEnemyAttacking: false,
+          isEnemyHealing: false,
+          isEnemyDamaged: false
+        });
       }, 2000);
 
       return () => {
@@ -90,6 +107,14 @@ export const BattleField = ({
       setIsPlayerBeingAttacked(false);
       setIsPlayerAttacking(false);
       onAttackAnimationChange(true);
+      onCombatStateChange({
+        isPlayerAttacking: false,
+        isPlayerHealing: true,
+        isPlayerDamaged: false,
+        isEnemyAttacking: false,
+        isEnemyHealing: false,
+        isEnemyDamaged: false
+      });
 
       const pauseTimer = setTimeout(() => {
         onAttackAnimationChange(false);
@@ -99,6 +124,14 @@ export const BattleField = ({
         console.log('💚 Clearing player heal animation');
         setIsPlayerHealing(false);
         playerAnimationInProgressRef.current = false;
+        onCombatStateChange({
+          isPlayerAttacking: false,
+          isPlayerHealing: false,
+          isPlayerDamaged: false,
+          isEnemyAttacking: false,
+          isEnemyHealing: false,
+          isEnemyDamaged: false
+        });
       }, 2000);
 
       return () => {
@@ -106,7 +139,7 @@ export const BattleField = ({
         clearTimeout(fullTimer);
       };
     }
-  }, [playerHealth, onAttackAnimationChange]);
+  }, [playerHealth, onAttackAnimationChange, onCombatStateChange]);
 
   // Detect when enemy health changes
   useEffect(() => {
@@ -135,6 +168,14 @@ export const BattleField = ({
       setIsEnemyAttacking(false);
 
       onAttackAnimationChange(true);
+      onCombatStateChange({
+        isPlayerAttacking: true,
+        isPlayerHealing: false,
+        isPlayerDamaged: false,
+        isEnemyAttacking: false,
+        isEnemyHealing: false,
+        isEnemyDamaged: true
+      });
 
       const pauseTimer = setTimeout(() => {
         onAttackAnimationChange(false);
@@ -146,6 +187,14 @@ export const BattleField = ({
         setIsEnemyBeingAttacked(false);
         playerAnimationInProgressRef.current = false;
         enemyAnimationInProgressRef.current = false;
+        onCombatStateChange({
+          isPlayerAttacking: false,
+          isPlayerHealing: false,
+          isPlayerDamaged: false,
+          isEnemyAttacking: false,
+          isEnemyHealing: false,
+          isEnemyDamaged: false
+        });
       }, 2000);
 
       return () => {
@@ -163,6 +212,14 @@ export const BattleField = ({
       setIsEnemyBeingAttacked(false);
       setIsEnemyAttacking(false);
       onAttackAnimationChange(true);
+      onCombatStateChange({
+        isPlayerAttacking: false,
+        isPlayerHealing: false,
+        isPlayerDamaged: false,
+        isEnemyAttacking: false,
+        isEnemyHealing: true,
+        isEnemyDamaged: false
+      });
 
       const pauseTimer = setTimeout(() => {
         onAttackAnimationChange(false);
@@ -172,6 +229,14 @@ export const BattleField = ({
         console.log('💚 Clearing enemy heal animation');
         setIsEnemyHealing(false);
         enemyAnimationInProgressRef.current = false;
+        onCombatStateChange({
+          isPlayerAttacking: false,
+          isPlayerHealing: false,
+          isPlayerDamaged: false,
+          isEnemyAttacking: false,
+          isEnemyHealing: false,
+          isEnemyDamaged: false
+        });
       }, 2000);
 
       return () => {
@@ -179,7 +244,7 @@ export const BattleField = ({
         clearTimeout(fullTimer);
       };
     }
-  }, [enemyHealth, onAttackAnimationChange]);
+  }, [enemyHealth, onAttackAnimationChange, onCombatStateChange]);
 
   // Safety checks
   if (!enemy) {

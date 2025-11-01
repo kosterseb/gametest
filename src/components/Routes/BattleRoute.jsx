@@ -14,7 +14,7 @@ import { PageTransition } from '../UI/PageTransition';
 import { ItemButton } from '../Cards/ItemButton';
 import { DiceRoll } from '../Battle/DiceRoll';
 import { CoinFlip } from '../Battle/CoinFlip';
-import { ThreeBackground } from '../Battle/ThreeBackground';
+import { TorusTunnelBackground } from '../Battle/TorusTunnelBackground';
 import {
   applyStatus,
   tickStatuses,
@@ -205,6 +205,16 @@ export const BattleRoute = () => {
 
   // ✅ Track attack animation pause
   const [isAttackAnimationPlaying, setIsAttackAnimationPlaying] = useState(false);
+
+  // ✅ Track combat states for background effects
+  const [combatStates, setCombatStates] = useState({
+    isPlayerAttacking: false,
+    isPlayerHealing: false,
+    isPlayerDamaged: false,
+    isEnemyAttacking: false,
+    isEnemyHealing: false,
+    isEnemyDamaged: false
+  });
 
   // ✅ Track consumable belt expansion
   const [consumablesBeltExpanded, setConsumablesBeltExpanded] = useState(false);
@@ -941,8 +951,18 @@ export const BattleRoute = () => {
 
   return (
     <PageTransition>
-      {/* Three.js Background */}
-      <ThreeBackground enemyType={getEnemyType()} />
+      {/* Torus Tunnel Background */}
+      <TorusTunnelBackground
+        enemyType={getEnemyType()}
+        isPlayerAttacking={combatStates.isPlayerAttacking}
+        isPlayerHealing={combatStates.isPlayerHealing}
+        isPlayerDamaged={combatStates.isPlayerDamaged}
+        isEnemyAttacking={combatStates.isEnemyAttacking}
+        isEnemyHealing={combatStates.isEnemyHealing}
+        isEnemyDamaged={combatStates.isEnemyDamaged}
+        baseSpeed={2}
+        baseRotation={0}
+      />
 
       <div className="h-screen overflow-hidden relative">
         <div className="max-w-7xl mx-auto h-full flex flex-col gap-2 p-2">
@@ -972,6 +992,7 @@ export const BattleRoute = () => {
               enemyStatuses={enemyStatuses}
               avatarSeed={gameState.profile?.avatarSeed || 'default'}
               onAttackAnimationChange={setIsAttackAnimationPlaying}
+              onCombatStateChange={setCombatStates}
             />
 
             {equippedConsumables.length > 0 && (
