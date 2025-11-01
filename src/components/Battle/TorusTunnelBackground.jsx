@@ -21,21 +21,39 @@ export const TorusTunnelBackground = ({
   const mouseXRef = useRef(0);
   const mouseYRef = useRef(0);
 
+  // Store original colors for each torus
+  const originalColorsRef = useRef([]);
+
   // Dynamic speed and rotation based on combat
   const [currentSpeed, setCurrentSpeed] = useState(baseSpeed);
   const [currentRotation, setCurrentRotation] = useState(baseRotation);
   const [currentColor, setCurrentColor] = useState(null);
 
-  // Get base color based on enemy type
-  const getEnemyTypeColor = () => {
-    switch (enemyType) {
-      case 'boss':
-        return new THREE.Color(0x8b00ff); // Purple
-      case 'elite':
-        return new THREE.Color(0xff6b00); // Orange
-      default:
-        return new THREE.Color(0x00ff88); // Cyan/Green
-    }
+  // Color palette - different shades of blue, red, and green
+  const colorPalette = [
+    // Blues
+    new THREE.Color(0x0088ff), // Bright blue
+    new THREE.Color(0x0066cc), // Medium blue
+    new THREE.Color(0x004499), // Deep blue
+    new THREE.Color(0x00ccff), // Cyan blue
+    new THREE.Color(0x0055aa), // Royal blue
+    // Reds
+    new THREE.Color(0xff0044), // Bright red
+    new THREE.Color(0xcc0033), // Deep red
+    new THREE.Color(0xff3366), // Pink red
+    new THREE.Color(0xaa0022), // Dark red
+    new THREE.Color(0xff6688), // Light red
+    // Greens
+    new THREE.Color(0x00ff66), // Bright green
+    new THREE.Color(0x00cc55), // Medium green
+    new THREE.Color(0x00aa44), // Deep green
+    new THREE.Color(0x44ff88), // Light green
+    new THREE.Color(0x22cc66), // Forest green
+  ];
+
+  // Get random color from palette
+  const getRandomColor = () => {
+    return colorPalette[Math.floor(Math.random() * colorPalette.length)].clone();
   };
 
   // Handle combat effects - Player Actions
@@ -167,22 +185,20 @@ export const TorusTunnelBackground = ({
     scene.add(camera);
     sceneRef.current = scene;
 
-    // Create material - use MeshBasicMaterial so we can control color
-    const createMaterial = () => {
-      if (currentColor) {
-        return new THREE.MeshBasicMaterial({ color: currentColor });
-      }
-      return new THREE.MeshNormalMaterial({});
-    };
-
     // Create torus tunnel
     const numTorus = 80;
     const tabTorus = [];
+    const originalColors = [];
 
     for (let i = 0; i < numTorus; i++) {
       const f = -i * 13;
       const geometry = new THREE.TorusGeometry(160, 75, 2, 13);
-      const material = createMaterial();
+
+      // Assign random color from palette
+      const randomColor = getRandomColor();
+      originalColors.push(randomColor);
+
+      const material = new THREE.MeshBasicMaterial({ color: randomColor });
       const mesh = new THREE.Mesh(geometry, material);
 
       mesh.position.x = 57 * Math.cos(f);
@@ -195,6 +211,7 @@ export const TorusTunnelBackground = ({
     }
 
     tabTorusRef.current = tabTorus;
+    originalColorsRef.current = originalColors;
 
     // Handle window resize
     const handleResize = () => {
@@ -252,15 +269,18 @@ export const TorusTunnelBackground = ({
 
   // Update materials when color changes
   useEffect(() => {
-    if (!sceneRef.current) return;
+    if (!sceneRef.current || tabTorusRef.current.length === 0) return;
 
-    tabTorusRef.current.forEach(torus => {
+    tabTorusRef.current.forEach((torus, index) => {
       const oldMaterial = torus.mesh.material;
 
       if (currentColor) {
+        // Combat effect - flash all tori to the same combat color
         torus.mesh.material = new THREE.MeshBasicMaterial({ color: currentColor });
       } else {
-        torus.mesh.material = new THREE.MeshNormalMaterial({});
+        // Return to original individual colors
+        const originalColor = originalColorsRef.current[index];
+        torus.mesh.material = new THREE.MeshBasicMaterial({ color: originalColor });
       }
 
       oldMaterial.dispose();
