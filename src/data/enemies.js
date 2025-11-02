@@ -399,10 +399,20 @@ export const eliteEnemies = [
 // Boss enemies (floors 8, 16, 24)
 export const bossEnemies = [
   {
-    name: "Goblin King",
+    name: "Reed",
     health: 120,
     goldReward: [60, 100],
     isBoss: true,
+    avatarParams: {
+      body: 'variant07',
+      beard: 'variant08',
+      beardProbability: '100',
+      lips: 'variant04',
+      hair: 'hat',
+      eyes: 'variant05',
+      brows: 'variant05',
+      glassesProbability: '0'
+    },
     abilities: [
       {
         name: "Royal Strike",
@@ -530,6 +540,7 @@ export const finalBoss = {
   health: 200,
   goldReward: [150, 200],
   isBoss: true,
+  isFinalBoss: true,
   abilities: [
     {
       name: "Shadow Claw",
