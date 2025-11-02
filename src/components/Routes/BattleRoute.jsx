@@ -953,13 +953,6 @@ export const BattleRoute = () => {
     <PageTransition>
       {/* Torus Tunnel Background */}
       <TorusTunnelBackground
-        enemyType={getEnemyType()}
-        isPlayerAttacking={combatStates.isPlayerAttacking}
-        isPlayerHealing={combatStates.isPlayerHealing}
-        isPlayerDamaged={combatStates.isPlayerDamaged}
-        isEnemyAttacking={combatStates.isEnemyAttacking}
-        isEnemyHealing={combatStates.isEnemyHealing}
-        isEnemyDamaged={combatStates.isEnemyDamaged}
         baseSpeed={2}
         baseRotation={0}
       />
