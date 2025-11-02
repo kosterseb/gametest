@@ -302,7 +302,7 @@ export const TorusTunnelBackground = ({
       // Update torus positions and rotations
       tabTorusRef.current.forEach((torus, i) => {
         torus.mesh.position.z += currentSpeedRef.current;
-        torus.mesh.rotation.z += i * currentRotationRef.current / 10000;
+        torus.mesh.rotation.z += (i * currentRotationRef.current) / 10000;
 
         if (torus.mesh.position.z > 0) {
           torus.mesh.position.z = -1000;
@@ -311,6 +311,12 @@ export const TorusTunnelBackground = ({
 
       renderer.render(scene, camera);
     };
+
+    // Initialize speeds
+    currentSpeedRef.current = baseSpeed;
+    currentRotationRef.current = baseRotation;
+    targetSpeedRef.current = baseSpeed;
+    targetRotationRef.current = baseRotation;
 
     animate();
 
