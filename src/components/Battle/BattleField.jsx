@@ -2,18 +2,20 @@ import React from 'react';
 import { Heart, Zap, Skull, Swords } from 'lucide-react';
 import { StatusDisplay } from './StatusDisplay';
 
-export const BattleField = ({ 
-  enemy, 
-  enemyHealth, 
-  maxEnemyHealth, 
-  isEnemyTurn, 
+export const BattleField = ({
+  enemy,
+  enemyHealth,
+  maxEnemyHealth,
+  isEnemyTurn,
   battleLog = [],
   playerHealth,
   maxPlayerHealth,
   playerEnergy,
   maxEnergy,
   playerStatuses = [],
-  enemyStatuses = []
+  enemyStatuses = [],
+  enemyEnergy = 0,
+  maxEnemyEnergy = 10
 }) => {
   // Safety checks
   if (!enemy) {
@@ -23,6 +25,7 @@ export const BattleField = ({
   const playerHealthPercentage = Math.max(0, Math.min(100, (playerHealth / maxPlayerHealth) * 100));
   const enemyHealthPercentage = Math.max(0, Math.min(100, (enemyHealth / maxEnemyHealth) * 100));
   const energyPercentage = Math.max(0, Math.min(100, (playerEnergy / maxEnergy) * 100));
+  const enemyEnergyPercentage = Math.max(0, Math.min(100, (enemyEnergy / maxEnemyEnergy) * 100));
 
   // Split battle log into player and enemy actions
   const playerLogs = battleLog.filter(log => 
@@ -157,9 +160,28 @@ export const BattleField = ({
               </span>
             </div>
             <div className="w-full h-4 bg-gray-300 rounded-full overflow-hidden border-2 border-gray-400">
-              <div 
+              <div
                 className="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-300"
                 style={{ width: `${enemyHealthPercentage}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Enemy Energy Bar */}
+          <div className="w-full">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1">
+                <Zap className="w-4 h-4 text-orange-500" />
+                <span className="text-xs font-semibold text-gray-600">ACTION POINTS</span>
+              </div>
+              <span className="text-sm font-bold text-gray-800">
+                {enemyEnergy}/{maxEnemyEnergy}
+              </span>
+            </div>
+            <div className="w-full h-4 bg-gray-300 rounded-full overflow-hidden border-2 border-gray-400">
+              <div
+                className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-300"
+                style={{ width: `${enemyEnergyPercentage}%` }}
               />
             </div>
           </div>
