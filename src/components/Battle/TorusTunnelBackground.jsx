@@ -30,10 +30,10 @@ export const TorusTunnelBackground = ({
   const targetSpeedRef = useRef(baseSpeed);
   const targetRotationRef = useRef(baseRotation);
 
-  const [currentColor, setCurrentColor] = useState(null);
+  const [combatPalette, setCombatPalette] = useState(null); // Which combat palette to use
 
-  // Color palette - different shades of blue, red, and green
-  const colorPalette = [
+  // Color palettes
+  const multicolorPalette = [
     // Blues
     new THREE.Color(0x0088ff), // Bright blue
     new THREE.Color(0x0066cc), // Medium blue
@@ -54,112 +54,173 @@ export const TorusTunnelBackground = ({
     new THREE.Color(0x22cc66), // Forest green
   ];
 
-  // Get random color from palette
-  const getRandomColor = () => {
-    return colorPalette[Math.floor(Math.random() * colorPalette.length)].clone();
+  // Combat-specific palettes (shades of same color)
+  const attackPalette = [
+    new THREE.Color(0xff4500), // Orange-red
+    new THREE.Color(0xff5500), // Bright orange
+    new THREE.Color(0xff3300), // Red-orange
+    new THREE.Color(0xff6600), // Light orange
+    new THREE.Color(0xcc3300), // Dark orange
+  ];
+
+  const healPalette = [
+    new THREE.Color(0x00ff66), // Bright green
+    new THREE.Color(0x00ff88), // Light green
+    new THREE.Color(0x00cc55), // Medium green
+    new THREE.Color(0x44ff88), // Pale green
+    new THREE.Color(0x00aa44), // Deep green
+  ];
+
+  const damagePalette = [
+    new THREE.Color(0xff0000), // Bright red
+    new THREE.Color(0xcc0000), // Medium red
+    new THREE.Color(0xff3333), // Light red
+    new THREE.Color(0xaa0000), // Dark red
+    new THREE.Color(0xff1a1a), // Crimson
+  ];
+
+  const enemyAttackPalette = [
+    new THREE.Color(0xcc0000), // Dark red
+    new THREE.Color(0xaa0000), // Darker red
+    new THREE.Color(0xbb0000), // Medium dark red
+    new THREE.Color(0x990000), // Very dark red
+    new THREE.Color(0xdd0000), // Lighter dark red
+  ];
+
+  const enemyHealPalette = [
+    new THREE.Color(0x88ff00), // Yellow-green
+    new THREE.Color(0x99ff00), // Bright yellow-green
+    new THREE.Color(0x77ee00), // Medium yellow-green
+    new THREE.Color(0xaaff22), // Light yellow-green
+    new THREE.Color(0x66dd00), // Deep yellow-green
+  ];
+
+  const enemyDamagePalette = [
+    new THREE.Color(0x0088ff), // Bright blue
+    new THREE.Color(0x0066cc), // Medium blue
+    new THREE.Color(0x00aaff), // Light blue
+    new THREE.Color(0x0055aa), // Dark blue
+    new THREE.Color(0x0099ee), // Sky blue
+  ];
+
+  // Get random color from a palette
+  const getRandomColorFromPalette = (palette) => {
+    return palette[Math.floor(Math.random() * palette.length)].clone();
   };
 
   // Handle combat effects - Player Actions
   useEffect(() => {
     if (isPlayerAttacking) {
-      // Player attacking - orange flash, speed up, intense rotation
-      setCurrentColor(new THREE.Color(0xff4500)); // Orange-red
+      // Player attacking - orange shades, speed up, intense rotation
+      setCombatPalette(attackPalette);
       targetSpeedRef.current = baseSpeed * 2.5;
       targetRotationRef.current = baseRotation + 8;
 
       const timer = setTimeout(() => {
-        setCurrentColor(null);
+        setCombatPalette(null);
         targetSpeedRef.current = baseSpeed;
         targetRotationRef.current = baseRotation;
       }, 2000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+      };
     }
   }, [isPlayerAttacking, baseSpeed, baseRotation]);
 
   useEffect(() => {
     if (isPlayerHealing) {
-      // Player healing - green flash, slow gentle rotation
-      setCurrentColor(new THREE.Color(0x00ff66)); // Bright green
+      // Player healing - green shades, slow gentle rotation
+      setCombatPalette(healPalette);
       targetSpeedRef.current = baseSpeed * 0.8;
       targetRotationRef.current = baseRotation + 3;
 
       const timer = setTimeout(() => {
-        setCurrentColor(null);
+        setCombatPalette(null);
         targetSpeedRef.current = baseSpeed;
         targetRotationRef.current = baseRotation;
       }, 2000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+      };
     }
   }, [isPlayerHealing, baseSpeed, baseRotation]);
 
   useEffect(() => {
     if (isPlayerDamaged) {
-      // Player damaged - red flash, shake effect
-      setCurrentColor(new THREE.Color(0xff0000)); // Red
+      // Player damaged - red shades, shake effect
+      setCombatPalette(damagePalette);
       targetSpeedRef.current = baseSpeed * 1.5;
       targetRotationRef.current = baseRotation + 10;
 
       const timer = setTimeout(() => {
-        setCurrentColor(null);
+        setCombatPalette(null);
         targetSpeedRef.current = baseSpeed;
         targetRotationRef.current = baseRotation;
       }, 2000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+      };
     }
   }, [isPlayerDamaged, baseSpeed, baseRotation]);
 
   // Handle combat effects - Enemy Actions
   useEffect(() => {
     if (isEnemyAttacking) {
-      // Enemy attacking - dark red flash, moderate speed boost
-      setCurrentColor(new THREE.Color(0xcc0000)); // Dark red
+      // Enemy attacking - dark red shades, moderate speed boost
+      setCombatPalette(enemyAttackPalette);
       targetSpeedRef.current = baseSpeed * 2;
       targetRotationRef.current = baseRotation + 7;
 
       const timer = setTimeout(() => {
-        setCurrentColor(null);
+        setCombatPalette(null);
         targetSpeedRef.current = baseSpeed;
         targetRotationRef.current = baseRotation;
       }, 2000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+      };
     }
   }, [isEnemyAttacking, baseSpeed, baseRotation]);
 
   useEffect(() => {
     if (isEnemyHealing) {
-      // Enemy healing - yellow-green flash, gentle motion
-      setCurrentColor(new THREE.Color(0x88ff00)); // Yellow-green
+      // Enemy healing - yellow-green shades, gentle motion
+      setCombatPalette(enemyHealPalette);
       targetSpeedRef.current = baseSpeed * 0.9;
       targetRotationRef.current = baseRotation + 2;
 
       const timer = setTimeout(() => {
-        setCurrentColor(null);
+        setCombatPalette(null);
         targetSpeedRef.current = baseSpeed;
         targetRotationRef.current = baseRotation;
       }, 2000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+      };
     }
   }, [isEnemyHealing, baseSpeed, baseRotation]);
 
   useEffect(() => {
     if (isEnemyDamaged) {
-      // Enemy damaged - blue flash, strong speed boost
-      setCurrentColor(new THREE.Color(0x0088ff)); // Blue
+      // Enemy damaged - blue shades, strong speed boost
+      setCombatPalette(enemyDamagePalette);
       targetSpeedRef.current = baseSpeed * 2.2;
       targetRotationRef.current = baseRotation + 9;
 
       const timer = setTimeout(() => {
-        setCurrentColor(null);
+        setCombatPalette(null);
         targetSpeedRef.current = baseSpeed;
         targetRotationRef.current = baseRotation;
       }, 2000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+      };
     }
   }, [isEnemyDamaged, baseSpeed, baseRotation]);
 
@@ -197,8 +258,8 @@ export const TorusTunnelBackground = ({
       const f = -i * 13;
       const geometry = new THREE.TorusGeometry(160, 75, 2, 13);
 
-      // Assign random color from palette
-      const randomColor = getRandomColor();
+      // Assign random color from multicolor palette
+      const randomColor = getRandomColorFromPalette(multicolorPalette);
       originalColors.push(randomColor);
 
       const material = new THREE.MeshBasicMaterial({ color: randomColor });
@@ -275,25 +336,26 @@ export const TorusTunnelBackground = ({
     };
   }, []); // Only run once on mount
 
-  // Update materials when color changes
+  // Update materials when combat palette changes
   useEffect(() => {
     if (!sceneRef.current || tabTorusRef.current.length === 0) return;
 
     tabTorusRef.current.forEach((torus, index) => {
       const oldMaterial = torus.mesh.material;
 
-      if (currentColor) {
-        // Combat effect - flash all tori to the same combat color
-        torus.mesh.material = new THREE.MeshBasicMaterial({ color: currentColor });
+      if (combatPalette) {
+        // Combat effect - each torus gets a random shade from the combat palette
+        const combatColor = getRandomColorFromPalette(combatPalette);
+        torus.mesh.material = new THREE.MeshBasicMaterial({ color: combatColor });
       } else {
-        // Return to original individual colors
+        // Return to original individual colors from multicolor palette
         const originalColor = originalColorsRef.current[index];
         torus.mesh.material = new THREE.MeshBasicMaterial({ color: originalColor });
       }
 
       oldMaterial.dispose();
     });
-  }, [currentColor]);
+  }, [combatPalette]);
 
   return (
     <div
@@ -302,9 +364,10 @@ export const TorusTunnelBackground = ({
         position: 'fixed',
         top: 0,
         left: 0,
-        width: '100%',
-        height: '100%',
-        zIndex: 1,
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden',
+        zIndex: -1,
         pointerEvents: 'none'
       }}
     />
