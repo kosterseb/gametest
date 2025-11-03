@@ -122,8 +122,8 @@ export const TorusTunnelBackground = ({
         torus.mesh.position.z += speedRef.current; // Move towards camera
         torus.mesh.rotation.z += rotationRef.current; // Rotation speed
 
-        // Reset position when torus passes camera
-        if (torus.mesh.position.z > 200) {
+        // Reset position when torus passes behind camera
+        if (torus.mesh.position.z > camera.position.z + 50) {
           torus.mesh.position.z = torus.initialZ;
         }
       });
@@ -134,11 +134,13 @@ export const TorusTunnelBackground = ({
       frameCount++;
       if (frameCount % 60 === 0) {
         const firstTorus = tabTorusRef.current[0];
+        const lastTorus = tabTorusRef.current[tabTorusRef.current.length - 1];
         const canvasVisible = renderer.domElement && renderer.domElement.style.display !== 'none';
         console.log('🌀 Animation frame', frameCount);
-        console.log('  - Torus count:', tabTorusRef.current.length, '  - Speed:', speedRef.current);
+        console.log('  - Torus count:', tabTorusRef.current.length, '  - Speed:', speedRef.current, '  - Rotation:', rotationRef.current);
         console.log('  - Camera pos:', camera.position.z.toFixed(1));
-        console.log('  - First torus z:', firstTorus.mesh.position.z.toFixed(1));
+        console.log('  - First torus z:', firstTorus.mesh.position.z.toFixed(1), '  - Initial:', firstTorus.initialZ.toFixed(1));
+        console.log('  - Last torus z:', lastTorus.mesh.position.z.toFixed(1), '  - Initial:', lastTorus.initialZ.toFixed(1));
         console.log('  - Canvas visible:', canvasVisible);
         console.log('  - Renderer size:', renderer.domElement.width, 'x', renderer.domElement.height);
       }
