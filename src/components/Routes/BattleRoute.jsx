@@ -170,6 +170,10 @@ export const BattleRoute = () => {
   const [playerEnergy, setPlayerEnergy] = useState(gameState.maxEnergy || 10);
   const [maxEnergy] = useState(gameState.maxEnergy || 10);
 
+  // Enemy energy state
+  const [enemyEnergy, setEnemyEnergy] = useState(currentEnemy?.actionPoints || 10);
+  const [maxEnemyEnergy] = useState(currentEnemy?.actionPoints || 10);
+
   // ✅ Use reducer for atomic card state updates
   const [cardState, dispatchCardState] = useReducer(cardStateReducer, {
     deck: [],
@@ -687,142 +691,180 @@ export const BattleRoute = () => {
       setTrackedTimeout(() => {
         console.log('🔄 Refilling hand and energy...');
         setPlayerEnergy(maxEnergy);
+        setEnemyEnergy(maxEnemyEnergy); // Refill enemy energy
         drawMultipleCards(gameState.maxHandSize || 6);
         setIsEnemyTurn(false);
       }, 1500);
       return;
     }
 
-    const roll = Math.random() * 100;
-    let cumulativeChance = 0;
-    let selectedAbility = currentEnemy.abilities[0];
+    // Refill enemy energy at start of turn
+    let currentEnemyEnergy = maxEnemyEnergy;
+    setEnemyEnergy(currentEnemyEnergy);
 
-    for (const ability of currentEnemy.abilities) {
-      cumulativeChance += ability.chance;
-      if (roll <= cumulativeChance) {
-        selectedAbility = ability;
+    // Helper function to execute a single ability
+    const executeAbility = (selectedAbility, energyCost) => {
+      setBattleLog(prev => [...prev, `${currentEnemy.name} ${selectedAbility.message} (${energyCost} AP)`]);
+
+      switch (selectedAbility.type) {
+        case 'damage':
+          const damageRange = selectedAbility.damage;
+          const baseDamage = Math.floor(Math.random() * (damageRange[1] - damageRange[0] + 1)) + damageRange[0];
+          const modifiedDamage = getModifiedDamage(baseDamage, enemyStatuses, playerStatuses);
+
+          // ✅ Apply shield blocking
+          const shieldResult = applyShieldBlock(playerStatuses, modifiedDamage);
+          const finalDamage = shieldResult.damage;
+
+          setPlayerHealth(prev => Math.max(0, prev - finalDamage));
+          setPlayerStatuses(shieldResult.newStatuses);
+          dispatch({ type: 'DAMAGE_PLAYER', amount: finalDamage });
+
+          if (shieldResult.blocked > 0) {
+            setBattleLog(prev => [...prev, `🛡️ Blocked ${shieldResult.blocked} damage!`]);
+            setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} dealt ${finalDamage} damage!`]);
+          } else {
+            setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} dealt ${finalDamage} damage!`]);
+          }
+          break;
+
+        case 'status':
+          const status = typeof selectedAbility.status === 'function'
+            ? selectedAbility.status()
+            : selectedAbility.status;
+
+          if (status) {
+            setPlayerStatuses(prev => applyStatus(prev, status));
+            setBattleLog(prev => [...prev, `${status.emoji || '⚠️'} ${status.name || 'Status'} applied!`]);
+          }
+          break;
+
+        case 'buff':
+          if (selectedAbility.healing) {
+            setEnemyHealth(prev => Math.min(maxEnemyHealth, prev + selectedAbility.healing));
+            setBattleLog(prev => [...prev, `💚 ${currentEnemy.name} healed ${selectedAbility.healing} HP!`]);
+          }
+          break;
+
+        case 'multi_action':
+          selectedAbility.actions.forEach(action => {
+            if (action.type === 'damage') {
+              const dmg = Math.floor(Math.random() * (action.damage[1] - action.damage[0] + 1)) + action.damage[0];
+              const modDmg = getModifiedDamage(dmg, enemyStatuses, playerStatuses);
+
+              // ✅ Apply shield blocking
+              setPlayerStatuses(prev => {
+                const shieldResult = applyShieldBlock(prev, modDmg);
+                setPlayerHealth(h => Math.max(0, h - shieldResult.damage));
+                dispatch({ type: 'DAMAGE_PLAYER', amount: shieldResult.damage });
+
+                if (shieldResult.blocked > 0) {
+                  setBattleLog(log => [...log, `🛡️ Blocked ${shieldResult.blocked} damage!`]);
+                }
+                setBattleLog(log => [...log, `💥 ${shieldResult.damage} damage!`]);
+
+                return shieldResult.newStatuses;
+              });
+            } else if (action.type === 'status') {
+              const actionStatus = typeof action.status === 'function'
+                ? action.status()
+                : action.status;
+
+              if (actionStatus) {
+                setPlayerStatuses(prev => applyStatus(prev, actionStatus));
+                setBattleLog(prev => [...prev, `${actionStatus.emoji || '⚠️'} ${actionStatus.name || 'Status'} applied!`]);
+              }
+            } else if (action.type === 'rest') {
+              setEnemyHealth(prev => Math.min(maxEnemyHealth, prev + action.healing));
+              setBattleLog(prev => [...prev, `💚 Healed ${action.healing} HP!`]);
+            }
+          });
+          break;
+
+        case 'multi_hit':
+          const hitDamage = Math.floor(Math.random() * (selectedAbility.damage[1] - selectedAbility.damage[0] + 1)) + selectedAbility.damage[0];
+          const totalMultiDamage = hitDamage * selectedAbility.hits;
+          const modMultiDamage = getModifiedDamage(totalMultiDamage, enemyStatuses, playerStatuses);
+
+          // ✅ Apply shield blocking
+          const multiHitShieldResult = applyShieldBlock(playerStatuses, modMultiDamage);
+          const finalMultiDamage = multiHitShieldResult.damage;
+
+          setPlayerHealth(prev => Math.max(0, prev - finalMultiDamage));
+          setPlayerStatuses(multiHitShieldResult.newStatuses);
+          dispatch({ type: 'DAMAGE_PLAYER', amount: finalMultiDamage });
+
+          if (multiHitShieldResult.blocked > 0) {
+            setBattleLog(prev => [...prev, `🛡️ Blocked ${multiHitShieldResult.blocked} damage!`]);
+          }
+          setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} hit ${selectedAbility.hits} times for ${finalMultiDamage} total damage!`]);
+          break;
+
+        case 'rest':
+          setEnemyHealth(prev => Math.min(maxEnemyHealth, prev + selectedAbility.healing));
+          setBattleLog(prev => [...prev, `💚 ${currentEnemy.name} rested and healed ${selectedAbility.healing} HP!`]);
+          break;
+
+        case 'skip':
+          break;
+
+        default:
+          setBattleLog(prev => [...prev, `${currentEnemy.name} did something unknown!`]);
+      }
+    };
+
+    // Loop through multiple actions until energy runs out
+    let actionCount = 0;
+    const maxActions = 10; // Safety limit to prevent infinite loops
+
+    while (currentEnemyEnergy > 0 && actionCount < maxActions) {
+      // Find affordable abilities (cost <= remaining energy)
+      const affordableAbilities = currentEnemy.abilities.filter(ability =>
+        (ability.cost || 0) <= currentEnemyEnergy
+      );
+
+      if (affordableAbilities.length === 0) {
+        setBattleLog(prev => [...prev, `${currentEnemy.name} doesn't have enough energy for more actions!`]);
         break;
       }
-    }
 
-    setBattleLog(prev => [...prev, `${currentEnemy.name} ${selectedAbility.message}`]);
+      // Select random ability using weighted chance
+      const roll = Math.random() * 100;
+      let cumulativeChance = 0;
+      let selectedAbility = affordableAbilities[0];
 
-    switch (selectedAbility.type) {
-      case 'damage':
-        const damageRange = selectedAbility.damage;
-        const baseDamage = Math.floor(Math.random() * (damageRange[1] - damageRange[0] + 1)) + damageRange[0];
-        const modifiedDamage = getModifiedDamage(baseDamage, enemyStatuses, playerStatuses);
-
-        // ✅ Apply shield blocking
-        const shieldResult = applyShieldBlock(playerStatuses, modifiedDamage);
-        const finalDamage = shieldResult.damage;
-
-        setPlayerHealth(prev => Math.max(0, prev - finalDamage));
-        setPlayerStatuses(shieldResult.newStatuses);
-        dispatch({ type: 'DAMAGE_PLAYER', amount: finalDamage });
-
-        if (shieldResult.blocked > 0) {
-          setBattleLog(prev => [...prev, `🛡️ Blocked ${shieldResult.blocked} damage!`]);
-          setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} dealt ${finalDamage} damage!`]);
-        } else {
-          setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} dealt ${finalDamage} damage!`]);
+      for (const ability of affordableAbilities) {
+        cumulativeChance += ability.chance;
+        if (roll <= cumulativeChance) {
+          selectedAbility = ability;
+          break;
         }
-        break;
+      }
 
-      case 'status':
-        const status = typeof selectedAbility.status === 'function' 
-          ? selectedAbility.status() 
-          : selectedAbility.status;
-        
-        if (status) {
-          setPlayerStatuses(prev => applyStatus(prev, status));
-          setBattleLog(prev => [...prev, `${status.emoji || '⚠️'} ${status.name || 'Status'} applied!`]);
-        }
-        break;
+      // Get ability cost (default to 0 if not specified)
+      const abilityCost = selectedAbility.cost || 0;
 
-      case 'buff':
-        if (selectedAbility.healing) {
-          setEnemyHealth(prev => Math.min(maxEnemyHealth, prev + selectedAbility.healing));
-          setBattleLog(prev => [...prev, `💚 ${currentEnemy.name} healed ${selectedAbility.healing} HP!`]);
-        }
-        break;
+      // Execute the ability
+      executeAbility(selectedAbility, abilityCost);
 
-      case 'multi_action':
-        selectedAbility.actions.forEach(action => {
-          if (action.type === 'damage') {
-            const dmg = Math.floor(Math.random() * (action.damage[1] - action.damage[0] + 1)) + action.damage[0];
-            const modDmg = getModifiedDamage(dmg, enemyStatuses, playerStatuses);
+      // Deduct energy
+      currentEnemyEnergy -= abilityCost;
+      setEnemyEnergy(currentEnemyEnergy);
 
-            // ✅ Apply shield blocking
-            setPlayerStatuses(prev => {
-              const shieldResult = applyShieldBlock(prev, modDmg);
-              setPlayerHealth(h => Math.max(0, h - shieldResult.damage));
-              dispatch({ type: 'DAMAGE_PLAYER', amount: shieldResult.damage });
-
-              if (shieldResult.blocked > 0) {
-                setBattleLog(log => [...log, `🛡️ Blocked ${shieldResult.blocked} damage!`]);
-              }
-              setBattleLog(log => [...log, `💥 ${shieldResult.damage} damage!`]);
-
-              return shieldResult.newStatuses;
-            });
-          } else if (action.type === 'status') {
-            const actionStatus = typeof action.status === 'function' 
-              ? action.status() 
-              : action.status;
-            
-            if (actionStatus) {
-              setPlayerStatuses(prev => applyStatus(prev, actionStatus));
-              setBattleLog(prev => [...prev, `${actionStatus.emoji || '⚠️'} ${actionStatus.name || 'Status'} applied!`]);
-            }
-          } else if (action.type === 'rest') {
-            setEnemyHealth(prev => Math.min(maxEnemyHealth, prev + action.healing));
-            setBattleLog(prev => [...prev, `💚 Healed ${action.healing} HP!`]);
-          }
-        });
-        break;
-
-      case 'multi_hit':
-        const hitDamage = Math.floor(Math.random() * (selectedAbility.damage[1] - selectedAbility.damage[0] + 1)) + selectedAbility.damage[0];
-        const totalMultiDamage = hitDamage * selectedAbility.hits;
-        const modMultiDamage = getModifiedDamage(totalMultiDamage, enemyStatuses, playerStatuses);
-
-        // ✅ Apply shield blocking
-        const multiHitShieldResult = applyShieldBlock(playerStatuses, modMultiDamage);
-        const finalMultiDamage = multiHitShieldResult.damage;
-
-        setPlayerHealth(prev => Math.max(0, prev - finalMultiDamage));
-        setPlayerStatuses(multiHitShieldResult.newStatuses);
-        dispatch({ type: 'DAMAGE_PLAYER', amount: finalMultiDamage });
-
-        if (multiHitShieldResult.blocked > 0) {
-          setBattleLog(prev => [...prev, `🛡️ Blocked ${multiHitShieldResult.blocked} damage!`]);
-        }
-        setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} hit ${selectedAbility.hits} times for ${finalMultiDamage} total damage!`]);
-        break;
-
-      case 'rest':
-        setEnemyHealth(prev => Math.min(maxEnemyHealth, prev + selectedAbility.healing));
-        setBattleLog(prev => [...prev, `💚 ${currentEnemy.name} rested and healed ${selectedAbility.healing} HP!`]);
-        break;
-
-      case 'skip':
-        break;
-
-      default:
-        setBattleLog(prev => [...prev, `${currentEnemy.name} did something unknown!`]);
+      actionCount++;
     }
 
     setTrackedTimeout(() => {
       console.log('🔄 Refilling hand and energy...');
       setPlayerEnergy(maxEnergy);
+      setEnemyEnergy(maxEnemyEnergy); // Refill enemy energy
       drawMultipleCards(gameState.maxHandSize || 6);
       setIsEnemyTurn(false);
       // Reset boss ability usage for new turn
       setHasUsedDrawAbility(false);
       setHasUsedDiscardAbility(false);
     }, 1500);
-  }, [currentEnemy, enemyStatuses, maxEnergy, playerStatuses, gameState.maxHandSize, drawMultipleCards, setTrackedTimeout, dispatch]);
+  }, [currentEnemy, enemyStatuses, maxEnergy, maxEnemyEnergy, playerStatuses, gameState.maxHandSize, drawMultipleCards, setTrackedTimeout, dispatch, maxEnemyHealth]);
 
   // ✅ Keep ref updated
   useEffect(() => {
@@ -984,6 +1026,8 @@ export const BattleRoute = () => {
               playerStatuses={playerStatuses}
               enemyStatuses={enemyStatuses}
               avatarSeed={gameState.profile?.avatarSeed || 'default'}
+              enemyEnergy={enemyEnergy}
+              maxEnemyEnergy={maxEnemyEnergy}
               onAttackAnimationChange={setIsAttackAnimationPlaying}
               onCombatStateChange={setCombatStates}
             />
