@@ -20,7 +20,7 @@ export const basicEnemies = [
         name: "Quick Slash",
         type: "damage",
         damage: [4, 7],
-        cost: 4,
+        cost: 5,
         chance: 60,
         message: "slashes at you!"
       },
@@ -35,7 +35,7 @@ export const basicEnemies = [
         name: "Rally",
         type: "buff",
         healing: 5,
-        cost: 3,
+        cost: 4,
         chance: 20,
         message: "rallies and recovers!"
       }

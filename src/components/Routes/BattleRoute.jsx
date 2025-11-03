@@ -677,11 +677,14 @@ export const BattleRoute = () => {
     dispatchCardState({ type: 'DISCARD_HAND' });
 
     setTurnCount(prev => prev + 1);
-    setIsEnemyTurn(true);
 
+    // Delay enemy turn to let status effects fully process
     setTrackedTimeout(() => {
-      performEnemyTurnRef.current?.();
-    }, 1000);
+      setIsEnemyTurn(true);
+      setTrackedTimeout(() => {
+        performEnemyTurnRef.current?.();
+      }, 800);
+    }, 400);
   }, [isEnemyTurn, playerStatuses, enemyStatuses, hand, setTrackedTimeout]);
 
   const performEnemyTurn = useCallback(() => {

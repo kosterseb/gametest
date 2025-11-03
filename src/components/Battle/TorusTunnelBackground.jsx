@@ -60,6 +60,8 @@ export const TorusTunnelBackground = ({
       10000
     );
     camera.position.z = 100; // Position camera to look down the tunnel
+    camera.position.x = 0;
+    camera.position.y = 0;
     cameraRef.current = camera;
 
     // Setup scene
@@ -110,11 +112,12 @@ export const TorusTunnelBackground = ({
 
       // Update torus positions and rotations
       tabTorusRef.current.forEach((torus, i) => {
-        torus.mesh.position.z += baseSpeed;
-        torus.mesh.rotation.z += (i * baseRotation) / 10000;
+        torus.mesh.position.z += baseSpeed; // Move towards camera
+        torus.mesh.rotation.z += 0.01; // Constant rotation speed
 
-        if (torus.mesh.position.z > 0) {
-          torus.mesh.position.z = -1000;
+        // Reset position when torus passes camera
+        if (torus.mesh.position.z > 200) {
+          torus.mesh.position.z = torus.initialZ;
         }
       });
 
