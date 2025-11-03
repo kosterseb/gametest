@@ -29,6 +29,7 @@ export const Card = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isInPlayZone, setIsInPlayZone] = useState(false);
   const cardRef = useRef(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
 
@@ -84,10 +85,15 @@ export const Card = ({
         x: e.clientX - dragOffset.x,
         y: e.clientY - dragOffset.y
       });
+
+      // Check if in play zone (upper 60% of screen)
+      const inPlayZone = e.clientY < window.innerHeight * 0.6;
+      setIsInPlayZone(inPlayZone);
     };
 
     const handleMouseUpGlobal = (e) => {
       setIsDragging(false);
+      setIsInPlayZone(false);
 
       // Check if dropped in valid area (upper 60% of screen)
       if (e.clientY < window.innerHeight * 0.6 && onClick) {
@@ -148,6 +154,8 @@ export const Card = ({
     zIndex: 9999,
     pointerEvents: 'none',
     cursor: 'grabbing',
+    filter: isInPlayZone ? 'drop-shadow(0 0 20px rgba(34, 197, 94, 0.8)) brightness(1.2)' : 'none',
+    transition: 'filter 0.2s ease-out',
   };
 
   const cardContent = (
@@ -303,7 +311,8 @@ export const Card = ({
             ${cardSize} ${cardHeight}
             bg-gradient-to-br ${getCardColor()}
             rounded-2xl
-            border-4 ${rarityConfig.borderColor}
+            border-4 ${isInPlayZone ? 'border-green-400 animate-pulse' : rarityConfig.borderColor}
+            ${isInPlayZone ? 'ring-4 ring-green-400 ring-opacity-75' : ''}
             shadow-2xl
             relative overflow-hidden
             flex flex-col
@@ -311,6 +320,10 @@ export const Card = ({
           `}
         >
           {cardContent}
+          {/* Play zone indicator overlay */}
+          {isInPlayZone && (
+            <div className="absolute inset-0 bg-green-500 opacity-10 pointer-events-none animate-pulse"></div>
+          )}
         </div>,
         document.body
       )}

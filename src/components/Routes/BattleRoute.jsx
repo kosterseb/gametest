@@ -16,6 +16,7 @@ import { DiceRoll } from '../Battle/DiceRoll';
 import { CoinFlip } from '../Battle/CoinFlip';
 import { TorusTunnelBackground } from '../Battle/TorusTunnelBackground';
 import { CardHand } from '../Cards/CardHand';
+import { CardPlayParticles } from '../Effects/CardPlayParticles';
 import {
   applyStatus,
   tickStatuses,
@@ -207,6 +208,9 @@ export const BattleRoute = () => {
   // ✅ Track coin flip state
   const [showCoinFlip, setShowCoinFlip] = useState(false);
   const [turnOrderDecided, setTurnOrderDecided] = useState(false);
+
+  // ✅ Track particle effects
+  const [particleEffect, setParticleEffect] = useState(null);
 
   // ✅ Track attack animation pause
   const [isAttackAnimationPlaying, setIsAttackAnimationPlaying] = useState(false);
@@ -579,6 +583,24 @@ export const BattleRoute = () => {
     });
 
     console.log('✋ Hand after:', hand.length - 1, 'cards');
+
+    // Trigger particle effect
+    const getCardColor = (type) => {
+      switch (type) {
+        case 'damage': return 'red';
+        case 'heal': return 'green';
+        case 'utility': return 'blue';
+        case 'cleanse': return 'purple';
+        case 'status': return 'yellow';
+        default: return 'blue';
+      }
+    };
+
+    setParticleEffect({
+      x: window.innerWidth / 2,
+      y: window.innerHeight * 0.4, // Upper-middle of screen
+      color: getCardColor(card.type)
+    });
 
     // Check if card requires dice roll
     if (card.diceRoll) {
@@ -1199,6 +1221,16 @@ export const BattleRoute = () => {
           onRollComplete={handleDiceComplete}
           minValue={1}
           maxValue={6}
+        />
+      )}
+
+      {/* Card Play Particles */}
+      {particleEffect && (
+        <CardPlayParticles
+          x={particleEffect.x}
+          y={particleEffect.y}
+          color={particleEffect.color}
+          onComplete={() => setParticleEffect(null)}
         />
       )}
     </PageTransition>
