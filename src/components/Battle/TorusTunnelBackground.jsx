@@ -109,6 +109,7 @@ export const TorusTunnelBackground = ({
     rotationRef.current = baseRotation;
 
     // Animation loop
+    let frameCount = 0;
     const animate = () => {
       animationFrameRef.current = requestAnimationFrame(animate);
 
@@ -128,9 +129,18 @@ export const TorusTunnelBackground = ({
       });
 
       renderer.render(scene, camera);
+
+      // Debug log every 60 frames (about once per second at 60fps)
+      frameCount++;
+      if (frameCount % 60 === 0) {
+        console.log('🌀 Animation frame', frameCount, 'torus count:', tabTorusRef.current.length, 'speed:', speedRef.current);
+      }
     };
 
-    console.log('🌀 Starting torus tunnel animation with speed:', baseSpeed);
+    console.log('🌀 Starting torus tunnel animation');
+    console.log('  - Speed:', baseSpeed, '  - Rotation:', baseRotation);
+    console.log('  - Camera position:', camera.position.x, camera.position.y, camera.position.z);
+    console.log('  - Torus count:', tabTorus.length);
     animate();
 
     // Cleanup
@@ -153,6 +163,12 @@ export const TorusTunnelBackground = ({
 
       renderer.dispose();
     };
+  }, []); // Empty dependency array - only run once on mount
+
+  // Update refs when props change without recreating the scene
+  useEffect(() => {
+    speedRef.current = baseSpeed;
+    rotationRef.current = baseRotation;
   }, [baseSpeed, baseRotation]);
 
   return (

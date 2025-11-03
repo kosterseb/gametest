@@ -721,7 +721,11 @@ export const BattleRoute = () => {
 
           setPlayerHealth(prev => Math.max(0, prev - finalDamage));
           setPlayerStatuses(shieldResult.newStatuses);
-          dispatch({ type: 'DAMAGE_PLAYER', amount: finalDamage });
+
+          // Dispatch asynchronously to avoid render conflicts
+          setTimeout(() => {
+            dispatch({ type: 'DAMAGE_PLAYER', amount: finalDamage });
+          }, 0);
 
           if (shieldResult.blocked > 0) {
             setBattleLog(prev => [...prev, `🛡️ Blocked ${shieldResult.blocked} damage!`]);
@@ -756,18 +760,19 @@ export const BattleRoute = () => {
               const modDmg = getModifiedDamage(dmg, enemyStatuses, playerStatuses);
 
               // ✅ Apply shield blocking
-              setPlayerStatuses(prev => {
-                const shieldResult = applyShieldBlock(prev, modDmg);
-                setPlayerHealth(h => Math.max(0, h - shieldResult.damage));
-                dispatch({ type: 'DAMAGE_PLAYER', amount: shieldResult.damage });
+              const multiShieldResult = applyShieldBlock(playerStatuses, modDmg);
+              setPlayerHealth(h => Math.max(0, h - multiShieldResult.damage));
+              setPlayerStatuses(multiShieldResult.newStatuses);
 
-                if (shieldResult.blocked > 0) {
-                  setBattleLog(log => [...log, `🛡️ Blocked ${shieldResult.blocked} damage!`]);
-                }
-                setBattleLog(log => [...log, `💥 ${shieldResult.damage} damage!`]);
+              // Dispatch asynchronously
+              setTimeout(() => {
+                dispatch({ type: 'DAMAGE_PLAYER', amount: multiShieldResult.damage });
+              }, 0);
 
-                return shieldResult.newStatuses;
-              });
+              if (multiShieldResult.blocked > 0) {
+                setBattleLog(log => [...log, `🛡️ Blocked ${multiShieldResult.blocked} damage!`]);
+              }
+              setBattleLog(log => [...log, `💥 ${multiShieldResult.damage} damage!`]);
             } else if (action.type === 'status') {
               const actionStatus = typeof action.status === 'function'
                 ? action.status()
@@ -795,7 +800,11 @@ export const BattleRoute = () => {
 
           setPlayerHealth(prev => Math.max(0, prev - finalMultiDamage));
           setPlayerStatuses(multiHitShieldResult.newStatuses);
-          dispatch({ type: 'DAMAGE_PLAYER', amount: finalMultiDamage });
+
+          // Dispatch asynchronously
+          setTimeout(() => {
+            dispatch({ type: 'DAMAGE_PLAYER', amount: finalMultiDamage });
+          }, 0);
 
           if (multiHitShieldResult.blocked > 0) {
             setBattleLog(prev => [...prev, `🛡️ Blocked ${multiHitShieldResult.blocked} damage!`]);
