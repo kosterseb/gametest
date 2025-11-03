@@ -1056,7 +1056,7 @@ export const BattleRoute = () => {
       <div className="h-screen overflow-hidden relative z-10">
         <div className="max-w-7xl mx-auto h-full flex flex-col gap-2 p-2">
           {/* Header - 10% */}
-          <div className="h-[10%] bg-white bg-opacity-45 rounded-xl shadow-lg flex justify-between items-center px-4 py-2">
+          <div className="h-[10%] flex justify-between items-center px-4 py-2">
             <GameHeader
               battleNumber={gameState.currentFloor}
               gold={gameState.gold}
@@ -1087,9 +1087,9 @@ export const BattleRoute = () => {
             />
 
             {equippedConsumables.length > 0 && (
-              <div className="bg-white bg-opacity-45 p-2 rounded-xl shadow-lg">
+              <div className="p-2">
                 <div className="flex justify-between items-center mb-1">
-                  <h3 className="text-xs font-bold">⚡ Battle Items ({equippedConsumables.length})</h3>
+                  <h3 className="text-xs font-bold text-white drop-shadow-lg">⚡ Battle Items ({equippedConsumables.length})</h3>
                   <button
                     onClick={() => setConsumablesBeltExpanded(!consumablesBeltExpanded)}
                     className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-semibold transition-all"
@@ -1115,23 +1115,28 @@ export const BattleRoute = () => {
           </div>
 
           {/* Cards Area - 28% */}
-          <div className="h-[28%] bg-white bg-opacity-45 px-3 py-2 rounded-xl shadow-lg flex flex-col overflow-hidden">
+          <div className="h-[28%] px-3 py-2 flex flex-col overflow-hidden relative">
+            {/* End Turn Button - Floating on Right Side */}
+            <button
+              onClick={handleEndTurn}
+              disabled={isEnemyTurn || isAttackAnimationPlaying}
+              className={`
+                absolute top-4 right-4 z-50
+                px-8 py-4 rounded-2xl font-bold text-xl
+                transform transition-all duration-300
+                shadow-2xl
+                ${isEnemyTurn || isAttackAnimationPlaying
+                  ? 'bg-gray-700 cursor-not-allowed text-gray-400 scale-95 opacity-50'
+                  : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white cursor-pointer hover:scale-110 hover:shadow-red-500/50 animate-pulse'}
+              `}
+            >
+              {isEnemyTurn ? '⏳ Enemy Turn...' : '⚔️ End Turn'}
+            </button>
+
             <div className="flex justify-between items-center mb-2">
               <div>
-                <h2 className="text-lg font-bold">Your Hand ({hand.length}/{gameState.maxHandSize})</h2>
+                <h2 className="text-lg font-bold text-white drop-shadow-lg">Your Hand ({hand.length}/{gameState.maxHandSize})</h2>
               </div>
-              <button
-                onClick={handleEndTurn}
-                disabled={isEnemyTurn || isAttackAnimationPlaying}
-                className={`
-                  px-4 py-2 rounded-lg font-bold text-sm transition-all
-                  ${isEnemyTurn || isAttackAnimationPlaying
-                    ? 'bg-gray-400 cursor-not-allowed text-gray-600'
-                    : 'bg-red-600 hover:bg-red-700 text-white shadow-lg hover:scale-105'}
-                `}
-              >
-                {isEnemyTurn ? 'Enemy Turn...' : 'End Turn'}
-              </button>
             </div>
 
             {/* Boss Abilities */}
