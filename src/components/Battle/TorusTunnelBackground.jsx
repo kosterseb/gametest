@@ -9,6 +9,8 @@ export const TorusTunnelBackground = ({
   const animationFrameRef = useRef(null);
   const mouseXRef = useRef(0);
   const mouseYRef = useRef(0);
+  const speedRef = useRef(baseSpeed);
+  const rotationRef = useRef(baseRotation);
 
   // Initialize Three.js scene - converted from original CodePen
   useEffect(() => {
@@ -67,6 +69,7 @@ export const TorusTunnelBackground = ({
     window.addEventListener('resize', handleResize);
 
     // Animation loop (original implementation)
+    let frameCount = 0;
     const animate = () => {
       animationFrameRef.current = requestAnimationFrame(animate);
 
@@ -76,8 +79,8 @@ export const TorusTunnelBackground = ({
 
       // Update torus positions (original update logic)
       for (let i = 0; i < numTorus; i++) {
-        tabTorus[i].position.z += baseSpeed; // Move towards camera
-        tabTorus[i].rotation.z += i * baseRotation / 10000; // Original rotation calculation
+        tabTorus[i].position.z += speedRef.current; // Move towards camera
+        tabTorus[i].rotation.z += i * rotationRef.current / 10000; // Original rotation calculation
 
         // Reset position when torus passes camera (original logic)
         if (tabTorus[i].position.z > 0) {
@@ -86,8 +89,15 @@ export const TorusTunnelBackground = ({
       }
 
       renderer.render(scene, camera);
+
+      // Debug every 60 frames
+      frameCount++;
+      if (frameCount % 60 === 0) {
+        console.log('🌀 Frame', frameCount, '- First torus Z:', tabTorus[0].position.z.toFixed(1), '- Speed:', speedRef.current);
+      }
     };
 
+    console.log('🌀 Torus tunnel initialized - Speed:', speedRef.current, 'Rotation:', rotationRef.current);
     animate();
 
     // Cleanup
@@ -110,6 +120,13 @@ export const TorusTunnelBackground = ({
 
       renderer.dispose();
     };
+  }, []); // Only initialize once
+
+  // Update speed/rotation refs when props change
+  useEffect(() => {
+    speedRef.current = baseSpeed;
+    rotationRef.current = baseRotation;
+    console.log('🌀 Updated speed:', baseSpeed, 'rotation:', baseRotation);
   }, [baseSpeed, baseRotation]);
 
   return (
