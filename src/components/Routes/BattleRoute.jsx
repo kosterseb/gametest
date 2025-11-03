@@ -1026,8 +1026,8 @@ export const BattleRoute = () => {
     <PageTransition>
       {/* Torus Tunnel Background */}
       <TorusTunnelBackground
-        baseSpeed={2}
-        baseRotation={0.01}
+        baseSpeed={1}
+        baseRotation={1.9}
       />
 
       <div className="h-screen overflow-hidden relative z-10">
