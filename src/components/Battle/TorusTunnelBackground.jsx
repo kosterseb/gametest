@@ -59,6 +59,7 @@ export const TorusTunnelBackground = ({
       0.1,
       10000
     );
+    camera.position.z = 100; // Position camera to look down the tunnel
     cameraRef.current = camera;
 
     // Setup scene

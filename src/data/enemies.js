@@ -12,9 +12,9 @@ export const ENEMY_TIERS = {
 export const basicEnemies = [
   {
     name: "Goblin Scout",
-    health: 35,
+    health: 70,
     goldReward: [8, 15],
-    actionPoints: 10,
+    actionPoints: 20,
     abilities: [
       {
         name: "Quick Slash",
@@ -43,9 +43,9 @@ export const basicEnemies = [
   },
   {
     name: "Bandit",
-    health: 40,
+    health: 80,
     goldReward: [10, 18],
-    actionPoints: 10,
+    actionPoints: 20,
     abilities: [
       {
         name: "Dagger Strike",
@@ -74,9 +74,9 @@ export const basicEnemies = [
   },
   {
     name: "Wild Wolf",
-    health: 45,
+    health: 90,
     goldReward: [8, 12],
-    actionPoints: 10,
+    actionPoints: 20,
     abilities: [
       {
         name: "Bite",
@@ -106,9 +106,9 @@ export const basicEnemies = [
   },
   {
     name: "Skeleton Warrior",
-    health: 50,
+    health: 100,
     goldReward: [12, 20],
-    actionPoints: 10,
+    actionPoints: 20,
     abilities: [
       {
         name: "Bone Sword",
@@ -137,9 +137,9 @@ export const basicEnemies = [
   },
   {
     name: "Dark Cultist",
-    health: 42,
+    health: 84,
     goldReward: [15, 22],
-    actionPoints: 10,
+    actionPoints: 20,
     abilities: [
       {
         name: "Dark Bolt",
@@ -177,9 +177,9 @@ export const basicEnemies = [
   },
   {
     name: "Flame Imp",
-    health: 38,
+    health: 76,
     goldReward: [10, 16],
-    actionPoints: 10,
+    actionPoints: 20,
     abilities: [
       {
         name: "Fireball",
@@ -209,9 +209,9 @@ export const basicEnemies = [
   },
   {
     name: "Ice Sprite",
-    health: 36,
+    health: 72,
     goldReward: [12, 18],
-    actionPoints: 10,
+    actionPoints: 20,
     abilities: [
       {
         name: "Frost Bite",
@@ -241,9 +241,9 @@ export const basicEnemies = [
   },
   {
     name: "Poison Spider",
-    health: 32,
+    health: 64,
     goldReward: [8, 14],
-    actionPoints: 10,
+    actionPoints: 20,
     abilities: [
       {
         name: "Venomous Bite",
@@ -285,10 +285,10 @@ export const basicEnemies = [
 export const eliteEnemies = [
   {
     name: "Ogre Brute",
-    health: 80,
+    health: 160,
     goldReward: [30, 50],
     isElite: true,
-    actionPoints: 14,
+    actionPoints: 28,
     abilities: [
       {
         name: "Club Smash",
@@ -327,10 +327,10 @@ export const eliteEnemies = [
   },
   {
     name: "Shadow Assassin",
-    health: 65,
+    health: 130,
     goldReward: [35, 55],
     isElite: true,
-    actionPoints: 15,
+    actionPoints: 30,
     abilities: [
       {
         name: "Backstab",
@@ -360,10 +360,10 @@ export const eliteEnemies = [
   },
   {
     name: "Corrupted Knight",
-    health: 90,
+    health: 180,
     goldReward: [40, 60],
     isElite: true,
-    actionPoints: 15,
+    actionPoints: 30,
     abilities: [
       {
         name: "Dark Slash",
@@ -402,10 +402,10 @@ export const eliteEnemies = [
   },
   {
     name: "Flame Golem",
-    health: 95,
+    health: 190,
     goldReward: [45, 65],
     isElite: true,
-    actionPoints: 14,
+    actionPoints: 28,
     abilities: [
       {
         name: "Molten Punch",
@@ -448,10 +448,10 @@ export const eliteEnemies = [
 export const bossEnemies = [
   {
     name: "Reed",
-    health: 120,
+    health: 240,
     goldReward: [60, 100],
     isBoss: true,
-    actionPoints: 16,
+    actionPoints: 32,
     avatarParams: {
       body: 'variant07',
       beard: 'variant08',
@@ -500,10 +500,10 @@ export const bossEnemies = [
   },
   {
     name: "Ancient Lich",
-    health: 150,
+    health: 300,
     goldReward: [80, 120],
     isBoss: true,
-    actionPoints: 17,
+    actionPoints: 34,
     abilities: [
       {
         name: "Death Ray",
@@ -551,10 +551,10 @@ export const bossEnemies = [
   },
   {
     name: "Dragon Lord",
-    health: 180,
+    health: 360,
     goldReward: [100, 150],
     isBoss: true,
-    actionPoints: 18,
+    actionPoints: 36,
     abilities: [
       {
         name: "Dragon Breath",
@@ -597,11 +597,11 @@ export const bossEnemies = [
 // Final boss (floor 25)
 export const finalBoss = {
   name: "Shadow Demon",
-  health: 200,
+  health: 400,
   goldReward: [150, 200],
   isBoss: true,
   isFinalBoss: true,
-  actionPoints: 20,
+  actionPoints: 40,
   abilities: [
     {
       name: "Shadow Claw",
