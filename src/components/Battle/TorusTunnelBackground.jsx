@@ -2,8 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 export const TorusTunnelBackground = ({
-  baseSpeed = 2,
-  baseRotation = 0.01
+  baseSpeed = 4, // Increased from 2 for more visible movement
+  baseRotation = 0.05 // Increased from 0.01 for more visible rotation
 }) => {
   const containerRef = useRef(null);
   const rendererRef = useRef(null);
@@ -77,15 +77,15 @@ export const TorusTunnelBackground = ({
 
     for (let i = 0; i < numTorus; i++) {
       const f = -i * 13;
-      const geometry = new THREE.TorusGeometry(160, 75, 2, 13);
+      const geometry = new THREE.TorusGeometry(30, 8, 16, 32); // Much smaller: radius 30, tube 8, smoother segments
 
       // Each torus gets a random color from palette
       const randomColor = getRandomColor();
       const material = new THREE.MeshBasicMaterial({ color: randomColor });
       const mesh = new THREE.Mesh(geometry, material);
 
-      mesh.position.x = 57 * Math.cos(f);
-      mesh.position.y = 57 * Math.sin(f);
+      mesh.position.x = 10 * Math.cos(f); // Reduced spiral radius
+      mesh.position.y = 10 * Math.sin(f); // Reduced spiral radius
       mesh.position.z = f * 1.25;
       mesh.rotation.z = f * 0.03;
 
