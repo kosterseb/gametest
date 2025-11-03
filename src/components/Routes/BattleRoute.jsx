@@ -15,6 +15,7 @@ import { ItemButton } from '../Cards/ItemButton';
 import { DiceRoll } from '../Battle/DiceRoll';
 import { CoinFlip } from '../Battle/CoinFlip';
 import { TorusTunnelBackground } from '../Battle/TorusTunnelBackground';
+import { CardHand } from '../Cards/CardHand';
 import {
   applyStatus,
   tickStatuses,
@@ -1171,25 +1172,14 @@ export const BattleRoute = () => {
               </div>
             )}
 
-            <div className="flex gap-2 overflow-x-auto pb-1 flex-shrink-0">
-              {hand.map((card) => (
-                <Card
-                  key={card.id}
-                  card={card}
-                  onClick={() => !isEnemyTurn && !isBattleOver && !isAttackAnimationPlaying && handleCardPlay(card)}
-                  disabled={isEnemyTurn || isBattleOver || isAttackAnimationPlaying}
-                  playerEnergy={playerEnergy}
-                  playerStatuses={playerStatuses}
-                  compact={true}
-                />
-              ))}
-            </div>
-
-            {hand.length === 0 && (
-              <div className="text-center text-gray-500 py-4 text-sm">
-                No cards in hand. End your turn to draw new cards!
-              </div>
-            )}
+            <CardHand
+              hand={hand}
+              onCardClick={(card) => !isEnemyTurn && !isBattleOver && !isAttackAnimationPlaying && handleCardPlay(card)}
+              disabled={isEnemyTurn || isBattleOver || isAttackAnimationPlaying}
+              playerEnergy={playerEnergy}
+              playerStatuses={playerStatuses}
+              compact={false}
+            />
           </div>
         </div>
       </div>

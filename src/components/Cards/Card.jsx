@@ -1,23 +1,91 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { CardIcon } from './CardIcon';
 import { RARITY_CONFIG } from '../../data/statusEffects';
 import { getModifiedCardCost } from '../../data/statusEffects';
 import { Zap, Heart, Shield, Sparkles, Sword } from 'lucide-react';
 
-export const Card = ({ 
-  card, 
-  onClick, 
+export const Card = ({
+  card,
+  onClick,
   disabled = false,
   playerEnergy = 0,
   playerStatuses = [],
   discardMode = false,
   compact = false,
   showCost = true,
-  glowing = false
+  glowing = false,
+  draggable = true
 }) => {
   const modifiedCost = getModifiedCardCost(card.energyCost, playerStatuses);
   const canAfford = playerEnergy >= modifiedCost;
   const rarityConfig = RARITY_CONFIG[card.rarity] || RARITY_CONFIG.common;
+
+  // 3D tilt effect states
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [isHovering, setIsHovering] = useState(false);
+
+  // Drag states
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const cardRef = useRef(null);
+
+  // Handle 3D tilt effect on mouse move
+  const handleMouseMove = (e) => {
+    if (disabled || (!canAfford && !discardMode) || isDragging) return;
+
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (y - centerY) / 10; // Tilt based on vertical position
+    const rotateY = (centerX - x) / 10; // Tilt based on horizontal position
+
+    setTilt({ x: rotateX, y: rotateY });
+  };
+
+  const handleMouseEnter = () => {
+    if (!disabled && (canAfford || discardMode)) {
+      setIsHovering(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+    setTilt({ x: 0, y: 0 });
+  };
+
+  // Drag and drop handlers
+  const handleDragStart = (e) => {
+    if (disabled || (!canAfford && !discardMode)) {
+      e.preventDefault();
+      return;
+    }
+
+    setIsDragging(true);
+    const rect = cardRef.current.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+
+    // Set custom drag image (invisible)
+    const dragImage = document.createElement('div');
+    dragImage.style.opacity = '0';
+    document.body.appendChild(dragImage);
+    e.dataTransfer.setDragImage(dragImage, 0, 0);
+    setTimeout(() => document.body.removeChild(dragImage), 0);
+  };
+
+  const handleDragEnd = (e) => {
+    setIsDragging(false);
+
+    // Check if dropped in valid area (above center of screen)
+    if (e.clientY < window.innerHeight * 0.6 && onClick) {
+      onClick();
+    }
+  };
 
   const getCardColor = () => {
     switch (card.type) {
@@ -40,106 +108,135 @@ export const Card = ({
     }
   };
 
-  const cardSize = compact ? 'w-32' : 'w-40';
-  const cardHeight = compact ? 'h-44' : 'h-56';
+  const cardSize = compact ? 'w-36' : 'w-48';
+  const cardHeight = compact ? 'h-48' : 'h-64';
+
+  const cardStyle = {
+    transform: isHovering && !isDragging
+      ? `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-20px) scale(1.05)`
+      : isDragging
+      ? 'scale(1.1) translateY(-30px)'
+      : 'perspective(1000px) rotateX(0deg) rotateY(0deg)',
+    transition: isDragging ? 'none' : 'transform 0.2s ease-out',
+    transformStyle: 'preserve-3d',
+  };
 
   return (
     <button
-      onClick={onClick}
+      ref={cardRef}
+      onClick={!draggable ? onClick : undefined}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onDragStart={draggable ? handleDragStart : undefined}
+      onDragEnd={draggable ? handleDragEnd : undefined}
+      draggable={draggable && !disabled && (canAfford || discardMode)}
       disabled={disabled || (!canAfford && !discardMode)}
+      style={cardStyle}
       className={`
         ${cardSize} ${cardHeight}
         bg-gradient-to-br ${getCardColor()}
-        rounded-xl
+        rounded-2xl
         border-4 ${rarityConfig.borderColor}
-        shadow-2xl
-        transition-all duration-300
+        transition-all duration-200
         ${disabled || (!canAfford && !discardMode)
-          ? 'opacity-50 cursor-not-allowed scale-95'
-          : 'hover:scale-105 hover:-translate-y-2 cursor-pointer'}
+          ? 'opacity-50 cursor-not-allowed'
+          : isDragging
+          ? 'cursor-grabbing shadow-2xl'
+          : 'cursor-grab shadow-xl'}
         ${glowing ? 'animate-pulse ring-4 ring-yellow-400' : ''}
+        ${isHovering ? 'shadow-2xl ring-2 ring-white ring-opacity-50' : ''}
         relative overflow-hidden
         flex flex-col
         group
       `}
     >
       {/* Rarity Glow Effect */}
-      <div className={`absolute inset-0 ${rarityConfig.glowColor} opacity-0 group-hover:opacity-100 transition-opacity`}></div>
+      <div className={`absolute inset-0 ${rarityConfig.glowColor} opacity-0 group-hover:opacity-20 transition-opacity`}></div>
 
-      {/* Header - Type Badge Only */}
+      {/* Shine effect for 3D feel */}
+      <div
+        className="absolute inset-0 bg-gradient-to-br from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
+        style={{
+          transform: `translateX(${tilt.y * 2}px) translateY(${tilt.x * 2}px)`
+        }}
+      ></div>
+
+      {/* Header - Type Badge */}
       <div className="absolute top-2 left-2 z-10">
-        <div className="bg-black bg-opacity-60 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
+        <div className="bg-black bg-opacity-70 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-lg">
           {getTypeIcon()}
-          <span className="text-white text-xs font-bold uppercase">{card.type}</span>
+          <span className="text-white text-xs font-bold uppercase tracking-wide">{card.type}</span>
         </div>
       </div>
 
+      {/* Energy Cost - Top Right */}
+      {showCost && (
+        <div className="absolute top-2 right-2 z-10">
+          <div className={`
+            flex items-center justify-center
+            w-10 h-10 rounded-full
+            ${canAfford || discardMode ? 'bg-blue-500' : 'bg-red-500'}
+            shadow-lg border-2 border-white
+          `}>
+            <span className="text-white font-bold text-lg">
+              {modifiedCost}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Card Icon - Center */}
-      <div className="flex-1 flex items-center justify-center pt-8 pb-2">
+      <div className="flex-1 flex items-center justify-center pt-10 pb-3">
         <CardIcon
           cardName={card.name}
           cardType={card.type}
-          size={compact ? 56 : 72}
+          size={compact ? 64 : 80}
           showGlow={!disabled && canAfford}
         />
       </div>
 
       {/* Card Name */}
-      <div className="px-3 pb-2">
-        <h3 className={`text-white font-bold text-center ${compact ? 'text-sm' : 'text-base'} leading-tight drop-shadow-lg`}>
+      <div className="px-4 pb-2">
+        <h3 className={`text-white font-bold text-center ${compact ? 'text-base' : 'text-lg'} leading-tight drop-shadow-lg`}>
           {card.name}
         </h3>
       </div>
 
       {/* Card Description */}
-      <div className="px-3 pb-3">
-        <p className={`text-white text-center ${compact ? 'text-xs' : 'text-sm'} opacity-90 leading-snug`}>
+      <div className="px-4 pb-3">
+        <p className={`text-white text-center ${compact ? 'text-xs' : 'text-sm'} opacity-90 leading-snug line-clamp-2`}>
           {card.description}
         </p>
       </div>
 
-      {/* Bottom Bar - Energy Cost, Stats, and Rarity */}
-      <div className="bg-black bg-opacity-40 backdrop-blur-sm p-2 mt-auto">
-        <div className="flex justify-between items-center mb-1">
-          {/* Energy Cost */}
-          {showCost && (
-            <div className={`
-              flex items-center gap-1 px-2 py-1 rounded-full
-              ${canAfford || discardMode ? 'bg-blue-500' : 'bg-red-500'}
-            `}>
-              <Zap className="w-4 h-4 text-white" />
-              <span className="text-white font-bold text-sm">
-                {modifiedCost}
-              </span>
+      {/* Bottom Bar - Stats and Rarity */}
+      <div className="bg-black bg-opacity-50 backdrop-blur-sm p-2.5 mt-auto">
+        {/* Stats Display */}
+        <div className="flex justify-center gap-2 mb-2">
+          {card.baseDamage && (
+            <div className="bg-red-600 px-3 py-1 rounded-full shadow-md flex items-center gap-1">
+              <Sword className="w-3 h-3 text-white" />
+              <span className="text-white font-bold text-sm">{card.baseDamage}</span>
             </div>
           )}
-
-          {/* Stats Display */}
-          <div className="flex gap-2">
-            {card.baseDamage && (
-              <div className="bg-red-600 px-2 py-1 rounded-full">
-                <span className="text-white font-bold text-xs">{card.baseDamage}</span>
-              </div>
-            )}
-            {card.baseHeal && (
-              <div className="bg-green-600 px-2 py-1 rounded-full">
-                <span className="text-white font-bold text-xs">+{card.baseHeal}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Dice Roll Indicator */}
+          {card.baseHeal && (
+            <div className="bg-green-600 px-3 py-1 rounded-full shadow-md flex items-center gap-1">
+              <Heart className="w-3 h-3 text-white" />
+              <span className="text-white font-bold text-sm">+{card.baseHeal}</span>
+            </div>
+          )}
           {card.diceRoll && (
-            <div className="bg-yellow-500 px-2 py-1 rounded-full">
-              <span className="text-black font-bold text-xs">🎲</span>
+            <div className="bg-yellow-500 px-3 py-1 rounded-full shadow-md">
+              <span className="text-black font-bold text-sm">🎲</span>
             </div>
           )}
         </div>
-        
-        {/* Rarity Badge - MOVED TO BOTTOM */}
+
+        {/* Rarity Badge */}
         <div className="flex justify-center">
-          <div className={`${rarityConfig.bgColor} ${rarityConfig.borderColor} border-2 px-3 py-0.5 rounded-full`}>
-            <span className={`${rarityConfig.color} text-xs font-bold`}>{rarityConfig.name}</span>
+          <div className={`${rarityConfig.bgColor} ${rarityConfig.borderColor} border-2 px-3 py-1 rounded-full shadow-md`}>
+            <span className={`${rarityConfig.color} text-xs font-bold uppercase tracking-wider`}>{rarityConfig.name}</span>
           </div>
         </div>
       </div>
