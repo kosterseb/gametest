@@ -2,8 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 export const TorusTunnelBackground = ({
-  baseSpeed = 4, // Increased from 2 for more visible movement
-  baseRotation = 0.05 // Increased from 0.01 for more visible rotation
+  baseSpeed = 8, // Much faster for visible movement
+  baseRotation = 0.08 // Faster rotation for visible spinning
 }) => {
   const containerRef = useRef(null);
   const rendererRef = useRef(null);
@@ -56,12 +56,12 @@ export const TorusTunnelBackground = ({
 
     // Setup camera
     const camera = new THREE.PerspectiveCamera(
-      80,
+      75, // Slightly narrower FOV for better depth perception
       window.innerWidth / window.innerHeight,
       0.1,
       10000
     );
-    camera.position.z = 100; // Position camera to look down the tunnel
+    camera.position.z = 50; // Closer to see the tunnel effect better
     camera.position.x = 0;
     camera.position.y = 0;
     cameraRef.current = camera;
@@ -77,16 +77,16 @@ export const TorusTunnelBackground = ({
 
     for (let i = 0; i < numTorus; i++) {
       const f = -i * 13;
-      const geometry = new THREE.TorusGeometry(30, 8, 16, 32); // Much smaller: radius 30, tube 8, smoother segments
+      const geometry = new THREE.TorusGeometry(50, 12, 16, 32); // Balanced size: radius 50, tube 12, smooth segments
 
       // Each torus gets a random color from palette
       const randomColor = getRandomColor();
-      const material = new THREE.MeshBasicMaterial({ color: randomColor });
+      const material = new THREE.MeshBasicMaterial({ color: randomColor, wireframe: false });
       const mesh = new THREE.Mesh(geometry, material);
 
-      mesh.position.x = 10 * Math.cos(f); // Reduced spiral radius
-      mesh.position.y = 10 * Math.sin(f); // Reduced spiral radius
-      mesh.position.z = f * 1.25;
+      mesh.position.x = 20 * Math.cos(f); // Moderate spiral
+      mesh.position.y = 20 * Math.sin(f); // Moderate spiral
+      mesh.position.z = f * 3; // Spread them out more
       mesh.rotation.z = f * 0.03;
 
       tabTorus.push({ mesh, initialZ: mesh.position.z });
@@ -122,8 +122,8 @@ export const TorusTunnelBackground = ({
         torus.mesh.position.z += speedRef.current; // Move towards camera
         torus.mesh.rotation.z += rotationRef.current; // Rotation speed
 
-        // Reset position when torus passes behind camera
-        if (torus.mesh.position.z > camera.position.z + 50) {
+        // Reset position when torus passes the camera
+        if (torus.mesh.position.z > camera.position.z + 100) {
           torus.mesh.position.z = torus.initialZ;
         }
       });
