@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { CardIcon } from './CardIcon';
 import { RARITY_CONFIG } from '../../data/statusEffects';
 import { getModifiedCardCost } from '../../data/statusEffects';
@@ -26,8 +27,10 @@ export const Card = ({
 
   // Drag states
   const [isDragging, setIsDragging] = useState(false);
+  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const cardRef = useRef(null);
+  const dragStartPos = useRef({ x: 0, y: 0 });
 
   // Handle 3D tilt effect on mouse move
   const handleMouseMove = (e) => {
@@ -56,36 +59,50 @@ export const Card = ({
     setTilt({ x: 0, y: 0 });
   };
 
-  // Drag and drop handlers
-  const handleDragStart = (e) => {
-    if (disabled || (!canAfford && !discardMode)) {
-      e.preventDefault();
-      return;
-    }
+  // Custom drag handlers using mouse events
+  const handleMouseDown = (e) => {
+    if (!draggable || disabled || (!canAfford && !discardMode)) return;
 
-    setIsDragging(true);
+    e.preventDefault(); // Prevent text selection and default drag
+
     const rect = cardRef.current.getBoundingClientRect();
-    setDragOffset({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    });
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
 
-    // Set custom drag image (invisible)
-    const dragImage = document.createElement('div');
-    dragImage.style.opacity = '0';
-    document.body.appendChild(dragImage);
-    e.dataTransfer.setDragImage(dragImage, 0, 0);
-    setTimeout(() => document.body.removeChild(dragImage), 0);
+    setDragOffset({ x: offsetX, y: offsetY });
+    dragStartPos.current = { x: rect.left, y: rect.top };
+    setDragPosition({ x: e.clientX - offsetX, y: e.clientY - offsetY });
+    setIsDragging(true);
   };
 
-  const handleDragEnd = (e) => {
-    setIsDragging(false);
+  // Global mouse move handler for dragging
+  useEffect(() => {
+    if (!isDragging) return;
 
-    // Check if dropped in valid area (above center of screen)
-    if (e.clientY < window.innerHeight * 0.6 && onClick) {
-      onClick();
-    }
-  };
+    const handleMouseMoveGlobal = (e) => {
+      setDragPosition({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y
+      });
+    };
+
+    const handleMouseUpGlobal = (e) => {
+      setIsDragging(false);
+
+      // Check if dropped in valid area (upper 60% of screen)
+      if (e.clientY < window.innerHeight * 0.6 && onClick) {
+        onClick();
+      }
+    };
+
+    document.addEventListener('mousemove', handleMouseMoveGlobal);
+    document.addEventListener('mouseup', handleMouseUpGlobal);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMoveGlobal);
+      document.removeEventListener('mouseup', handleMouseUpGlobal);
+    };
+  }, [isDragging, dragOffset, onClick]);
 
   const getCardColor = () => {
     switch (card.type) {
@@ -114,43 +131,27 @@ export const Card = ({
   const cardStyle = {
     transform: isHovering && !isDragging
       ? `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-20px) scale(1.05)`
-      : isDragging
-      ? 'scale(1.1) translateY(-30px)'
       : 'perspective(1000px) rotateX(0deg) rotateY(0deg)',
     transition: isDragging ? 'none' : 'transform 0.2s ease-out',
     transformStyle: 'preserve-3d',
+    opacity: isDragging ? 0.3 : 1, // Make original card semi-transparent when dragging
+    userSelect: 'none', // Prevent text selection
+    WebkitUserSelect: 'none', // Safari
   };
 
-  return (
-    <button
-      ref={cardRef}
-      onClick={!draggable ? onClick : undefined}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onDragStart={draggable ? handleDragStart : undefined}
-      onDragEnd={draggable ? handleDragEnd : undefined}
-      draggable={draggable && !disabled && (canAfford || discardMode)}
-      disabled={disabled || (!canAfford && !discardMode)}
-      style={cardStyle}
-      className={`
-        ${cardSize} ${cardHeight}
-        bg-gradient-to-br ${getCardColor()}
-        rounded-2xl
-        border-4 ${rarityConfig.borderColor}
-        transition-all duration-200
-        ${disabled || (!canAfford && !discardMode)
-          ? 'opacity-50 cursor-not-allowed'
-          : isDragging
-          ? 'cursor-grabbing shadow-2xl'
-          : 'cursor-grab shadow-xl'}
-        ${glowing ? 'animate-pulse ring-4 ring-yellow-400' : ''}
-        ${isHovering ? 'shadow-2xl ring-2 ring-white ring-opacity-50' : ''}
-        relative overflow-hidden
-        flex flex-col
-        group
-      `}
-    >
+  const draggingCardStyle = {
+    position: 'fixed',
+    left: `${dragPosition.x}px`,
+    top: `${dragPosition.y}px`,
+    transform: 'scale(1.1) rotate(-5deg)',
+    transformStyle: 'preserve-3d',
+    zIndex: 9999,
+    pointerEvents: 'none',
+    cursor: 'grabbing',
+  };
+
+  const cardContent = (
+    <>
       {/* Rarity Glow Effect */}
       <div className={`absolute inset-0 ${rarityConfig.glowColor} opacity-0 group-hover:opacity-20 transition-opacity`}></div>
 
@@ -258,7 +259,62 @@ export const Card = ({
           </div>
         </div>
       )}
+    </>
+  );
+
+  return (
+    <>
+      {/* Original card in hand */}
+      <button
+        ref={cardRef}
+        onClick={!draggable ? onClick : undefined}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onMouseDown={draggable ? handleMouseDown : undefined}
+        disabled={disabled || (!canAfford && !discardMode)}
+        style={cardStyle}
+        className={`
+        ${cardSize} ${cardHeight}
+        bg-gradient-to-br ${getCardColor()}
+        rounded-2xl
+        border-4 ${rarityConfig.borderColor}
+        transition-all duration-200
+        ${disabled || (!canAfford && !discardMode)
+          ? 'opacity-50 cursor-not-allowed'
+          : isDragging
+          ? 'cursor-grabbing shadow-2xl'
+          : 'cursor-grab shadow-xl'}
+        ${glowing ? 'animate-pulse ring-4 ring-yellow-400' : ''}
+        ${isHovering ? 'shadow-2xl ring-2 ring-white ring-opacity-50' : ''}
+        relative overflow-hidden
+        flex flex-col
+        group
+      `}
+    >
+      {cardContent}
     </button>
+
+      {/* Dragging clone - rendered as portal at document root */}
+      {isDragging && createPortal(
+        <div
+          style={draggingCardStyle}
+          className={`
+            ${cardSize} ${cardHeight}
+            bg-gradient-to-br ${getCardColor()}
+            rounded-2xl
+            border-4 ${rarityConfig.borderColor}
+            shadow-2xl
+            relative overflow-hidden
+            flex flex-col
+            group
+          `}
+        >
+          {cardContent}
+        </div>,
+        document.body
+      )}
+    </>
   );
 };
 
