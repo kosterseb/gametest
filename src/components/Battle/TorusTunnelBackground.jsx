@@ -14,13 +14,31 @@ export const TorusTunnelBackground = ({
 
   // Initialize Three.js scene - converted from original CodePen
   useEffect(() => {
-    if (!containerRef.current) return;
+    console.log('🌀 TorusTunnelBackground useEffect triggered');
+    console.log('🌀 containerRef.current:', containerRef.current);
+
+    if (!containerRef.current) {
+      console.log('❌ Container ref not available, skipping initialization');
+      return;
+    }
+
+    console.log('✅ Starting torus tunnel initialization...');
 
     // Setup renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0); // Transparent background
+
+    // Check if container already has a canvas
+    if (containerRef.current.children.length > 0) {
+      console.log('⚠️ Container already has children, clearing...');
+      while (containerRef.current.firstChild) {
+        containerRef.current.removeChild(containerRef.current.firstChild);
+      }
+    }
+
     containerRef.current.appendChild(renderer.domElement);
+    console.log('✅ Renderer added to DOM');
 
     // Setup camera (original settings)
     const camera = new THREE.PerspectiveCamera(
@@ -98,14 +116,19 @@ export const TorusTunnelBackground = ({
     };
 
     console.log('🌀 Torus tunnel initialized - Speed:', speedRef.current, 'Rotation:', rotationRef.current);
+    console.log('🌀 Starting animation loop...');
     animate();
+    console.log('✅ Animation loop started!');
 
     // Cleanup
     return () => {
+      console.log('🧹 Cleaning up torus tunnel...');
       window.removeEventListener('resize', handleResize);
 
       if (animationFrameRef.current) {
+        console.log('🛑 Cancelling animation frame:', animationFrameRef.current);
         cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
       }
 
       tabTorus.forEach(mesh => {
@@ -115,10 +138,15 @@ export const TorusTunnelBackground = ({
       });
 
       if (containerRef.current && renderer.domElement) {
-        containerRef.current.removeChild(renderer.domElement);
+        try {
+          containerRef.current.removeChild(renderer.domElement);
+        } catch (e) {
+          console.log('⚠️ Error removing canvas:', e.message);
+        }
       }
 
       renderer.dispose();
+      console.log('✅ Cleanup complete');
     };
   }, []); // Only initialize once
 
