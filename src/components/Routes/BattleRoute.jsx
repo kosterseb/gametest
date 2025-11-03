@@ -837,6 +837,7 @@ export const BattleRoute = () => {
           setEnemyEnergy(maxEnemyEnergy);
           drawMultipleCards(gameState.maxHandSize || 6);
           setIsEnemyTurn(false);
+          setIsAttackAnimationPlaying(false); // Reset animation lock
           setHasUsedDrawAbility(false);
           setHasUsedDiscardAbility(false);
         }, 1200);
@@ -857,6 +858,7 @@ export const BattleRoute = () => {
           setEnemyEnergy(maxEnemyEnergy);
           drawMultipleCards(gameState.maxHandSize || 6);
           setIsEnemyTurn(false);
+          setIsAttackAnimationPlaying(false); // Reset animation lock
           setHasUsedDrawAbility(false);
           setHasUsedDiscardAbility(false);
         }, 1200);

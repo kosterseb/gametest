@@ -133,7 +133,14 @@ export const TorusTunnelBackground = ({
       // Debug log every 60 frames (about once per second at 60fps)
       frameCount++;
       if (frameCount % 60 === 0) {
-        console.log('🌀 Animation frame', frameCount, 'torus count:', tabTorusRef.current.length, 'speed:', speedRef.current);
+        const firstTorus = tabTorusRef.current[0];
+        const canvasVisible = renderer.domElement && renderer.domElement.style.display !== 'none';
+        console.log('🌀 Animation frame', frameCount);
+        console.log('  - Torus count:', tabTorusRef.current.length, '  - Speed:', speedRef.current);
+        console.log('  - Camera pos:', camera.position.z.toFixed(1));
+        console.log('  - First torus z:', firstTorus.mesh.position.z.toFixed(1));
+        console.log('  - Canvas visible:', canvasVisible);
+        console.log('  - Renderer size:', renderer.domElement.width, 'x', renderer.domElement.height);
       }
     };
 
