@@ -816,19 +816,42 @@ export const BattleRoute = () => {
       }
     };
 
-    // Loop through multiple actions until energy runs out
-    let actionCount = 0;
-    const maxActions = 10; // Safety limit to prevent infinite loops
+    // Recursive function to perform actions sequentially with delays
+    const performNextAction = (remainingEnergy, actionCount) => {
+      const maxActions = 10; // Safety limit
 
-    while (currentEnemyEnergy > 0 && actionCount < maxActions) {
-      // Find affordable abilities (cost <= remaining energy)
+      if (remainingEnergy <= 0 || actionCount >= maxActions) {
+        // End turn after final action
+        setTrackedTimeout(() => {
+          console.log('🔄 Refilling hand and energy...');
+          setPlayerEnergy(maxEnergy);
+          setEnemyEnergy(maxEnemyEnergy);
+          drawMultipleCards(gameState.maxHandSize || 6);
+          setIsEnemyTurn(false);
+          setHasUsedDrawAbility(false);
+          setHasUsedDiscardAbility(false);
+        }, 1200);
+        return;
+      }
+
+      // Find affordable abilities
       const affordableAbilities = currentEnemy.abilities.filter(ability =>
-        (ability.cost || 0) <= currentEnemyEnergy
+        (ability.cost || 0) <= remainingEnergy
       );
 
       if (affordableAbilities.length === 0) {
         setBattleLog(prev => [...prev, `${currentEnemy.name} doesn't have enough energy for more actions!`]);
-        break;
+        // End turn
+        setTrackedTimeout(() => {
+          console.log('🔄 Refilling hand and energy...');
+          setPlayerEnergy(maxEnergy);
+          setEnemyEnergy(maxEnemyEnergy);
+          drawMultipleCards(gameState.maxHandSize || 6);
+          setIsEnemyTurn(false);
+          setHasUsedDrawAbility(false);
+          setHasUsedDiscardAbility(false);
+        }, 1200);
+        return;
       }
 
       // Select random ability using weighted chance
@@ -844,29 +867,23 @@ export const BattleRoute = () => {
         }
       }
 
-      // Get ability cost (default to 0 if not specified)
       const abilityCost = selectedAbility.cost || 0;
 
       // Execute the ability
       executeAbility(selectedAbility, abilityCost);
 
-      // Deduct energy
-      currentEnemyEnergy -= abilityCost;
-      setEnemyEnergy(currentEnemyEnergy);
+      // Update energy display
+      const newEnergy = remainingEnergy - abilityCost;
+      setEnemyEnergy(newEnergy);
 
-      actionCount++;
-    }
+      // Schedule next action after animation delay
+      setTrackedTimeout(() => {
+        performNextAction(newEnergy, actionCount + 1);
+      }, 1200); // 1.2 second delay between actions for animations
+    };
 
-    setTrackedTimeout(() => {
-      console.log('🔄 Refilling hand and energy...');
-      setPlayerEnergy(maxEnergy);
-      setEnemyEnergy(maxEnemyEnergy); // Refill enemy energy
-      drawMultipleCards(gameState.maxHandSize || 6);
-      setIsEnemyTurn(false);
-      // Reset boss ability usage for new turn
-      setHasUsedDrawAbility(false);
-      setHasUsedDiscardAbility(false);
-    }, 1500);
+    // Start the action sequence
+    performNextAction(currentEnemyEnergy, 0);
   }, [currentEnemy, enemyStatuses, maxEnergy, maxEnemyEnergy, playerStatuses, gameState.maxHandSize, drawMultipleCards, setTrackedTimeout, dispatch, maxEnemyHealth]);
 
   // ✅ Keep ref updated
@@ -999,7 +1016,7 @@ export const BattleRoute = () => {
       {/* Torus Tunnel Background */}
       <TorusTunnelBackground
         baseSpeed={2}
-        baseRotation={0}
+        baseRotation={0.01}
       />
 
       <div className="h-screen overflow-hidden relative z-10">

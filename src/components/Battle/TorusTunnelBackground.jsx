@@ -3,7 +3,7 @@ import * as THREE from 'three';
 
 export const TorusTunnelBackground = ({
   baseSpeed = 2,
-  baseRotation = 0
+  baseRotation = 0.01
 }) => {
   const containerRef = useRef(null);
   const rendererRef = useRef(null);
@@ -13,6 +13,8 @@ export const TorusTunnelBackground = ({
   const animationFrameRef = useRef(null);
   const mouseXRef = useRef(0);
   const mouseYRef = useRef(0);
+  const speedRef = useRef(baseSpeed);
+  const rotationRef = useRef(baseRotation);
 
   // Color palette - different shades of blue, red, and green
   const colorPalette = [
@@ -102,6 +104,10 @@ export const TorusTunnelBackground = ({
 
     window.addEventListener('resize', handleResize);
 
+    // Update refs when props change
+    speedRef.current = baseSpeed;
+    rotationRef.current = baseRotation;
+
     // Animation loop
     const animate = () => {
       animationFrameRef.current = requestAnimationFrame(animate);
@@ -110,10 +116,10 @@ export const TorusTunnelBackground = ({
       camera.position.x += (mouseXRef.current - camera.position.x) * 0.05;
       camera.position.y += (-mouseYRef.current - camera.position.y) * 0.05;
 
-      // Update torus positions and rotations
+      // Update torus positions and rotations using refs
       tabTorusRef.current.forEach((torus, i) => {
-        torus.mesh.position.z += baseSpeed; // Move towards camera
-        torus.mesh.rotation.z += 0.01; // Constant rotation speed
+        torus.mesh.position.z += speedRef.current; // Move towards camera
+        torus.mesh.rotation.z += rotationRef.current; // Rotation speed
 
         // Reset position when torus passes camera
         if (torus.mesh.position.z > 200) {
@@ -124,6 +130,7 @@ export const TorusTunnelBackground = ({
       renderer.render(scene, camera);
     };
 
+    console.log('🌀 Starting torus tunnel animation with speed:', baseSpeed);
     animate();
 
     // Cleanup
