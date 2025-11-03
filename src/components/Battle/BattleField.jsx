@@ -17,6 +17,8 @@ export const BattleField = ({
   playerStatuses = [],
   enemyStatuses = [],
   avatarSeed = 'default',
+  enemyEnergy = 0,
+  maxEnemyEnergy = 10,
   onAttackAnimationChange = () => {},
   onCombatStateChange = () => {}
 }) => {
@@ -254,6 +256,7 @@ export const BattleField = ({
   const playerHealthPercentage = Math.max(0, Math.min(100, (playerHealth / maxPlayerHealth) * 100));
   const enemyHealthPercentage = Math.max(0, Math.min(100, (enemyHealth / maxEnemyHealth) * 100));
   const energyPercentage = Math.max(0, Math.min(100, (playerEnergy / maxEnergy) * 100));
+  const enemyEnergyPercentage = Math.max(0, Math.min(100, (enemyEnergy / maxEnemyEnergy) * 100));
 
   // Split battle log into player and enemy actions
   const playerLogs = battleLog.filter(log => 
@@ -395,6 +398,25 @@ export const BattleField = ({
               <div
                 className="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-300"
                 style={{ width: `${enemyHealthPercentage}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Enemy Energy Bar */}
+          <div className="w-full">
+            <div className="flex items-center justify-between mb-0.5">
+              <div className="flex items-center gap-1">
+                <Zap className="w-3 h-3 text-orange-500" />
+                <span className="text-xs font-semibold text-gray-600">ACTION POINTS</span>
+              </div>
+              <span className="text-xs font-bold text-gray-800">
+                {enemyEnergy}/{maxEnemyEnergy}
+              </span>
+            </div>
+            <div className="w-full h-3 bg-gray-300 rounded-full overflow-hidden border border-gray-400">
+              <div
+                className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-300"
+                style={{ width: `${enemyEnergyPercentage}%` }}
               />
             </div>
           </div>
