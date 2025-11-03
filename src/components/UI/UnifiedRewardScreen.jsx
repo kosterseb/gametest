@@ -24,7 +24,7 @@ export const UnifiedRewardScreen = () => {
   const [isBossItemReward, setIsBossItemReward] = useState(false);
   
   const hasCardRewards = gameState.shouldShowCardReward;
-  const hasItemRewards = gameState.shouldShowItemReward && gameState.pendingItemRewards.length > 0;
+  const hasItemRewards = gameState.shouldShowItemReward && (gameState.pendingItemRewards?.length || 0) > 0;
 
   // Initialize rewards
   useEffect(() => {
@@ -35,9 +35,9 @@ export const UnifiedRewardScreen = () => {
     }
     
     if (hasItemRewards) {
-      setItemRewards(gameState.pendingItemRewards);
-      
-      if (gameState.pendingItemRewards.length === 3 && gameState.currentEnemyData?.isBoss) {
+      setItemRewards(gameState.pendingItemRewards || []);
+
+      if ((gameState.pendingItemRewards?.length || 0) === 3 && gameState.currentEnemyData?.isBoss) {
         setIsBossItemReward(true);
       } else {
         setIsBossItemReward(false);

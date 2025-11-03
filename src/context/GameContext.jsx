@@ -59,12 +59,21 @@ const initialGameState = {
 
   gold: 0,
 
+  // Boss/Elite tracking
+  bossesDefeated: 0,
+  elitesDefeated: 0,
+
   // PHASE C: Ability Unlocks
   hasDrawAbility: false,
   hasDiscardAbility: false,
   drawAbilityUnlocked: false,
   discardAbilityUnlocked: false,
   inventoryUpgradeUnlocked: false,
+
+  // Upgrade Purchase Tracking
+  healthUpgradesPurchased: 0,
+  energyUpgradesPurchased: 0,
+  handSizeUpgradesPurchased: 0,
 
   // PHASE B: Status Effects
   playerStatuses: [],
@@ -325,6 +334,9 @@ const gameReducer = (state, action) => {
     case 'HEAL_PLAYER':
       return { ...state, playerHealth: Math.min(state.maxPlayerHealth, state.playerHealth + action.amount) };
 
+    case 'UPDATE_HEALTH':
+      return { ...state, playerHealth: action.health };
+
     case 'HEAL_ENEMY':
       const enemyMaxHealth = state.currentEnemyData?.health || 70;
       return { ...state, enemyHealth: Math.min(enemyMaxHealth, state.enemyHealth + action.amount) };
@@ -412,6 +424,11 @@ const gameReducer = (state, action) => {
     case 'SET_ENEMY_FOR_BATTLE':
       const enemyData = action.enemyData;
 
+      if (!enemyData) {
+        console.error('SET_ENEMY_FOR_BATTLE: enemyData is undefined!');
+        return state;
+      }
+
       return {
         ...state,
         enemyHealth: enemyData.health,
@@ -460,6 +477,56 @@ const gameReducer = (state, action) => {
 
     case 'PURCHASE_DISCARD_ABILITY':
       return { ...state, hasDiscardAbility: true };
+
+    case 'EXPAND_BAG_SIZE':
+      return {
+        ...state,
+        inventory: {
+          ...state.inventory,
+          bag: [...state.inventory.bag, null]
+        }
+      };
+
+    case 'EXPAND_CONSUMABLE_SIZE':
+      return {
+        ...state,
+        inventory: {
+          ...state.inventory,
+          toolBelt: {
+            ...state.inventory.toolBelt,
+            consumables: [...state.inventory.toolBelt.consumables, null]
+          }
+        }
+      };
+
+    case 'EXPAND_PASSIVE_SIZE':
+      return {
+        ...state,
+        inventory: {
+          ...state.inventory,
+          toolBelt: {
+            ...state.inventory.toolBelt,
+            passives: [...state.inventory.toolBelt.passives, null]
+          }
+        }
+      };
+
+    case 'TRACK_UPGRADE':
+      const { upgradeType } = action;
+      if (upgradeType === 'health') {
+        return { ...state, healthUpgradesPurchased: (state.healthUpgradesPurchased || 0) + 1 };
+      } else if (upgradeType === 'energy') {
+        return { ...state, energyUpgradesPurchased: (state.energyUpgradesPurchased || 0) + 1 };
+      } else if (upgradeType === 'handSize') {
+        return { ...state, handSizeUpgradesPurchased: (state.handSizeUpgradesPurchased || 0) + 1 };
+      }
+      return state;
+
+    case 'INCREMENT_BOSSES_DEFEATED':
+      return { ...state, bossesDefeated: (state.bossesDefeated || 0) + 1 };
+
+    case 'INCREMENT_ELITES_DEFEATED':
+      return { ...state, elitesDefeated: (state.elitesDefeated || 0) + 1 };
 
     case 'APPLY_STATUS_TO_PLAYER':
       return {
@@ -603,6 +670,20 @@ const gameReducer = (state, action) => {
           bag: state.inventory.bag.map(item =>
             item?.instanceId === action.instanceId ? null : item
           )
+        }
+      };
+
+    case 'REMOVE_CONSUMABLE_FROM_TOOLBELT':
+      return {
+        ...state,
+        inventory: {
+          ...state.inventory,
+          toolBelt: {
+            ...state.inventory.toolBelt,
+            consumables: state.inventory.toolBelt.consumables.map(item =>
+              item?.instanceId === action.instanceId ? null : item
+            )
+          }
         }
       };
 

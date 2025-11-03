@@ -15,11 +15,13 @@ export const basicEnemies = [
     health: 35,
     goldReward: [8, 15],
     actionPoints: 10,
+    actionPoints: 10,
     abilities: [
       {
         name: "Quick Slash",
         type: "damage",
         damage: [4, 7],
+        cost: 4,
         cost: 4,
         chance: 60,
         message: "slashes at you!"
@@ -46,11 +48,13 @@ export const basicEnemies = [
     health: 40,
     goldReward: [10, 18],
     actionPoints: 10,
+    actionPoints: 10,
     abilities: [
       {
         name: "Dagger Strike",
         type: "damage",
         damage: [6, 10],
+        cost: 5,
         cost: 5,
         chance: 50,
         message: "strikes with a dagger!"
@@ -60,12 +64,14 @@ export const basicEnemies = [
         type: "status",
         status: () => createStatus('poison', 2),
         cost: 4,
+        cost: 4,
         chance: 30,
         message: "coats their blade in poison!"
       },
       {
         name: "Steal",
         type: "skip",
+        cost: 2,
         cost: 2,
         chance: 20,
         message: "attempts to steal but misses!"
@@ -77,11 +83,13 @@ export const basicEnemies = [
     health: 45,
     goldReward: [8, 12],
     actionPoints: 10,
+    actionPoints: 10,
     abilities: [
       {
         name: "Bite",
         type: "damage",
         damage: [8, 12],
+        cost: 6,
         cost: 6,
         chance: 60,
         message: "bites ferociously!"
@@ -99,6 +107,7 @@ export const basicEnemies = [
         type: "damage",
         damage: [5, 8],
         cost: 4,
+        cost: 4,
         chance: 15,
         message: "pounces quickly!"
       }
@@ -109,11 +118,13 @@ export const basicEnemies = [
     health: 50,
     goldReward: [12, 20],
     actionPoints: 10,
+    actionPoints: 10,
     abilities: [
       {
         name: "Bone Sword",
         type: "damage",
         damage: [7, 11],
+        cost: 5,
         cost: 5,
         chance: 50,
         message: "swings a bone sword!"
@@ -123,12 +134,14 @@ export const basicEnemies = [
         type: "status",
         status: () => createStatus('dazed', 1, 2),
         cost: 4,
+        cost: 4,
         chance: 30,
         message: "rattles its bones, dazing you!"
       },
       {
         name: "Bone Shield",
         type: "buff",
+        cost: 3,
         cost: 3,
         chance: 20,
         message: "raises a bone shield!"
@@ -140,11 +153,13 @@ export const basicEnemies = [
     health: 42,
     goldReward: [15, 22],
     actionPoints: 10,
+    actionPoints: 10,
     abilities: [
       {
         name: "Dark Bolt",
         type: "damage",
         damage: [9, 13],
+        cost: 6,
         cost: 6,
         chance: 50,
         message: "fires a dark bolt!"
@@ -170,6 +185,7 @@ export const basicEnemies = [
         name: "Shadow Step",
         type: "skip",
         cost: 2,
+        cost: 2,
         chance: 15,
         message: "steps into shadows!"
       }
@@ -179,6 +195,7 @@ export const basicEnemies = [
     name: "Flame Imp",
     health: 38,
     goldReward: [10, 16],
+    actionPoints: 10,
     actionPoints: 10,
     abilities: [
       {
@@ -212,6 +229,7 @@ export const basicEnemies = [
     health: 36,
     goldReward: [12, 18],
     actionPoints: 10,
+    actionPoints: 10,
     abilities: [
       {
         name: "Frost Bite",
@@ -244,6 +262,7 @@ export const basicEnemies = [
     health: 32,
     goldReward: [8, 14],
     actionPoints: 10,
+    actionPoints: 10,
     abilities: [
       {
         name: "Venomous Bite",
@@ -274,6 +293,7 @@ export const basicEnemies = [
         name: "Scurry",
         type: "skip",
         cost: 2,
+        cost: 2,
         chance: 15,
         message: "scurries away!"
       }
@@ -289,11 +309,13 @@ export const eliteEnemies = [
     goldReward: [30, 50],
     isElite: true,
     actionPoints: 14,
+    actionPoints: 14,
     abilities: [
       {
         name: "Club Smash",
         type: "damage",
         damage: [15, 22],
+        cost: 8,
         cost: 8,
         chance: 50,
         message: "smashes with a massive club!"
@@ -331,11 +353,13 @@ export const eliteEnemies = [
     goldReward: [35, 55],
     isElite: true,
     actionPoints: 15,
+    actionPoints: 15,
     abilities: [
       {
         name: "Backstab",
         type: "damage",
         damage: [20, 28],
+        cost: 10,
         cost: 10,
         chance: 40,
         message: "backstabs with deadly precision!"
@@ -353,6 +377,7 @@ export const eliteEnemies = [
         name: "Smoke Bomb",
         type: "skip",
         cost: 3,
+        cost: 3,
         chance: 25,
         message: "vanishes in smoke!"
       }
@@ -369,6 +394,7 @@ export const eliteEnemies = [
         name: "Dark Slash",
         type: "damage",
         damage: [12, 18],
+        cost: 7,
         cost: 7,
         chance: 45,
         message: "slashes with a corrupted blade!"
@@ -412,6 +438,7 @@ export const eliteEnemies = [
         type: "damage",
         damage: [18, 24],
         cost: 9,
+        cost: 9,
         chance: 45,
         message: "punches with molten fists!"
       },
@@ -447,7 +474,7 @@ export const eliteEnemies = [
 // Boss enemies (floors 8, 16, 24)
 export const bossEnemies = [
   {
-    name: "Goblin King",
+    name: "Reed",
     health: 120,
     goldReward: [60, 100],
     isBoss: true,
@@ -457,6 +484,7 @@ export const bossEnemies = [
         name: "Royal Strike",
         type: "damage",
         damage: [20, 28],
+        cost: 10,
         cost: 10,
         chance: 40,
         message: "strikes with royal authority!"
@@ -500,6 +528,7 @@ export const bossEnemies = [
         type: "damage",
         damage: [25, 35],
         cost: 12,
+        cost: 12,
         chance: 35,
         message: "fires a death ray!"
       },
@@ -516,6 +545,7 @@ export const bossEnemies = [
             healing: 20
           }
         ],
+        cost: 13,
         cost: 13,
         chance: 35,
         message: "uses necromancy to damage and heal!"
@@ -534,6 +564,7 @@ export const bossEnemies = [
           }
         ],
         cost: 11,
+        cost: 11,
         chance: 30,
         message: "drains your life force!"
       }
@@ -544,6 +575,7 @@ export const bossEnemies = [
     health: 180,
     goldReward: [100, 150],
     isBoss: true,
+    actionPoints: 18,
     actionPoints: 18,
     abilities: [
       {
@@ -568,6 +600,7 @@ export const bossEnemies = [
         type: "multi_hit",
         damage: [15, 20],
         hits: 2,
+        cost: 10,
         cost: 10,
         chance: 35,
         message: "swipes with its massive tail!"
@@ -597,6 +630,7 @@ export const finalBoss = {
       type: "damage",
       damage: [28, 38],
       cost: 12,
+      cost: 12,
       chance: 30,
       message: "slashes with shadow claws!"
     },
@@ -618,6 +652,7 @@ export const finalBoss = {
         }
       ],
       cost: 15,
+      cost: 15,
       chance: 30,
       message: "performs a dark ritual!"
     },
@@ -626,6 +661,7 @@ export const finalBoss = {
       type: "multi_hit",
       damage: [18, 25],
       hits: 2,
+      cost: 11,
       cost: 11,
       chance: 25,
       message: "strikes from the void!"
