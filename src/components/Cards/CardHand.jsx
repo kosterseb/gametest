@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card } from './Card';
 
 export const CardHand = ({
@@ -10,6 +10,27 @@ export const CardHand = ({
   compact = false
 }) => {
   const cardCount = hand.length;
+  const [animatingCards, setAnimatingCards] = useState(new Set());
+  const previousHandRef = useRef([]);
+
+  // Detect newly drawn cards and trigger animations
+  useEffect(() => {
+    const previousCardIds = new Set(previousHandRef.current.map(c => c.id));
+    const newCards = hand.filter(card => !previousCardIds.has(card.id));
+
+    if (newCards.length > 0) {
+      const newAnimatingCards = new Set(animatingCards);
+      newCards.forEach(card => newAnimatingCards.add(card.id));
+      setAnimatingCards(newAnimatingCards);
+
+      // Remove animation state after animation completes
+      setTimeout(() => {
+        setAnimatingCards(new Set());
+      }, 800); // Animation duration
+    }
+
+    previousHandRef.current = hand;
+  }, [hand]);
 
   // Calculate arc properties
   const maxSpread = 80; // Maximum rotation spread in degrees
@@ -38,19 +59,25 @@ export const CardHand = ({
           // Calculate vertical position (arc effect - center cards lower)
           const verticalOffset = Math.abs(offset) * 8;
 
-          // Calculate hover lift
-          const hoverTranslateY = -40;
+          // Check if this card is newly drawn
+          const isNewCard = animatingCards.has(card.id);
+
+          // Start position for newly drawn cards (from deck position - bottom right)
+          const startX = isNewCard ? 400 : horizontalOffset;
+          const startY = isNewCard ? 200 : verticalOffset;
+          const startRotation = isNewCard ? 45 : rotation;
 
           return (
             <div
               key={card.id}
-              className="absolute bottom-0 transition-all duration-300 ease-out hover:z-50"
+              className={`absolute bottom-0 hover:z-50 ${isNewCard ? 'animate-draw-card' : 'transition-all duration-300 ease-out'}`}
               style={{
-                transform: `
-                  translateX(${horizontalOffset}px)
-                  translateY(${verticalOffset}px)
-                  rotate(${rotation}deg)
-                `,
+                '--final-x': `${horizontalOffset}px`,
+                '--final-y': `${verticalOffset}px`,
+                '--final-rotation': `${rotation}deg`,
+                transform: isNewCard
+                  ? 'translateX(400px) translateY(200px) rotate(45deg) scale(0.5)'
+                  : `translateX(${horizontalOffset}px) translateY(${verticalOffset}px) rotate(${rotation}deg)`,
                 transformOrigin: 'bottom center',
                 left: '50%',
                 marginLeft: '-96px', // Half of card width (w-48 = 192px / 2)
