@@ -4,15 +4,16 @@ export const CardPlayParticles = ({ x, y, color = 'blue', onComplete }) => {
   const [particles, setParticles] = useState([]);
 
   useEffect(() => {
-    // Generate random particles
-    const newParticles = Array.from({ length: 20 }, (_, i) => ({
+    // Generate random particles - INCREASED from 20 to 50
+    const newParticles = Array.from({ length: 50 }, (_, i) => ({
       id: i,
       x: x,
       y: y,
-      angle: (Math.PI * 2 * i) / 20, // Evenly distributed in a circle
-      speed: 2 + Math.random() * 3,
-      size: 4 + Math.random() * 8,
+      angle: (Math.PI * 2 * i) / 50 + (Math.random() - 0.5) * 0.3, // Add randomness to angle
+      speed: 3 + Math.random() * 8, // INCREASED speed from 2-5 to 3-11
+      size: 6 + Math.random() * 12, // INCREASED size from 4-12 to 6-18
       life: 1,
+      decay: 0.015 + Math.random() * 0.01, // Variable decay rate
     }));
 
     setParticles(newParticles);
@@ -23,9 +24,10 @@ export const CardPlayParticles = ({ x, y, color = 'blue', onComplete }) => {
         prev.map((p) => ({
           ...p,
           x: p.x + Math.cos(p.angle) * p.speed,
-          y: p.y + Math.sin(p.angle) * p.speed,
-          life: p.life - 0.02,
-          size: p.size * 0.98,
+          y: p.y + Math.sin(p.angle) * p.speed - 2, // Add upward drift
+          speed: p.speed * 0.97, // Slightly slower deceleration
+          life: p.life - p.decay,
+          size: p.size * 0.96,
         })).filter((p) => p.life > 0)
       );
     }, 16);
@@ -34,7 +36,7 @@ export const CardPlayParticles = ({ x, y, color = 'blue', onComplete }) => {
     const timeout = setTimeout(() => {
       clearInterval(interval);
       if (onComplete) onComplete();
-    }, 1000);
+    }, 1500); // Increased from 1000 to 1500ms for longer explosion
 
     return () => {
       clearInterval(interval);
