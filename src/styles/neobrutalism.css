@@ -1,0 +1,163 @@
+/* Neo-Brutalism Design System for Roguelike Deckbuilder */
+
+@layer utilities {
+  /* Borders */
+  .nb-border {
+    border: 2px solid #000;
+  }
+
+  .nb-border-lg {
+    border: 3px solid #000;
+  }
+
+  .nb-border-xl {
+    border: 4px solid #000;
+  }
+
+  /* Shadows - Offset, solid, no blur */
+  .nb-shadow {
+    box-shadow: 2px 2px 0px #000;
+  }
+
+  .nb-shadow-lg {
+    box-shadow: 4px 4px 0px #000;
+  }
+
+  .nb-shadow-xl {
+    box-shadow: 6px 6px 0px #000;
+  }
+
+  .nb-shadow-colored-yellow {
+    box-shadow: 4px 4px 0px #FCD34D;
+  }
+
+  .nb-shadow-colored-cyan {
+    box-shadow: 4px 4px 0px #22D3EE;
+  }
+
+  .nb-shadow-colored-pink {
+    box-shadow: 4px 4px 0px #F472B6;
+  }
+
+  .nb-shadow-colored-green {
+    box-shadow: 4px 4px 0px #4ADE80;
+  }
+
+  /* Hover Effects */
+  .nb-hover:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000;
+  }
+
+  .nb-hover-lg:hover {
+    transform: translate(4px, 4px);
+    box-shadow: 2px 2px 0px #000;
+  }
+
+  /* Active/Pressed Effect */
+  .nb-active:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0px 0px 0px #000;
+  }
+
+  /* Button Styles */
+  .nb-btn {
+    @apply nb-border-lg nb-shadow-lg;
+    padding: 12px 24px;
+    font-weight: 700;
+    transition: all 0.1s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .nb-btn:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000;
+  }
+
+  .nb-btn:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0px 0px 0px #000;
+  }
+
+  /* Card Styles */
+  .nb-card {
+    @apply nb-border-xl nb-shadow-xl;
+    background: white;
+    padding: 24px;
+  }
+
+  /* Container Styles */
+  .nb-container {
+    @apply nb-border-lg nb-shadow-lg;
+    padding: 32px;
+  }
+
+  /* Input Styles */
+  .nb-input {
+    @apply nb-border-lg;
+    padding: 12px 16px;
+    font-weight: 600;
+  }
+
+  .nb-input:focus {
+    outline: none;
+    box-shadow: 4px 4px 0px #000;
+  }
+}
+
+/* Neo-Brutalist Color Palette */
+:root {
+  /* Primary Colors - Bold and Saturated */
+  --nb-yellow: #FCD34D;
+  --nb-cyan: #22D3EE;
+  --nb-pink: #F472B6;
+  --nb-green: #4ADE80;
+  --nb-orange: #FB923C;
+  --nb-purple: #A78BFA;
+  --nb-red: #F87171;
+  --nb-blue: #60A5FA;
+
+  /* Background Colors */
+  --nb-bg-primary: #FFFFFF;
+  --nb-bg-secondary: #F3F4F6;
+  --nb-bg-accent: #FEF3C7;
+
+  /* Text Colors */
+  --nb-text-primary: #000000;
+  --nb-text-secondary: #374151;
+
+  /* Border */
+  --nb-border: #000000;
+}
+
+/* Typography - Bold and Chunky */
+.nb-heading {
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--nb-text-primary);
+}
+
+.nb-text {
+  font-weight: 600;
+  color: var(--nb-text-primary);
+}
+
+/* Utility Classes for Colors */
+.nb-bg-yellow { background-color: var(--nb-yellow); }
+.nb-bg-cyan { background-color: var(--nb-cyan); }
+.nb-bg-pink { background-color: var(--nb-pink); }
+.nb-bg-green { background-color: var(--nb-green); }
+.nb-bg-orange { background-color: var(--nb-orange); }
+.nb-bg-purple { background-color: var(--nb-purple); }
+.nb-bg-red { background-color: var(--nb-red); }
+.nb-bg-blue { background-color: var(--nb-blue); }
+.nb-bg-white { background-color: var(--nb-bg-primary); }
+
+/* Card Type Colors for Game */
+.nb-card-damage { background-color: var(--nb-red); }
+.nb-card-heal { background-color: var(--nb-green); }
+.nb-card-buff { background-color: var(--nb-cyan); }
+.nb-card-debuff { background-color: var(--nb-purple); }
+.nb-card-special { background-color: var(--nb-yellow); }
