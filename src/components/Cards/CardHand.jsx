@@ -7,7 +7,8 @@ export const CardHand = ({
   disabled,
   playerEnergy,
   playerStatuses,
-  compact = false
+  compact = false,
+  enableAnimations = true
 }) => {
   const cardCount = hand.length;
   const [animatingCards, setAnimatingCards] = useState(new Set());
@@ -15,6 +16,12 @@ export const CardHand = ({
 
   // Detect newly drawn cards and trigger animations
   useEffect(() => {
+    // Only track animations if enabled
+    if (!enableAnimations) {
+      previousHandRef.current = hand;
+      return;
+    }
+
     const previousCardIds = new Set(previousHandRef.current.map(c => c.id));
     const newCards = hand.filter(card => !previousCardIds.has(card.id));
 
@@ -30,7 +37,7 @@ export const CardHand = ({
     }
 
     previousHandRef.current = hand;
-  }, [hand]);
+  }, [hand, enableAnimations]);
 
   // Calculate arc properties
   const maxSpread = 80; // Maximum rotation spread in degrees
@@ -59,8 +66,8 @@ export const CardHand = ({
           // Calculate vertical position (arc effect - center cards lower)
           const verticalOffset = Math.abs(offset) * 8;
 
-          // Check if this card is newly drawn
-          const isNewCard = animatingCards.has(card.id);
+          // Check if this card is newly drawn (only if animations enabled)
+          const isNewCard = enableAnimations && animatingCards.has(card.id);
 
           // Start position for newly drawn cards (from deck position - bottom right)
           const startX = isNewCard ? 400 : horizontalOffset;

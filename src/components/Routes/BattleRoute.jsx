@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useReducer } from 'react';
 import { useGame } from '../../context/GameContext';
 import { useRouter } from '../../hooks/useRouter';
+import { useSettings } from '../../context/SettingsContext';
 
 // OPTION 1: If Card.jsx is at src/components/Cards/Card.jsx
 import { Card } from '../Cards/Card';
@@ -17,6 +18,7 @@ import { CoinFlip } from '../Battle/CoinFlip';
 import { TorusTunnelBackground } from '../Battle/TorusTunnelBackground';
 import { CardHand } from '../Cards/CardHand';
 import { CardPlayParticles } from '../Effects/CardPlayParticles';
+import { BattleMenu } from '../UI/BattleMenu';
 import {
   applyStatus,
   tickStatuses,
@@ -140,6 +142,10 @@ const cardStateReducer = (state, action) => {
 export const BattleRoute = () => {
   const { gameState, dispatch } = useGame();
   const { navigate } = useRouter();
+  const { settings } = useSettings();
+
+  // Menu state
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Get current enemy from context
   const currentEnemy = gameState.currentEnemyData;
@@ -1048,10 +1054,14 @@ export const BattleRoute = () => {
   return (
     <PageTransition>
       {/* Torus Tunnel Background */}
-      <TorusTunnelBackground
-        baseSpeed={1}
-        baseRotation={1.9}
-      />
+      {settings.animatedBackground ? (
+        <TorusTunnelBackground
+          baseSpeed={1}
+          baseRotation={1.9}
+        />
+      ) : (
+        <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900" />
+      )}
 
       <div className="h-screen overflow-hidden relative z-10">
         <div className="max-w-7xl mx-auto h-full flex flex-col gap-2 p-2">
@@ -1062,6 +1072,7 @@ export const BattleRoute = () => {
               gold={gameState.gold}
               turnCount={turnCount}
               onForfeit={handleForfeit}
+              onMenuClick={() => setIsMenuOpen(true)}
             />
           </div>
 
@@ -1206,6 +1217,7 @@ export const BattleRoute = () => {
               playerEnergy={playerEnergy}
               playerStatuses={playerStatuses}
               compact={false}
+              enableAnimations={settings.cardAnimations}
             />
           </div>
         </div>
@@ -1230,7 +1242,7 @@ export const BattleRoute = () => {
       )}
 
       {/* Card Play Particles */}
-      {particleEffect && (
+      {settings.particleEffects && particleEffect && (
         <CardPlayParticles
           x={particleEffect.x}
           y={particleEffect.y}
@@ -1238,6 +1250,13 @@ export const BattleRoute = () => {
           onComplete={() => setParticleEffect(null)}
         />
       )}
+
+      {/* Battle Menu */}
+      <BattleMenu
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        gameState={gameState}
+      />
     </PageTransition>
   );
 };

@@ -1,11 +1,12 @@
 import React from 'react';
-import { Coins, Map, Clock, ArrowLeft } from 'lucide-react';
+import { Coins, Map, Clock, ArrowLeft, Menu } from 'lucide-react';
 
 export const GameHeader = ({
   battleNumber,
   gold,
   turnCount,
-  onForfeit
+  onForfeit,
+  onMenuClick
 }) => {
   return (
     <div className="flex justify-between items-center w-full">
@@ -48,6 +49,17 @@ export const GameHeader = ({
             <span className="text-lg font-bold text-yellow-700 leading-tight">{gold}</span>
           </div>
         </div>
+
+        {/* Menu Button */}
+        {onMenuClick && (
+          <button
+            onClick={onMenuClick}
+            className="bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-lg hover:scale-105"
+          >
+            <Menu className="w-5 h-5" />
+            <span className="font-bold">Menu</span>
+          </button>
+        )}
       </div>
     </div>
   );
