@@ -863,7 +863,7 @@ export const BattleRoute = () => {
           setIsAttackAnimationPlaying(false); // Reset animation lock
           setHasUsedDrawAbility(false);
           setHasUsedDiscardAbility(false);
-        }, 2000); // Increased to 2 seconds for animations to complete
+        }, 4000); // Increased to 4 seconds to prevent animation overwriting
         return;
       }
 
@@ -884,7 +884,7 @@ export const BattleRoute = () => {
           setIsAttackAnimationPlaying(false); // Reset animation lock
           setHasUsedDrawAbility(false);
           setHasUsedDiscardAbility(false);
-        }, 2000); // Increased to 2 seconds for animations to complete
+        }, 4000); // Increased to 4 seconds to prevent animation overwriting
         return;
       }
 
@@ -913,7 +913,7 @@ export const BattleRoute = () => {
       // Schedule next action after animation delay
       setTrackedTimeout(() => {
         performNextAction(newEnergy, actionCount + 1);
-      }, 2000); // 2 second delay between actions for animations to complete
+      }, 4000); // 4 second delay between actions to prevent animation overwriting
     };
 
     // Start the action sequence
