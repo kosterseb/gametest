@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from './hooks/useRouter';
 import { useGame } from './context/GameContext';
 
@@ -16,12 +16,13 @@ import { UnifiedRewardScreen } from './components/UI/UnifiedRewardScreen'; // âœ
 import { BossReward } from './components/UI/BossReward'; // âœ… FIXED
 import { ActTransition } from './components/UI/ActTransitions';
 import { PreBattleLoadout } from './components/UI/PreBattleLoadout';
-import { GameMenu } from './components/UI/GameMenu';
-import { Menu, X } from 'lucide-react';
+import { BattleMenu } from './components/UI/BattleMenu';
+import { Menu } from 'lucide-react';
 
 const GameApp = () => {
   const { currentRoute } = useRouter();
-  const { gameState, dispatch } = useGame();
+  const { gameState } = useGame();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const renderRoute = () => {
     switch (currentRoute) {
@@ -56,38 +57,36 @@ const GameApp = () => {
     }
   };
 
-  const handleToggleMenu = () => {
-    if (gameState.menuOpen) {
-      dispatch({ type: 'CLOSE_MENU' });
-    } else {
-      dispatch({ type: 'OPEN_MENU', tab: 'stats' });
-    }
-  };
-
-  // Show menu button on all routes except main menu and save/profile screens
+  // Show menu button on all routes except main menu and battle (battle has its own)
   const showMenuButton = ![
-    '/', 
-    '/save-select', 
+    '/',
+    '/save-select',
     '/profile-creation',
-    '/victory',
-    '/defeat'
+    '/battle'
   ].includes(currentRoute);
 
   return (
     <div className="relative min-h-screen">
-      {/* Menu Toggle Button - Top Right */}
+      {/* Menu Toggle Button - Top Right (for non-battle routes) */}
       {showMenuButton && (
         <button
-          onClick={handleToggleMenu}
-          className="fixed top-4 right-4 z-50 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow-lg transition-all transform hover:scale-110"
-          aria-label="Toggle menu"
+          onClick={() => setIsMenuOpen(true)}
+          className="fixed top-4 right-4 z-50 bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg transition-all hover:scale-105"
+          aria-label="Open menu"
         >
-          {gameState.menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          <Menu className="w-5 h-5" />
+          <span className="font-bold">Menu</span>
         </button>
       )}
 
-      {/* Game Menu Overlay */}
-      {gameState.menuOpen && <GameMenu />}
+      {/* Battle Menu - Global (available on all routes except main menu) */}
+      {currentRoute !== '/' && currentRoute !== '/save-select' && currentRoute !== '/profile-creation' && (
+        <BattleMenu
+          isOpen={isMenuOpen}
+          onClose={() => setIsMenuOpen(false)}
+          gameState={gameState}
+        />
+      )}
 
       {/* Current Route */}
       {renderRoute()}
