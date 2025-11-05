@@ -5,6 +5,7 @@ import { DeckView } from '/src/components/Menu/DeckView';
 import { StatsView } from '/src/components/Menu/StatsView';
 import { InventoryView } from '/src/components/Menu/InventoryView';
 import { TalentTreeView } from '/src/components/Menu/TalentTreeView';
+import { NBTabButton, NBHeading } from './NeoBrutalUI';
 
 export const GameMenu = ({ onClose }) => {
   const { gameState, dispatch } = useGame();
@@ -22,10 +23,10 @@ export const GameMenu = ({ onClose }) => {
   };
 
   const tabs = [
-    { id: 'stats', label: 'Stats', icon: <BarChart3 className="w-5 h-5" /> },
-    { id: 'deck', label: 'Deck', icon: <BookOpen className="w-5 h-5" /> },
-    { id: 'inventory', label: 'Inventory', icon: <Package className="w-5 h-5" /> },
-    { id: 'talents', label: 'Talents', icon: <Star className="w-5 h-5" /> }
+    { id: 'stats', label: 'Stats', icon: '📊', colorClass: 'nb-bg-pink' },
+    { id: 'deck', label: 'Deck', icon: '🃏', colorClass: 'nb-bg-purple' },
+    { id: 'inventory', label: 'Inventory', icon: '🎒', colorClass: 'nb-bg-green' },
+    { id: 'talents', label: 'Talents', icon: '⭐', colorClass: 'nb-bg-yellow' }
   ];
 
   const renderContent = () => {
@@ -44,42 +45,44 @@ export const GameMenu = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 z-40 flex items-center justify-center p-4">
-      <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden border-4 border-blue-500">
+    <div className="fixed inset-0 bg-black bg-opacity-60 z-40 flex items-center justify-center p-4 animate-fadeIn">
+      <div className="nb-border-xl nb-shadow-xl nb-bg-white max-w-6xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-700 to-blue-800 p-4 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-white">Character</h2>
+        <div className="nb-bg-cyan nb-border-b-xl p-6 flex justify-between items-center">
+          <NBHeading level={2} className="flex items-center gap-3">
+            👤 CHARACTER
+          </NBHeading>
           <button
             onClick={handleClose}
-            className="text-white hover:text-red-400 transition-colors p-2 hover:bg-red-900 hover:bg-opacity-50 rounded-lg"
+            className="nb-btn nb-bg-red px-4 py-2 text-2xl font-black hover:scale-110 transition-transform"
           >
-            <X className="w-6 h-6" />
+            ✕
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-gray-800 flex border-b-4 border-blue-500">
+        <div className="flex nb-border-b-xl bg-white">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
               className={`
-                flex-1 flex items-center justify-center gap-2 py-4 px-4 font-bold
-                transition-all duration-200
+                flex-1 flex flex-col sm:flex-row items-center justify-center gap-2 py-4 px-3
+                nb-border-lg font-bold uppercase tracking-wide transition-all text-sm sm:text-base
                 ${gameState.menuTab === tab.id
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  ? `${tab.colorClass} nb-shadow transform translate-y-1`
+                  : 'bg-white hover:bg-gray-100'
                 }
               `}
             >
-              {tab.icon}
+              <span className="text-2xl">{tab.icon}</span>
               <span className="hidden sm:inline">{tab.label}</span>
             </button>
           ))}
         </div>
 
         {/* Content Area */}
-        <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
+        <div className="overflow-y-auto max-h-[calc(90vh-180px)] bg-gray-50">
           {renderContent()}
         </div>
       </div>
