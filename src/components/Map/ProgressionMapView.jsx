@@ -7,6 +7,7 @@ import { PageTransition } from '../UI/PageTransition';
 import { MapNode } from './MapNode';
 import { ActDivider } from './ActDivider';
 import { Heart, Coins, ArrowDown, CheckCircle } from 'lucide-react';
+import { NBButton, NBHeading, NBBadge, NBProgressBar } from '../UI/NeoBrutalUI';
 
 export const ProgressionMapView = () => {
   const { gameState, dispatch } = useGame();
@@ -88,8 +89,10 @@ export const ProgressionMapView = () => {
   if (gameState.progressionMap.length === 0) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-          <div className="text-white text-2xl">Generating map...</div>
+        <div className="min-h-screen nb-bg-purple flex items-center justify-center">
+          <div className="nb-bg-white nb-border-xl nb-shadow-xl p-8">
+            <div className="text-black text-2xl font-black uppercase">Generating map...</div>
+          </div>
         </div>
       </PageTransition>
     );
@@ -106,34 +109,41 @@ export const ProgressionMapView = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8 overflow-y-auto">
+      <div className="min-h-screen nb-bg-purple p-8 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
           {/* Header - Player Stats */}
-          <div className="bg-gradient-to-r from-purple-800 to-indigo-800 bg-opacity-90 p-6 rounded-xl mb-8 shadow-2xl border-2 border-purple-500 sticky top-0 z-40">
-            <div className="flex justify-between items-center">
+          <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6 mb-8 sticky top-0 z-40">
+            <div className="flex justify-between items-center mb-4">
               <div>
-                <h1 className="text-3xl font-bold text-white mb-1">
-                  Floor {gameState.currentFloor}
-                </h1>
-                <p className="text-purple-200 text-sm">
-                  Act {gameState.currentAct} • {currentFloorData?.isBossFloor ? '⚠️ Boss Fight!' : 'Choose your path'}
-                </p>
+                <NBHeading level={1} className="mb-2">
+                  FLOOR {gameState.currentFloor}
+                </NBHeading>
+                <div className="flex items-center gap-3">
+                  <NBBadge color="cyan" className="text-sm px-3 py-1">
+                    ACT {gameState.currentAct}
+                  </NBBadge>
+                  {currentFloorData?.isBossFloor && (
+                    <NBBadge color="red" className="text-sm px-3 py-1 animate-pulse">
+                      BOSS FIGHT!
+                    </NBBadge>
+                  )}
+                </div>
               </div>
 
               {/* Player Stats */}
-              <div className="flex gap-4">
-                <div className="bg-red-900 bg-opacity-50 px-4 py-2 rounded-lg border-2 border-red-500">
+              <div className="flex gap-3">
+                <div className="nb-bg-red nb-border-lg nb-shadow px-4 py-2">
                   <div className="flex items-center gap-2">
-                    <Heart className="w-5 h-5 text-red-400" />
-                    <span className="text-xl font-bold text-white">
+                    <Heart className="w-5 h-5 text-black" />
+                    <span className="text-xl font-black text-black">
                       {gameState.playerHealth}/{gameState.maxPlayerHealth}
                     </span>
                   </div>
                 </div>
-                <div className="bg-yellow-900 bg-opacity-50 px-4 py-2 rounded-lg border-2 border-yellow-500">
+                <div className="nb-bg-yellow nb-border-lg nb-shadow px-4 py-2">
                   <div className="flex items-center gap-2">
-                    <Coins className="w-5 h-5 text-yellow-400" />
-                    <span className="text-xl font-bold text-white">{gameState.gold}</span>
+                    <Coins className="w-5 h-5 text-black" />
+                    <span className="text-xl font-black text-black">{gameState.gold}</span>
                   </div>
                 </div>
               </div>
@@ -141,15 +151,13 @@ export const ProgressionMapView = () => {
 
             {/* Progress Bar */}
             <div className="mt-4">
-              <div className="text-xs text-purple-200 mb-1">
-                Progress: {gameState.completedNodes.length}/25 nodes completed
-              </div>
-              <div className="w-full bg-purple-950 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-green-500 to-emerald-400 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${(gameState.completedNodes.length / 25) * 100}%` }}
-                ></div>
-              </div>
+              <NBProgressBar
+                value={gameState.completedNodes.length}
+                max={25}
+                color="green"
+                label="PROGRESS"
+                showValue={true}
+              />
             </div>
           </div>
 
@@ -173,17 +181,17 @@ export const ProgressionMapView = () => {
         `}>
                     {/* Floor Number Badge */}
                     <div className="flex justify-center mb-6">
-                      <div className={`
-              ${isCurrentFloor ? 'bg-yellow-500 border-yellow-300 animate-pulse' : isPastFloor ? 'bg-gray-600 border-gray-500' : 'bg-purple-700 border-purple-500'}
-              px-6 py-2 rounded-full border-4 shadow-lg
-            `}>
+                      <NBBadge
+                        color={isCurrentFloor ? 'yellow' : isPastFloor ? 'white' : 'purple'}
+                        className={`px-6 py-3 text-lg ${isCurrentFloor ? 'animate-pulse' : ''}`}
+                      >
                         <div className="flex items-center gap-2">
-                          {isPastFloor && <CheckCircle className="w-5 h-5 text-white" />}
-                          <span className="text-white font-bold text-lg">
+                          {isPastFloor && <CheckCircle className="w-5 h-5" />}
+                          <span className="font-black uppercase">
                             Floor {floorData.floor}
                           </span>
                         </div>
-                      </div>
+                      </NBBadge>
                     </div>
 
                     {/* Nodes */}
@@ -211,23 +219,23 @@ export const ProgressionMapView = () => {
                     {/* Selected Node Action Panel - MOVED HERE */}
                     {isCurrentFloor && selectedNode && !gameState.completedNodes.includes(selectedNode.id) && (
                       <div className="mt-8 animate-in slide-in-from-top duration-300">
-                        <div className="bg-gradient-to-r from-purple-800 to-indigo-800 p-6 rounded-xl shadow-2xl border-4 border-yellow-400">
+                        <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
                           <div className="text-center">
-                            <h3 className="text-2xl font-bold mb-4 text-white">
-                              {selectedNode.type === 'boss' ? '⚔️ Fight Boss' :
-                                selectedNode.type === 'elite' ? '⚔️ Fight Elite' :
-                                  selectedNode.type === 'enemy' ? 'Enter Battle' :
-                                    selectedNode.type === 'shop' ? 'Visit Shop' : 'Enter Mystery Node'}?
-                            </h3>
+                            <NBHeading level={2} className="mb-6">
+                              {selectedNode.type === 'boss' ? 'FIGHT BOSS' :
+                                selectedNode.type === 'elite' ? 'FIGHT ELITE' :
+                                  selectedNode.type === 'enemy' ? 'ENTER BATTLE' :
+                                    selectedNode.type === 'shop' ? 'VISIT SHOP' : 'ENTER MYSTERY NODE'}?
+                            </NBHeading>
 
                             {/* Enemy Quick Info */}
                             {(selectedNode.type === 'enemy' || selectedNode.type === 'elite' || selectedNode.type === 'boss') && selectedNode.enemyData && (
-                              <div className="mb-4 bg-black bg-opacity-30 p-4 rounded-lg inline-block">
+                              <div className="mb-6 nb-bg-cyan nb-border-xl nb-shadow-lg p-4 inline-block">
                                 <div className="flex items-center gap-4">
-                                  <div className="text-4xl">{selectedNode.enemyData.emoji}</div>
+                                  <div className="text-5xl">{selectedNode.enemyData.emoji}</div>
                                   <div className="text-left">
-                                    <div className="font-bold text-lg text-white">{selectedNode.enemyData.name}</div>
-                                    <div className="text-sm text-gray-300">
+                                    <div className="font-black text-xl text-black uppercase">{selectedNode.enemyData.name}</div>
+                                    <div className="text-sm text-gray-800 font-bold">
                                       HP: {selectedNode.enemyData.health} • Gold: {selectedNode.enemyData.goldReward[0]}-{selectedNode.enemyData.goldReward[1]}
                                     </div>
                                   </div>
@@ -237,35 +245,37 @@ export const ProgressionMapView = () => {
 
                             {/* Loadout Info */}
                             {isBattleNode && (
-                              <div className="mb-4 text-sm text-purple-200">
-                                {gameState.showPreBattleLoadout
-                                  ? '💡 Pre-battle loadout screen enabled'
-                                  : '💡 Skipping directly to battle'}
+                              <div className="mb-6">
+                                <NBBadge color="purple" className="text-sm px-4 py-2">
+                                  {gameState.showPreBattleLoadout
+                                    ? 'Pre-battle loadout screen enabled'
+                                    : 'Skipping directly to battle'}
+                                </NBBadge>
                               </div>
                             )}
 
                             <div className="flex justify-center gap-4">
-                              <button
+                              <NBButton
                                 onClick={handleConfirmSelection}
-                                className={`
-                        ${selectedNode.type === 'boss' ? 'bg-red-600 hover:bg-red-700' :
-                                    selectedNode.type === 'elite' ? 'bg-orange-600 hover:bg-orange-700' :
-                                      'bg-green-600 hover:bg-green-700'}
-                        text-white px-8 py-4 rounded-lg font-bold text-xl transition-all transform hover:scale-105 shadow-lg
-                      `}
+                                variant={selectedNode.type === 'boss' ? 'danger' :
+                                  selectedNode.type === 'elite' ? 'orange' : 'success'}
+                                size="lg"
+                                className="px-8 py-4 text-xl"
                               >
-                                Confirm
-                              </button>
+                                CONFIRM
+                              </NBButton>
 
-                              <button
+                              <NBButton
                                 onClick={() => {
                                   setSelectedNode(null);
                                   dispatch({ type: 'SELECT_NODE', nodeId: null });
                                 }}
-                                className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-4 rounded-lg font-bold text-xl transition-all transform hover:scale-105 shadow-lg"
+                                variant="white"
+                                size="lg"
+                                className="px-8 py-4 text-xl"
                               >
-                                Cancel
-                              </button>
+                                CANCEL
+                              </NBButton>
                             </div>
                           </div>
                         </div>
@@ -277,7 +287,7 @@ export const ProgressionMapView = () => {
                       <div className="flex justify-center mt-6">
                         <ArrowDown className={`
                 w-8 h-8
-                ${isPastFloor ? 'text-gray-600' : 'text-purple-400'}
+                ${isPastFloor ? 'text-gray-600' : 'text-black'}
               `} />
                       </div>
                     )}
