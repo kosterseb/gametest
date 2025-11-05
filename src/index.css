@@ -1,9 +1,10 @@
+/* Neo-Brutalism Design System */
+@import './styles/neobrutalism.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Neo-Brutalism Design System */
-@import './styles/neobrutalism.css';
 
 .reenie-beanie-regular {
     font-family: "Reenie Beanie", cursive;
