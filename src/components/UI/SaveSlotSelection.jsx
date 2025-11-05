@@ -91,126 +91,133 @@ export const SaveSlotSelection = () => {
               <div
                 key={slot.slotNumber}
                 className={`
-                  bg-gradient-to-r from-purple-800 to-indigo-800 
-                  p-6 rounded-xl shadow-2xl border-4 
-                  ${slot.isEmpty ? 'border-gray-600' : 'border-purple-400'}
-                  transition-all duration-300 hover:scale-102
+                  ${slot.isEmpty ? 'nb-bg-white' : 'nb-bg-yellow'}
+                  nb-border-xl nb-shadow-xl p-6
+                  transition-all duration-300
                 `}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-4">
                   {/* Slot Info */}
                   <div className="flex items-center gap-6 flex-1">
                     {/* Slot Number Badge */}
-                    <div className="bg-purple-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold border-4 border-white">
+                    <div className="nb-bg-purple nb-border-xl nb-shadow w-16 h-16 flex items-center justify-center text-2xl font-black text-black">
                       {slot.slotNumber}
                     </div>
 
                     {/* Profile Info or Empty Slot */}
                     {slot.isEmpty ? (
                       <div>
-                        <h3 className="text-2xl font-bold text-white mb-1">
-                          Empty Slot
-                        </h3>
-                        <p className="text-purple-300 text-sm">
+                        <NBHeading level={3} className="text-black mb-2">
+                          EMPTY SLOT
+                        </NBHeading>
+                        <p className="text-black font-bold text-sm">
                           Start a new adventure
                         </p>
                       </div>
                     ) : (
                       <div className="flex-1">
                         {/* Profile Name with Avatar */}
-                        <div className="flex items-center gap-3 mb-2">
+                        <div className="flex items-center gap-3 mb-3">
                           {/* DiceBear Avatar */}
                           <img
                             src={`https://api.dicebear.com/9.x/notionists/svg?seed=${slot.profile.avatarSeed}`}
                             alt={slot.profile.profileName}
-                            className="w-12 h-12 rounded-full border-2 border-white"
+                            className="w-12 h-12 nb-border-xl"
                           />
-                          <h3 className="text-2xl font-bold text-white">
+                          <NBHeading level={3} className="text-black">
                             {slot.profile.profileName}
-                          </h3>
+                          </NBHeading>
                         </div>
 
                         {/* Stats Row */}
-                        <div className="flex gap-6 text-sm text-purple-200">
+                        <div className="flex gap-4 text-sm text-black font-bold mb-2 flex-wrap">
                           <div className="flex items-center gap-2">
-                            <Crown className="w-4 h-4 text-yellow-400" />
-                            <span>Level {slot.profile.level}</span>
+                            <Crown className="w-4 h-4 text-black" />
+                            <span>LEVEL {slot.profile.level}</span>
                           </div>
                           <div>
                             <span>XP: {slot.profile.experience}/{slot.profile.experienceToNextLevel}</span>
                           </div>
                           <div>
-                            <span>Talent Points: {slot.profile.talentPoints}</span>
+                            <span>TALENT POINTS: {slot.profile.talentPoints}</span>
                           </div>
                         </div>
 
                         {/* Lifetime Stats */}
-                        <div className="flex gap-6 text-xs text-purple-300 mt-2">
-                          <span>Runs: {slot.profile.lifetimeStats.totalRuns}</span>
-                          <span>Wins: {slot.profile.lifetimeStats.totalWins}</span>
-                          <span>Best Floor: {slot.profile.lifetimeStats.bestFloor}</span>
+                        <div className="flex gap-4 text-xs text-black font-bold mb-2 flex-wrap">
+                          <span>RUNS: {slot.profile.lifetimeStats.totalRuns}</span>
+                          <span>WINS: {slot.profile.lifetimeStats.totalWins}</span>
+                          <span>BEST FLOOR: {slot.profile.lifetimeStats.bestFloor}</span>
                         </div>
 
                         {/* Active Run Indicator */}
                         {slot.profile.currentRun.active && (
-                          <div className="mt-2 inline-block bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-                            🎮 Active Run: Floor {slot.profile.currentRun.floor}
-                          </div>
+                          <NBBadge color="green" className="mt-2 px-3 py-1 text-xs">
+                            🎮 ACTIVE RUN: FLOOR {slot.profile.currentRun.floor}
+                          </NBBadge>
                         )}
 
                         {/* Last Played */}
-                        <div className="text-xs text-gray-400 mt-2">
-                          Last played: {getTimeSinceLastPlayed(slot.profile)}
+                        <div className="text-xs text-black font-bold mt-2">
+                          LAST PLAYED: {getTimeSinceLastPlayed(slot.profile)}
                         </div>
                       </div>
                     )}
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 flex-wrap">
                     {slot.isEmpty ? (
                       // New Game Button
-                      <button
+                      <NBButton
                         onClick={() => handleNewGame(slot.slotNumber)}
-                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all transform hover:scale-105"
+                        variant="success"
+                        size="lg"
+                        className="flex items-center gap-2"
                       >
                         <Plus className="w-5 h-5" />
-                        New Game
-                      </button>
+                        <span>NEW GAME</span>
+                      </NBButton>
                     ) : (
                       <>
                         {/* Continue Button */}
-                        <button
+                        <NBButton
                           onClick={() => handleContinue(slot.slotNumber)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all transform hover:scale-105"
+                          variant="blue"
+                          size="lg"
+                          className="flex items-center gap-2"
                         >
                           <Save className="w-5 h-5" />
-                          Continue
-                        </button>
+                          <span>CONTINUE</span>
+                        </NBButton>
 
                         {/* Delete Button */}
                         {confirmDelete === slot.slotNumber ? (
                           <div className="flex gap-2">
-                            <button
+                            <NBButton
                               onClick={() => handleDelete(slot.slotNumber)}
-                              className="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-bold text-sm transition-all"
+                              variant="danger"
+                              size="md"
                             >
-                              Confirm
-                            </button>
-                            <button
+                              CONFIRM
+                            </NBButton>
+                            <NBButton
                               onClick={cancelDelete}
-                              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg font-bold text-sm transition-all"
+                              variant="white"
+                              size="md"
                             >
-                              Cancel
-                            </button>
+                              CANCEL
+                            </NBButton>
                           </div>
                         ) : (
-                          <button
+                          <NBButton
                             onClick={() => handleDelete(slot.slotNumber)}
-                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-bold flex items-center gap-2 transition-all transform hover:scale-105"
+                            variant="danger"
+                            size="lg"
+                            className="flex items-center gap-2"
                           >
                             <Trash2 className="w-5 h-5" />
-                          </button>
+                          </NBButton>
                         )}
                       </>
                     )}
@@ -221,11 +228,13 @@ export const SaveSlotSelection = () => {
           </div>
 
           {/* Info Box */}
-          <div className="mt-8 bg-blue-900 bg-opacity-50 p-4 rounded-lg border-2 border-blue-400">
-            <p className="text-blue-200 text-sm text-center">
-              💡 <strong>Meta-Progression:</strong> Your character level, talents, and lifetime stats persist across runs. 
-              Only your current run progress resets on death or victory!
-            </p>
+          <div className="mt-8 nb-bg-cyan nb-border-xl nb-shadow-lg p-6">
+            <div className="nb-bg-white nb-border-lg nb-shadow p-4 text-center">
+              <p className="text-black font-bold text-sm uppercase">
+                💡 Meta-Progression: Your character level, talents, and lifetime stats persist across runs.
+                Only your current run progress resets on death or victory!
+              </p>
+            </div>
           </div>
         </div>
       </div>

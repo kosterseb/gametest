@@ -4,6 +4,7 @@ import { useRouter } from '../../hooks/useRouter';
 import { createNewProfile, loadSave } from '../../utils/SaveManager';
 import { PageTransition } from './PageTransition';
 import { User, RefreshCw, ArrowRight, ArrowLeft } from 'lucide-react';
+import { NBButton, NBHeading, NBBadge } from './NeoBrutalUI';
 
 export const ProfileCreation = ({ slotNumber }) => {
   const { dispatch } = useGame();
@@ -84,43 +85,47 @@ export const ProfileCreation = ({ slotNumber }) => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8 flex items-center justify-center">
+      <div className="min-h-screen bg-black p-8 flex items-center justify-center">
         <div className="max-w-2xl w-full">
           {/* Back Button */}
-          <button
+          <NBButton
             onClick={() => navigate('/save-select')}
-            className="absolute top-8 left-8 flex items-center gap-2 text-white hover:text-purple-300 transition-colors"
+            variant="white"
+            size="md"
+            className="absolute top-8 left-8 flex items-center gap-2"
           >
             <ArrowLeft className="w-5 h-5" />
-            Back
-          </button>
+            <span>BACK TO SLOTS</span>
+          </NBButton>
 
           {/* Main Card */}
-          <div className="bg-gradient-to-br from-purple-800 to-indigo-800 p-8 rounded-2xl shadow-2xl border-4 border-purple-400">
+          <div className="nb-bg-purple nb-border-xl nb-shadow-xl p-8">
             {/* Header */}
             <div className="text-center mb-8">
-              <div className="inline-block bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-bold mb-4">
-                Save Slot {targetSlot}
+              <NBBadge color="yellow" className="px-6 py-2 mb-4 text-sm">
+                SAVE SLOT {targetSlot}
+              </NBBadge>
+              <NBHeading level={1} className="text-black mb-4">
+                CREATE YOUR HERO
+              </NBHeading>
+              <div className="nb-bg-cyan nb-border-lg nb-shadow px-6 py-2 inline-block">
+                <p className="text-black font-bold text-sm uppercase">
+                  Begin your journey through the card realm
+                </p>
               </div>
-              <h1 className="text-4xl font-bold text-white mb-2">
-                Create Your Hero
-              </h1>
-              <p className="text-purple-200">
-                Begin your journey through the card realm
-              </p>
             </div>
 
             {/* Avatar Selection */}
             <div className="mb-8">
-              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <User className="w-5 h-5" />
-                Choose Your Avatar
-              </h2>
-              
-              <div className="flex items-center gap-6 bg-purple-900 bg-opacity-50 p-6 rounded-xl">
+              <NBHeading level={3} className="text-black mb-4 flex items-center gap-2">
+                <User className="w-6 h-6" />
+                CHOOSE YOUR AVATAR
+              </NBHeading>
+
+              <div className="flex items-center gap-6 nb-bg-white nb-border-lg nb-shadow p-6">
                 {/* Avatar Display */}
                 <div className="flex-shrink-0">
-                  <div className="w-32 h-32 rounded-full border-4 border-white overflow-hidden bg-white shadow-xl">
+                  <div className="w-32 h-32 nb-border-xl nb-shadow bg-white overflow-hidden">
                     <img
                       src={avatarUrl}
                       alt="Your avatar"
@@ -131,14 +136,16 @@ export const ProfileCreation = ({ slotNumber }) => {
 
                 {/* Randomize Button */}
                 <div className="flex-1 text-center">
-                  <button
+                  <NBButton
                     onClick={handleRandomizeAvatar}
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 mx-auto transition-all transform hover:scale-105"
+                    variant="success"
+                    size="lg"
+                    className="flex items-center gap-2 mx-auto"
                   >
                     <RefreshCw className="w-5 h-5" />
-                    Randomize Avatar
-                  </button>
-                  <p className="text-purple-200 text-sm mt-2">
+                    <span>RANDOMIZE</span>
+                  </NBButton>
+                  <p className="text-black font-bold text-sm mt-3 uppercase">
                     Click to generate a new look
                   </p>
                 </div>
@@ -147,82 +154,91 @@ export const ProfileCreation = ({ slotNumber }) => {
 
             {/* Name Input */}
             <div className="mb-8">
-              <h2 className="text-xl font-bold text-white mb-4">
-                What's Your Name?
-              </h2>
-              
+              <NBHeading level={3} className="text-black mb-4">
+                WHAT'S YOUR NAME?
+              </NBHeading>
+
               <input
                 type="text"
                 value={profileName}
                 onChange={handleNameChange}
-                placeholder="Enter your hero name..."
+                placeholder="ENTER YOUR HERO NAME..."
                 maxLength={20}
                 className={`
-                  w-full px-4 py-3 rounded-lg text-lg
-                  bg-purple-900 bg-opacity-50 text-white
-                  border-2 ${nameError ? 'border-red-500' : 'border-purple-400'}
-                  focus:outline-none focus:border-yellow-400
-                  placeholder-purple-300
+                  w-full px-4 py-3 text-lg font-bold uppercase
+                  nb-bg-white text-black
+                  ${nameError ? 'nb-border-red' : 'nb-border-lg'}
+                  ${nameError ? 'nb-shadow-colored-red' : 'nb-shadow'}
+                  focus:outline-none focus:nb-shadow-colored-yellow
+                  placeholder-gray-400
                 `}
               />
-              
+
               {/* Character Counter */}
-              <div className="flex justify-between mt-2 text-sm">
+              <div className="flex justify-between mt-3 text-sm">
                 <div>
                   {nameError ? (
-                    <span className="text-red-400">{nameError}</span>
+                    <div className="nb-bg-red nb-border nb-shadow px-3 py-1 inline-block">
+                      <span className="text-black font-black uppercase">{nameError}</span>
+                    </div>
                   ) : (
-                    <span className="text-purple-300">
-                      {profileName.length > 0 ? 'Looking good!' : 'Choose a memorable name'}
-                    </span>
+                    <div className="nb-bg-green nb-border nb-shadow px-3 py-1 inline-block">
+                      <span className="text-black font-black uppercase">
+                        {profileName.length > 0 ? 'Looking good!' : 'Choose a memorable name'}
+                      </span>
+                    </div>
                   )}
                 </div>
-                <span className="text-purple-300">
-                  {profileName.length}/20
-                </span>
+                <div className="nb-bg-white nb-border nb-shadow px-3 py-1">
+                  <span className="text-black font-black uppercase">
+                    {profileName.length}/20
+                  </span>
+                </div>
               </div>
             </div>
 
             {/* Preview Card */}
             {profileName.length >= 2 && (
-              <div className="mb-8 bg-purple-900 bg-opacity-50 p-4 rounded-xl border-2 border-purple-400">
-                <p className="text-purple-200 text-sm mb-2">Preview:</p>
+              <div className="mb-8 nb-bg-yellow nb-border-lg nb-shadow p-4">
+                <div className="nb-bg-white nb-border nb-shadow px-3 py-1 inline-block mb-3">
+                  <p className="text-black font-black text-xs uppercase">Preview:</p>
+                </div>
                 <div className="flex items-center gap-3">
                   <img
                     src={avatarUrl}
                     alt="Preview"
-                    className="w-12 h-12 rounded-full border-2 border-white"
+                    className="w-12 h-12 nb-border-xl"
                   />
                   <div>
-                    <div className="text-white font-bold text-lg">{profileName}</div>
-                    <div className="text-purple-300 text-sm">Level 1 • 0 XP</div>
+                    <div className="text-black font-black text-lg uppercase">{profileName}</div>
+                    <div className="text-black font-bold text-sm">LEVEL 1 • 0 XP</div>
                   </div>
                 </div>
               </div>
             )}
 
             {/* Create Button */}
-            <button
+            <NBButton
               onClick={handleCreateProfile}
               disabled={profileName.trim().length < 2 || nameError !== ''}
-              className={`
-                w-full py-4 rounded-lg font-bold text-xl
-                flex items-center justify-center gap-2
-                transition-all transform
-                ${profileName.trim().length >= 2 && !nameError
-                  ? 'bg-green-600 hover:bg-green-700 hover:scale-105 text-white'
-                  : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                }
-              `}
+              variant={profileName.trim().length >= 2 && !nameError ? 'success' : 'white'}
+              size="xl"
+              className="w-full flex items-center justify-center gap-2"
             >
-              Start Adventure
+              <span>START ADVENTURE</span>
               <ArrowRight className="w-6 h-6" />
-            </button>
+            </NBButton>
 
             {/* Info Text */}
-            <div className="mt-6 text-center text-purple-300 text-sm">
-              <p>🎮 Your progress will be saved automatically</p>
-              <p className="mt-1">⭐ Level up to unlock powerful talents</p>
+            <div className="mt-6 nb-bg-cyan nb-border-lg nb-shadow p-4">
+              <div className="nb-bg-white nb-border nb-shadow p-3 text-center">
+                <p className="text-black font-bold text-sm uppercase">
+                  🎮 Your progress will be saved automatically
+                </p>
+                <p className="text-black font-bold text-sm uppercase mt-1">
+                  ⭐ Level up to unlock powerful talents
+                </p>
+              </div>
             </div>
           </div>
         </div>
