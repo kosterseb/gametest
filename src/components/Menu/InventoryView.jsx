@@ -9,6 +9,7 @@ export const InventoryView = () => {
   const { gameState, dispatch } = useGame();
   const { currentRoute } = useRouter();
   const [selectedItem, setSelectedItem] = useState(null);
+  const [draggedItem, setDraggedItem] = useState(null);
 
   const isInBattle = currentRoute === '/battle';
 
@@ -82,24 +83,87 @@ export const InventoryView = () => {
     dispatch({ type: 'USE_CONSUMABLE', instanceId: item.instanceId });
   };
 
+  // Drag and Drop Handlers
+  const handleDragStart = (e, item, location, index) => {
+    if (!item) return;
+    setDraggedItem({ item, location, index });
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, targetLocation, targetIndex) => {
+    e.preventDefault();
+
+    if (!draggedItem) return;
+
+    const { item, location: sourceLocation, index: sourceIndex } = draggedItem;
+
+    // Same slot - do nothing
+    if (sourceLocation === targetLocation && sourceIndex === targetIndex) {
+      setDraggedItem(null);
+      return;
+    }
+
+    // Handle different drop scenarios
+    if (sourceLocation === 'bag' && targetLocation === 'consumable') {
+      // Equip consumable from bag
+      if (item.type === ITEM_TYPES.CONSUMABLE) {
+        dispatch({ type: 'EQUIP_CONSUMABLE', item });
+      }
+    } else if (sourceLocation === 'bag' && targetLocation === 'passive') {
+      // Equip passive from bag
+      if (item.type === ITEM_TYPES.PASSIVE) {
+        dispatch({ type: 'EQUIP_PASSIVE', item });
+      }
+    } else if (sourceLocation === 'consumable' && targetLocation === 'bag') {
+      // Unequip consumable to bag
+      const hasSpace = bag.some(slot => slot === null);
+      if (hasSpace) {
+        dispatch({ type: 'UNEQUIP_CONSUMABLE', instanceId: item.instanceId });
+      }
+    } else if (sourceLocation === 'passive' && targetLocation === 'bag') {
+      // Unequip passive to bag
+      const hasSpace = bag.some(slot => slot === null);
+      if (hasSpace) {
+        dispatch({ type: 'UNEQUIP_PASSIVE' });
+      }
+    }
+
+    setDraggedItem(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+  };
+
   // Render item card
   const renderItemCard = (item, location, index) => {
     const isEmpty = !item;
     const isSelected = selectedItem?.item?.instanceId === item?.instanceId;
+    const isDragging = draggedItem?.item?.instanceId === item?.instanceId;
     const rarityConfig = item ? ITEM_RARITY_CONFIG[item.rarity] : ITEM_RARITY_CONFIG.common;
 
     return (
-      <button
+      <div
         key={`${location}_${index}`}
+        draggable={!isEmpty}
+        onDragStart={(e) => handleDragStart(e, item, location, index)}
+        onDragOver={handleDragOver}
+        onDrop={(e) => handleDrop(e, location, index)}
+        onDragEnd={handleDragEnd}
         onClick={() => !isEmpty && handleItemClick(item, location)}
-        disabled={isEmpty}
         className={`
           ${isEmpty ? 'nb-bg-white nb-border-lg' : `${rarityConfig.bgColor} nb-border-lg nb-hover cursor-pointer`}
           ${isSelected ? 'nb-shadow-colored-yellow' : 'nb-shadow'}
+          ${isDragging ? 'opacity-50 scale-95' : ''}
           p-3 transition-all duration-200
           flex flex-col items-center justify-center
           min-h-[100px] relative
-          ${isEmpty ? 'cursor-not-allowed' : ''}
+          ${isEmpty ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}
         `}
       >
         {isEmpty ? (
@@ -126,7 +190,7 @@ export const InventoryView = () => {
             </div>
           </>
         )}
-      </button>
+      </div>
     );
   };
 
