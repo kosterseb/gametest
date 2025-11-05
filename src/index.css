@@ -5,6 +5,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom Neo-Brutal Cursor */
+* {
+  cursor: url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' width='24' height='24' fill='white' stroke='black' stroke-width='3'/%3E%3Crect x='2' y='2' width='8' height='8' fill='black'/%3E%3C/svg%3E") 12 12, auto;
+}
+
+button, a, [role="button"], .cursor-pointer {
+  cursor: url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' width='24' height='24' fill='%23fcd34d' stroke='black' stroke-width='3'/%3E%3Crect x='2' y='2' width='8' height='8' fill='black'/%3E%3C/svg%3E") 12 12, pointer;
+}
+
+input, textarea, select {
+  cursor: url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='9' y='0' width='3' height='24' fill='black'/%3E%3C/svg%3E") 12 12, text;
+}
+
 
 .reenie-beanie-regular {
     font-family: "Reenie Beanie", cursive;

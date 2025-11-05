@@ -81,32 +81,36 @@ const GameApp = () => {
 
   return (
     <div className="relative min-h-screen">
-      {/* Menu Buttons - Top Right (for non-battle routes) */}
+      {/* Menu Buttons - Top Right, Stacked Vertically (for non-battle routes) */}
       {showMenuButtons && (
-        <div className="fixed top-4 right-4 z-50 flex gap-3">
-          {/* Character Button */}
-          <NBButton
-            onClick={handleOpenCharacterMenu}
-            variant="cyan"
-            size="md"
-            className="flex items-center gap-2"
-            aria-label="Open character menu"
-          >
-            <User className="w-5 h-5" />
-            <span>CHARACTER</span>
-          </NBButton>
-
-          {/* Settings Menu Button */}
+        <div className="fixed top-4 right-4 z-50 flex flex-col gap-3">
+          {/* Settings Menu Button - ON TOP */}
           <NBButton
             onClick={() => setIsMenuOpen(true)}
             variant="white"
             size="md"
-            className="flex items-center gap-2"
+            className="w-16 h-16 flex items-center justify-center p-0"
             aria-label="Open menu"
           >
-            <Menu className="w-5 h-5" />
-            <span>MENU</span>
+            <Menu className="w-8 h-8" />
           </NBButton>
+
+          {/* Character Button - UNDERNEATH with Avatar */}
+          <button
+            onClick={handleOpenCharacterMenu}
+            className="w-16 h-16 nb-bg-cyan nb-border-xl nb-shadow-lg nb-hover flex items-center justify-center p-0 overflow-hidden"
+            aria-label="Open character menu"
+          >
+            {gameState.profile?.avatarSeed ? (
+              <img
+                src={`https://api.dicebear.com/9.x/notionists/svg?seed=${gameState.profile.avatarSeed}`}
+                alt="Your character"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User className="w-8 h-8 text-black" />
+            )}
+          </button>
         </div>
       )}
 
