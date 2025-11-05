@@ -18,6 +18,7 @@ export const BattleField = ({
   playerStatuses = [],
   enemyStatuses = [],
   avatarSeed = 'default',
+  playerName = 'Player',
   enemyEnergy = 0,
   maxEnemyEnergy = 10,
   onAttackAnimationChange = () => {},
@@ -273,9 +274,10 @@ export const BattleField = ({
       <div className="grid grid-cols-3 gap-4 mb-2">
         {/* Player Side */}
         <div className="flex flex-col items-center space-y-2">
-          <NBBadge color="cyan" className="text-lg px-4 py-2">
-            👤 YOU
-          </NBBadge>
+          {/* Player Name */}
+          <div className="nb-bg-white nb-border-lg nb-shadow px-4 py-2">
+            <p className="text-sm font-black uppercase text-center tracking-wide">{playerName}</p>
+          </div>
 
           {/* Player Avatar */}
           <PlayerAvatar

@@ -18,7 +18,7 @@ import { CoinFlip } from '../Battle/CoinFlip';
 import { TorusTunnelBackground } from '../Battle/TorusTunnelBackground';
 import { CardHand } from '../Cards/CardHand';
 import { CardPlayParticles } from '../Effects/CardPlayParticles';
-import { NBButton } from '../UI/NeoBrutalUI';
+import { NBButton, NBDropdown, useNBConfirm } from '../UI/NeoBrutalUI';
 import { BattleMenu } from '../UI/BattleMenu';
 import {
   applyStatus,
@@ -144,6 +144,7 @@ export const BattleRoute = () => {
   const { gameState, dispatch } = useGame();
   const { navigate } = useRouter();
   const { settings } = useSettings();
+  const { confirm, ConfirmDialog } = useNBConfirm();
 
   // Menu state
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -1036,8 +1037,17 @@ export const BattleRoute = () => {
     }
   }, [playerHealth, handleDefeat]);
 
-  const handleForfeit = () => {
-    if (window.confirm('Are you sure you want to forfeit this battle? Your run will end.')) {
+  const handleForfeit = async () => {
+    const confirmed = await confirm({
+      title: 'Forfeit Battle?',
+      message: 'Are you sure you want to forfeit this battle? Your run will end.',
+      confirmText: 'Forfeit',
+      cancelText: 'Continue Fighting',
+      confirmColor: 'danger',
+      cancelColor: 'green'
+    });
+
+    if (confirmed) {
       navigate('/defeat');
     }
   };
@@ -1092,6 +1102,7 @@ export const BattleRoute = () => {
               playerStatuses={playerStatuses}
               enemyStatuses={enemyStatuses}
               avatarSeed={gameState.profile?.avatarSeed || 'default'}
+              playerName={gameState.profile?.profileName || 'Player'}
               enemyEnergy={enemyEnergy}
               maxEnemyEnergy={maxEnemyEnergy}
               onAttackAnimationChange={setIsAttackAnimationPlaying}
@@ -1099,18 +1110,18 @@ export const BattleRoute = () => {
             />
 
             {equippedConsumables.length > 0 && (
-              <div className="p-2">
-                <div className="flex justify-between items-center mb-1">
-                  <h3 className="text-xs font-bold text-white drop-shadow-lg">⚡ Battle Items ({equippedConsumables.length})</h3>
-                  <button
-                    onClick={() => setConsumablesBeltExpanded(!consumablesBeltExpanded)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-semibold transition-all"
-                  >
-                    {consumablesBeltExpanded ? '▲ Collapse' : '▼ Expand'}
-                  </button>
-                </div>
-                {consumablesBeltExpanded && (
-                  <div className="flex gap-2 flex-wrap">
+              <div className="absolute top-1/2 -translate-y-1/2 left-2 z-40">
+                <NBDropdown
+                  isOpen={consumablesBeltExpanded}
+                  onToggle={() => setConsumablesBeltExpanded(!consumablesBeltExpanded)}
+                  triggerLabel={`ITEMS (${equippedConsumables.length})`}
+                  triggerIcon="⚡"
+                  color="orange"
+                  position="right"
+                  contentClassName="max-w-xs"
+                >
+                  <h3 className="text-xs font-black uppercase mb-3 text-center">⚡ BATTLE ITEMS</h3>
+                  <div className="grid grid-cols-2 gap-2">
                     {equippedConsumables.map((item, index) => (
                       <ItemButton
                         key={index}
@@ -1121,7 +1132,7 @@ export const BattleRoute = () => {
                       />
                     ))}
                   </div>
-                )}
+                </NBDropdown>
               </div>
             )}
           </div>
@@ -1256,6 +1267,9 @@ export const BattleRoute = () => {
         onClose={() => setIsMenuOpen(false)}
         gameState={gameState}
       />
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog />
     </PageTransition>
   );
 };

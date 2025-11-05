@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useSettings } from '../../context/SettingsContext';
 import { useRouter } from '../../hooks/useRouter';
 import { Settings, Home, BarChart3, X, Volume2, Zap, Monitor } from 'lucide-react';
-import { NBButton, NBCard, NBHeading, NBBadge, NBDivider } from './NeoBrutalUI';
+import { NBButton, NBCard, NBHeading, NBBadge, NBDivider, useNBConfirm } from './NeoBrutalUI';
 
 export const BattleMenu = ({ isOpen, onClose, gameState }) => {
   const [currentView, setCurrentView] = useState('main'); // 'main', 'settings', 'stats'
   const { settings, toggleSetting, updateSetting, toggleFullscreen } = useSettings();
   const { navigate } = useRouter();
+  const { confirm, ConfirmDialog } = useNBConfirm();
 
   // Handle ESC key to close menu
   useEffect(() => {
@@ -28,8 +29,17 @@ export const BattleMenu = ({ isOpen, onClose, gameState }) => {
 
   if (!isOpen) return null;
 
-  const handleReturnToMain = () => {
-    if (window.confirm('Are you sure you want to return to the main menu? Your progress will be saved.')) {
+  const handleReturnToMain = async () => {
+    const confirmed = await confirm({
+      title: 'Return to Main Menu?',
+      message: 'Are you sure you want to return to the main menu? Your progress will be saved.',
+      confirmText: 'Return',
+      cancelText: 'Stay',
+      confirmColor: 'blue',
+      cancelColor: 'green'
+    });
+
+    if (confirmed) {
       navigate('/');
       onClose();
     }
@@ -316,6 +326,9 @@ export const BattleMenu = ({ isOpen, onClose, gameState }) => {
           </div>
         )}
       </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog />
     </div>
   );
 };
