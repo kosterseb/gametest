@@ -6,6 +6,7 @@ import { ITEMS, createItemInstance } from '../../data/items';
 import { Card } from '../Cards/Card';
 import { PageTransition } from './PageTransition';
 import { ShoppingCart, ArrowLeft, Coins, Trash2, Package, Heart, Zap, Users, TrendingUp, CreditCard } from 'lucide-react';
+import { NBButton, NBCard, NBHeading, NBBadge } from './NeoBrutalUI';
 
 export const Shop = () => {
   const { gameState, dispatch } = useGame();
@@ -306,42 +307,40 @@ export const Shop = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-600 p-8">
+      <div className="min-h-screen nb-bg-yellow p-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl mb-6">
+          <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <ShoppingCart className="w-12 h-12 text-amber-600" />
+                <div className="nb-bg-orange nb-border-lg nb-shadow p-3">
+                  <ShoppingCart className="w-12 h-12 text-black" />
+                </div>
                 <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                    Card & Item Shop
-                  </h1>
-                  <p className="text-gray-600">Buy cards, items, upgrades, and unlock abilities</p>
+                  <NBHeading level={1} className="text-black">
+                    🛒 CARD & ITEM SHOP
+                  </NBHeading>
+                  <p className="text-gray-700 font-bold text-sm uppercase tracking-wide">Buy cards, items, upgrades & unlock abilities</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-4">
                 {/* Reroll Button */}
-                <button
+                <NBButton
                   onClick={handleReroll}
                   disabled={gameState.gold < rerollPrice}
-                  className={`
-                    ${gameState.gold >= rerollPrice ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-400 cursor-not-allowed'}
-                    text-white px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105 shadow-lg
-                    flex items-center gap-2
-                  `}
+                  variant={gameState.gold >= rerollPrice ? 'purple' : 'white'}
+                  size="md"
+                  className="flex items-center gap-2"
                 >
                   <TrendingUp className="w-5 h-5" />
-                  Reroll ({rerollPrice} <Coins className="w-4 h-4 inline" />)
-                </button>
+                  <span>Reroll ({rerollPrice} 💰)</span>
+                </NBButton>
 
                 {/* Gold Display */}
-                <div className="bg-gradient-to-r from-yellow-400 to-amber-500 px-6 py-3 rounded-lg border-4 border-yellow-300 shadow-lg">
-                  <div className="flex items-center gap-2">
-                    <Coins className="w-6 h-6 text-yellow-900" />
-                    <span className="text-3xl font-bold text-yellow-900">{gameState.gold}</span>
-                  </div>
+                <div className="nb-bg-yellow nb-border-xl nb-shadow-xl px-6 py-3 flex items-center gap-3">
+                  <Coins className="w-8 h-8 text-black" />
+                  <span className="text-4xl font-black text-black">{gameState.gold}</span>
                 </div>
               </div>
             </div>
@@ -349,11 +348,15 @@ export const Shop = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* BUY CARDS Section */}
-            <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl">
-              <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 flex items-center justify-center gap-2">
-                🎴 Buy Cards
-                <span className="text-sm font-normal text-gray-600">({cardPrice} gold each)</span>
-              </h2>
+            <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <NBHeading level={2} className="text-center">
+                  🎴 BUY CARDS
+                </NBHeading>
+                <NBBadge color="yellow" className="text-sm px-4 py-2">
+                  {cardPrice} 💰 EACH
+                </NBBadge>
+              </div>
 
               <div className="flex flex-col gap-6 items-center">
                 {shopOffers.cards.map((card, index) => {
@@ -374,22 +377,21 @@ export const Shop = () => {
 
                       {alreadyPurchased && !alreadyOwned && (
                         <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
-                          <div className="bg-gray-600 text-white px-4 py-2 rounded-full font-bold text-lg flex items-center gap-2 shadow-lg border-2 border-white">
-                            ✓ Purchased
-                          </div>
+                          <NBBadge color="white" className="px-4 py-2 text-lg">
+                            ✓ PURCHASED
+                          </NBBadge>
                         </div>
                       )}
 
                       {!alreadyOwned && !alreadyPurchased && (
                         <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
-                          <div className={`
-                            ${canAfford ? 'bg-green-600' : 'bg-red-600'}
-                            text-white px-4 py-2 rounded-full font-bold text-lg
-                            flex items-center gap-2 shadow-lg border-2 border-white
-                          `}>
+                          <NBBadge
+                            color={canAfford ? 'green' : 'red'}
+                            className="px-4 py-2 text-lg flex items-center gap-2"
+                          >
                             <Coins className="w-5 h-5" />
                             {cardPrice}
-                          </div>
+                          </NBBadge>
                         </div>
                       )}
                     </div>
@@ -399,11 +401,13 @@ export const Shop = () => {
             </div>
 
             {/* BUY ITEMS Section */}
-            <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl">
-              <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 flex items-center justify-center gap-2">
-                <Package className="w-6 h-6 text-purple-600" />
-                Buy Items
-              </h2>
+            <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <Package className="w-8 h-8 text-black" />
+                <NBHeading level={2} className="text-center">
+                  BUY ITEMS
+                </NBHeading>
+              </div>
 
               <div className="space-y-4">
                 {shopOffers.items.map((item, index) => {
@@ -416,24 +420,24 @@ export const Shop = () => {
                       onClick={() => !alreadyPurchased && canAfford && handleBuyItem(item, index)}
                       disabled={!canAfford || alreadyPurchased}
                       className={`
-                        w-full bg-gradient-to-r from-purple-500 to-indigo-500
-                        p-4 rounded-xl border-4 border-purple-300
-                        ${(canAfford && !alreadyPurchased) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                        transition-all shadow-lg flex items-center gap-4
+                        w-full nb-bg-purple nb-border-xl nb-shadow-lg
+                        p-4 flex items-center gap-4
+                        ${(canAfford && !alreadyPurchased) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                        transition-all
                       `}
                     >
                       <div className="text-5xl">{item.emoji}</div>
                       <div className="flex-1 text-left">
-                        <div className="text-white font-bold text-lg">{item.name}</div>
-                        <div className="text-purple-100 text-sm">{item.description}</div>
+                        <div className="text-black font-black text-lg uppercase">{item.name}</div>
+                        <div className="text-gray-700 text-sm font-semibold">{item.description}</div>
                       </div>
                       <div className={`
-                        ${alreadyPurchased ? 'bg-gray-600' : (canAfford ? 'bg-green-500' : 'bg-red-500')}
-                        px-4 py-2 rounded-full text-white font-bold
+                        ${alreadyPurchased ? 'bg-gray-600' : (canAfford ? 'nb-bg-green' : 'nb-bg-red')}
+                        nb-border nb-shadow px-4 py-2 text-white font-bold uppercase tracking-wide
                         flex items-center gap-1
                       `}>
                         {alreadyPurchased ? (
-                          <>✓ Purchased</>
+                          <>✓ PURCHASED</>
                         ) : (
                           <>
                             <Coins className="w-4 h-4" />
@@ -449,11 +453,13 @@ export const Shop = () => {
           </div>
 
           {/* PERMANENT UPGRADES Section */}
-          <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl mb-6">
-            <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 flex items-center justify-center gap-2">
-              <TrendingUp className="w-8 h-8 text-green-600" />
-              Permanent Upgrades
-            </h2>
+          <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6 mb-6">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <TrendingUp className="w-10 h-10 text-black" />
+              <NBHeading level={2} className="text-center">
+                💪 PERMANENT UPGRADES
+              </NBHeading>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Max Health Upgrade */}
@@ -461,28 +467,28 @@ export const Shop = () => {
                 onClick={handleBuyHealthUpgrade}
                 disabled={gameState.gold < healthUpgradePrice || healthUpgradesPurchased >= maxUpgrades}
                 className={`
-                  bg-gradient-to-br from-red-500 to-pink-500
-                  p-6 rounded-xl border-4 border-red-300
-                  ${(gameState.gold >= healthUpgradePrice && healthUpgradesPurchased < maxUpgrades) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                  transition-all shadow-lg relative
+                  nb-bg-red nb-border-xl nb-shadow-lg
+                  p-6 relative
+                  ${(gameState.gold >= healthUpgradePrice && healthUpgradesPurchased < maxUpgrades) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                  transition-all
                 `}
               >
-                <Heart className="w-12 h-12 text-white mx-auto mb-2" />
-                <div className="text-white font-bold text-xl mb-1">+10 Max HP</div>
-                <div className="text-red-100 text-sm mb-3">Permanent health increase</div>
-                <div className="text-white text-xs mb-2">({healthUpgradesPurchased}/{maxUpgrades} purchased)</div>
+                <Heart className="w-12 h-12 text-black mx-auto mb-3" />
+                <div className="text-black font-black text-xl mb-2 uppercase">+10 Max HP</div>
+                <div className="text-gray-800 text-sm mb-3 font-bold">Permanent health increase</div>
+                <div className="text-black text-xs mb-3 font-bold">({healthUpgradesPurchased}/{maxUpgrades} purchased)</div>
                 {healthUpgradesPurchased >= maxUpgrades ? (
-                  <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
-                    ✓ Maxed Out
-                  </div>
+                  <NBBadge color="white" className="px-4 py-2">
+                    ✓ MAXED OUT
+                  </NBBadge>
                 ) : (
-                  <div className={`
-                    ${gameState.gold >= healthUpgradePrice ? 'bg-green-600' : 'bg-gray-600'}
-                    px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
-                  `}>
+                  <NBBadge
+                    color={gameState.gold >= healthUpgradePrice ? 'green' : 'white'}
+                    className="px-4 py-2 inline-flex items-center gap-1"
+                  >
                     <Coins className="w-4 h-4" />
                     {healthUpgradePrice}
-                  </div>
+                  </NBBadge>
                 )}
               </button>
 
@@ -491,28 +497,28 @@ export const Shop = () => {
                 onClick={handleBuyEnergyUpgrade}
                 disabled={gameState.gold < energyUpgradePrice || energyUpgradesPurchased >= maxUpgrades}
                 className={`
-                  bg-gradient-to-br from-blue-500 to-cyan-500
-                  p-6 rounded-xl border-4 border-blue-300
-                  ${(gameState.gold >= energyUpgradePrice && energyUpgradesPurchased < maxUpgrades) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                  transition-all shadow-lg relative
+                  nb-bg-cyan nb-border-xl nb-shadow-lg
+                  p-6 relative
+                  ${(gameState.gold >= energyUpgradePrice && energyUpgradesPurchased < maxUpgrades) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                  transition-all
                 `}
               >
-                <Zap className="w-12 h-12 text-white mx-auto mb-2" />
-                <div className="text-white font-bold text-xl mb-1">+1 Max Energy</div>
-                <div className="text-blue-100 text-sm mb-3">More energy per turn</div>
-                <div className="text-white text-xs mb-2">({energyUpgradesPurchased}/{maxUpgrades} purchased)</div>
+                <Zap className="w-12 h-12 text-black mx-auto mb-3" />
+                <div className="text-black font-black text-xl mb-2 uppercase">+1 Max Energy</div>
+                <div className="text-gray-800 text-sm mb-3 font-bold">More energy per turn</div>
+                <div className="text-black text-xs mb-3 font-bold">({energyUpgradesPurchased}/{maxUpgrades} purchased)</div>
                 {energyUpgradesPurchased >= maxUpgrades ? (
-                  <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
-                    ✓ Maxed Out
-                  </div>
+                  <NBBadge color="white" className="px-4 py-2">
+                    ✓ MAXED OUT
+                  </NBBadge>
                 ) : (
-                  <div className={`
-                    ${gameState.gold >= energyUpgradePrice ? 'bg-green-600' : 'bg-gray-600'}
-                    px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
-                  `}>
+                  <NBBadge
+                    color={gameState.gold >= energyUpgradePrice ? 'green' : 'white'}
+                    className="px-4 py-2 inline-flex items-center gap-1"
+                  >
                     <Coins className="w-4 h-4" />
                     {energyUpgradePrice}
-                  </div>
+                  </NBBadge>
                 )}
               </button>
 
@@ -521,112 +527,116 @@ export const Shop = () => {
                 onClick={handleBuyHandSizeUpgrade}
                 disabled={gameState.gold < handSizeUpgradePrice || handSizeUpgradesPurchased >= maxUpgrades}
                 className={`
-                  bg-gradient-to-br from-purple-500 to-indigo-500
-                  p-6 rounded-xl border-4 border-purple-300
-                  ${(gameState.gold >= handSizeUpgradePrice && handSizeUpgradesPurchased < maxUpgrades) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                  transition-all shadow-lg relative
+                  nb-bg-purple nb-border-xl nb-shadow-lg
+                  p-6 relative
+                  ${(gameState.gold >= handSizeUpgradePrice && handSizeUpgradesPurchased < maxUpgrades) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                  transition-all
                 `}
               >
-                <Users className="w-12 h-12 text-white mx-auto mb-2" />
-                <div className="text-white font-bold text-xl mb-1">+1 Hand Size</div>
-                <div className="text-purple-100 text-sm mb-3">Hold more cards</div>
-                <div className="text-white text-xs mb-2">({handSizeUpgradesPurchased}/{maxUpgrades} purchased)</div>
+                <Users className="w-12 h-12 text-black mx-auto mb-3" />
+                <div className="text-black font-black text-xl mb-2 uppercase">+1 Hand Size</div>
+                <div className="text-gray-800 text-sm mb-3 font-bold">Hold more cards</div>
+                <div className="text-black text-xs mb-3 font-bold">({handSizeUpgradesPurchased}/{maxUpgrades} purchased)</div>
                 {handSizeUpgradesPurchased >= maxUpgrades ? (
-                  <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
-                    ✓ Maxed Out
-                  </div>
+                  <NBBadge color="white" className="px-4 py-2">
+                    ✓ MAXED OUT
+                  </NBBadge>
                 ) : (
-                  <div className={`
-                    ${gameState.gold >= handSizeUpgradePrice ? 'bg-green-600' : 'bg-gray-600'}
-                    px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
-                  `}>
+                  <NBBadge
+                    color={gameState.gold >= handSizeUpgradePrice ? 'green' : 'white'}
+                    className="px-4 py-2 inline-flex items-center gap-1"
+                  >
                     <Coins className="w-4 h-4" />
                     {handSizeUpgradePrice}
-                  </div>
+                  </NBBadge>
                 )}
               </button>
             </div>
           </div>
 
           {/* BOSS ABILITIES Section */}
-          <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl mb-6">
-            <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 flex items-center justify-center gap-2">
-              👑 Boss Abilities
-              <span className="text-sm font-normal text-gray-600">(Unlocked by defeating bosses)</span>
-            </h2>
+          <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6 mb-6">
+            <div className="flex flex-col items-center gap-3 mb-6">
+              <NBHeading level={2} className="text-center">
+                👑 BOSS ABILITIES
+              </NBHeading>
+              <NBBadge color="orange" className="text-sm px-4 py-2">
+                UNLOCKED BY DEFEATING BOSSES
+              </NBBadge>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Draw Card Ability */}
               <div className={`
-                bg-gradient-to-br from-green-500 to-emerald-500
-                p-6 rounded-xl border-4 border-green-300
+                nb-bg-green nb-border-xl nb-shadow-lg
+                p-6 relative
                 ${bossesDefeated >= 1 ? '' : 'opacity-50'}
-                transition-all shadow-lg relative
+                transition-all
               `}>
                 {bossesDefeated < 1 && (
-                  <div className="absolute inset-0 bg-black bg-opacity-60 rounded-xl flex items-center justify-center">
-                    <div className="text-white font-bold text-lg">🔒 Defeat Boss 1</div>
+                  <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center">
+                    <NBBadge color="white" className="text-lg px-6 py-3">
+                      🔒 DEFEAT BOSS 1
+                    </NBBadge>
                   </div>
                 )}
-                
-                <div className="text-4xl text-center mb-2">🎴</div>
-                <div className="text-white font-bold text-xl mb-1 text-center">Draw Card Ability</div>
-                <div className="text-green-100 text-sm mb-3 text-center">Draw 1 card for 3 energy</div>
-                
+
+                <div className="text-5xl text-center mb-3">🎴</div>
+                <div className="text-black font-black text-xl mb-2 text-center uppercase">Draw Card Ability</div>
+                <div className="text-gray-800 text-sm mb-4 text-center font-bold">Draw 1 card for 3 energy</div>
+
                 {gameState.hasDrawAbility ? (
-                  <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold text-center">
-                    ✓ Unlocked
-                  </div>
+                  <NBBadge color="white" className="w-full text-center px-4 py-2">
+                    ✓ UNLOCKED
+                  </NBBadge>
                 ) : bossesDefeated >= 1 ? (
-                  <button
+                  <NBButton
                     onClick={handleBuyDrawAbility}
                     disabled={gameState.gold < drawAbilityPrice}
-                    className={`
-                      w-full ${gameState.gold >= drawAbilityPrice ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-gray-600'}
-                      px-4 py-2 rounded-full text-white font-bold
-                      flex items-center justify-center gap-1
-                    `}
+                    variant={gameState.gold >= drawAbilityPrice ? 'yellow' : 'white'}
+                    size="md"
+                    className="w-full flex items-center justify-center gap-2"
                   >
                     <Coins className="w-4 h-4" />
                     {drawAbilityPrice}
-                  </button>
+                  </NBButton>
                 ) : null}
               </div>
 
               {/* Discard Ability */}
               <div className={`
-                bg-gradient-to-br from-orange-500 to-red-500
-                p-6 rounded-xl border-4 border-orange-300
+                nb-bg-orange nb-border-xl nb-shadow-lg
+                p-6 relative
                 ${bossesDefeated >= 2 ? '' : 'opacity-50'}
-                transition-all shadow-lg relative
+                transition-all
               `}>
                 {bossesDefeated < 2 && (
-                  <div className="absolute inset-0 bg-black bg-opacity-60 rounded-xl flex items-center justify-center">
-                    <div className="text-white font-bold text-lg">🔒 Defeat Boss 2</div>
+                  <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center">
+                    <NBBadge color="white" className="text-lg px-6 py-3">
+                      🔒 DEFEAT BOSS 2
+                    </NBBadge>
                   </div>
                 )}
-                
-                <div className="text-4xl text-center mb-2">🗑️</div>
-                <div className="text-white font-bold text-xl mb-1 text-center">Discard Ability</div>
-                <div className="text-orange-100 text-sm mb-3 text-center">Discard for 1 energy</div>
-                
+
+                <div className="text-5xl text-center mb-3">🗑️</div>
+                <div className="text-black font-black text-xl mb-2 text-center uppercase">Discard Ability</div>
+                <div className="text-gray-800 text-sm mb-4 text-center font-bold">Discard for 1 energy</div>
+
                 {gameState.hasDiscardAbility ? (
-                  <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold text-center">
-                    ✓ Unlocked
-                  </div>
+                  <NBBadge color="white" className="w-full text-center px-4 py-2">
+                    ✓ UNLOCKED
+                  </NBBadge>
                 ) : bossesDefeated >= 2 ? (
-                  <button
+                  <NBButton
                     onClick={handleBuyDiscardAbility}
                     disabled={gameState.gold < discardAbilityPrice}
-                    className={`
-                      w-full ${gameState.gold >= discardAbilityPrice ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-gray-600'}
-                      px-4 py-2 rounded-full text-white font-bold
-                      flex items-center justify-center gap-1
-                    `}
+                    variant={gameState.gold >= discardAbilityPrice ? 'yellow' : 'white'}
+                    size="md"
+                    className="w-full flex items-center justify-center gap-2"
                   >
                     <Coins className="w-4 h-4" />
                     {discardAbilityPrice}
-                  </button>
+                  </NBButton>
                 ) : null}
               </div>
             </div>
@@ -634,12 +644,18 @@ export const Shop = () => {
 
           {/* INVENTORY UPGRADES Section */}
           {inventoryUnlocked && (
-            <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl mb-6">
-              <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 flex items-center justify-center gap-2">
-                <Package className="w-8 h-8 text-indigo-600" />
-                Inventory Upgrades
-                <span className="text-sm font-normal text-gray-600">(Unlocked at Floor 15)</span>
-              </h2>
+            <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6 mb-6">
+              <div className="flex flex-col items-center gap-3 mb-6">
+                <div className="flex items-center gap-3">
+                  <Package className="w-10 h-10 text-black" />
+                  <NBHeading level={2} className="text-center">
+                    🎒 INVENTORY UPGRADES
+                  </NBHeading>
+                </div>
+                <NBBadge color="cyan" className="text-sm px-4 py-2">
+                  UNLOCKED AT FLOOR 15
+                </NBBadge>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Bag Slot Upgrade */}
@@ -647,28 +663,28 @@ export const Shop = () => {
                   onClick={handleBuyBagSlot}
                   disabled={gameState.gold < bagSlotPrice || currentBagSize >= 12}
                   className={`
-                    bg-gradient-to-br from-amber-500 to-orange-500
-                    p-6 rounded-xl border-4 border-amber-300
-                    ${(gameState.gold >= bagSlotPrice && currentBagSize < 12) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                    transition-all shadow-lg relative
+                    nb-bg-orange nb-border-xl nb-shadow-lg
+                    p-6 relative
+                    ${(gameState.gold >= bagSlotPrice && currentBagSize < 12) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                    transition-all
                   `}
                 >
-                  <Package className="w-12 h-12 text-white mx-auto mb-2" />
-                  <div className="text-white font-bold text-xl mb-1">+1 Bag Slot</div>
-                  <div className="text-amber-100 text-sm mb-3">Carry more items</div>
-                  <div className="text-white text-xs mb-2">Current: {currentBagSize}/12 slots</div>
+                  <Package className="w-12 h-12 text-black mx-auto mb-3" />
+                  <div className="text-black font-black text-xl mb-2 uppercase">+1 Bag Slot</div>
+                  <div className="text-gray-800 text-sm mb-3 font-bold">Carry more items</div>
+                  <div className="text-black text-xs mb-3 font-bold">Current: {currentBagSize}/12 slots</div>
                   {currentBagSize >= 12 ? (
-                    <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
-                      ✓ Maxed Out
-                    </div>
+                    <NBBadge color="white" className="px-4 py-2">
+                      ✓ MAXED OUT
+                    </NBBadge>
                   ) : (
-                    <div className={`
-                      ${gameState.gold >= bagSlotPrice ? 'bg-green-600' : 'bg-gray-600'}
-                      px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
-                    `}>
+                    <NBBadge
+                      color={gameState.gold >= bagSlotPrice ? 'green' : 'white'}
+                      className="px-4 py-2 inline-flex items-center gap-1"
+                    >
                       <Coins className="w-4 h-4" />
                       {bagSlotPrice}
-                    </div>
+                    </NBBadge>
                   )}
                 </button>
 
@@ -677,28 +693,28 @@ export const Shop = () => {
                   onClick={handleBuyConsumableSlot}
                   disabled={gameState.gold < consumableSlotPrice || currentConsumableSize >= 8}
                   className={`
-                    bg-gradient-to-br from-green-500 to-emerald-500
-                    p-6 rounded-xl border-4 border-green-300
-                    ${(gameState.gold >= consumableSlotPrice && currentConsumableSize < 8) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                    transition-all shadow-lg relative
+                    nb-bg-green nb-border-xl nb-shadow-lg
+                    p-6 relative
+                    ${(gameState.gold >= consumableSlotPrice && currentConsumableSize < 8) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                    transition-all
                   `}
                 >
-                  <Heart className="w-12 h-12 text-white mx-auto mb-2" />
-                  <div className="text-white font-bold text-xl mb-1">+1 Consumable Slot</div>
-                  <div className="text-green-100 text-sm mb-3">Use more consumables</div>
-                  <div className="text-white text-xs mb-2">Current: {currentConsumableSize}/8 slots</div>
+                  <Heart className="w-12 h-12 text-black mx-auto mb-3" />
+                  <div className="text-black font-black text-xl mb-2 uppercase">+1 Consumable Slot</div>
+                  <div className="text-gray-800 text-sm mb-3 font-bold">Use more consumables</div>
+                  <div className="text-black text-xs mb-3 font-bold">Current: {currentConsumableSize}/8 slots</div>
                   {currentConsumableSize >= 8 ? (
-                    <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
-                      ✓ Maxed Out
-                    </div>
+                    <NBBadge color="white" className="px-4 py-2">
+                      ✓ MAXED OUT
+                    </NBBadge>
                   ) : (
-                    <div className={`
-                      ${gameState.gold >= consumableSlotPrice ? 'bg-green-600' : 'bg-gray-600'}
-                      px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
-                    `}>
+                    <NBBadge
+                      color={gameState.gold >= consumableSlotPrice ? 'green' : 'white'}
+                      className="px-4 py-2 inline-flex items-center gap-1"
+                    >
                       <Coins className="w-4 h-4" />
                       {consumableSlotPrice}
-                    </div>
+                    </NBBadge>
                   )}
                 </button>
 
@@ -707,28 +723,28 @@ export const Shop = () => {
                   onClick={handleBuyPassiveSlot}
                   disabled={gameState.gold < passiveSlotPrice || currentPassiveSize >= 6}
                   className={`
-                    bg-gradient-to-br from-purple-500 to-indigo-500
-                    p-6 rounded-xl border-4 border-purple-300
-                    ${(gameState.gold >= passiveSlotPrice && currentPassiveSize < 6) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                    transition-all shadow-lg relative
+                    nb-bg-blue nb-border-xl nb-shadow-lg
+                    p-6 relative
+                    ${(gameState.gold >= passiveSlotPrice && currentPassiveSize < 6) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                    transition-all
                   `}
                 >
-                  <Zap className="w-12 h-12 text-white mx-auto mb-2" />
-                  <div className="text-white font-bold text-xl mb-1">+1 Passive Slot</div>
-                  <div className="text-purple-100 text-sm mb-3">Equip more passives</div>
-                  <div className="text-white text-xs mb-2">Current: {currentPassiveSize}/6 slots</div>
+                  <Zap className="w-12 h-12 text-black mx-auto mb-3" />
+                  <div className="text-black font-black text-xl mb-2 uppercase">+1 Passive Slot</div>
+                  <div className="text-gray-800 text-sm mb-3 font-bold">Equip more passives</div>
+                  <div className="text-black text-xs mb-3 font-bold">Current: {currentPassiveSize}/6 slots</div>
                   {currentPassiveSize >= 6 ? (
-                    <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
-                      ✓ Maxed Out
-                    </div>
+                    <NBBadge color="white" className="px-4 py-2">
+                      ✓ MAXED OUT
+                    </NBBadge>
                   ) : (
-                    <div className={`
-                      ${gameState.gold >= passiveSlotPrice ? 'bg-green-600' : 'bg-gray-600'}
-                      px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
-                    `}>
+                    <NBBadge
+                      color={gameState.gold >= passiveSlotPrice ? 'green' : 'white'}
+                      className="px-4 py-2 inline-flex items-center gap-1"
+                    >
                       <Coins className="w-4 h-4" />
                       {passiveSlotPrice}
-                    </div>
+                    </NBBadge>
                   )}
                 </button>
               </div>
@@ -737,12 +753,18 @@ export const Shop = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* REMOVE CARDS Section */}
-            <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl">
-              <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 flex items-center justify-center gap-2">
-                <Trash2 className="w-6 h-6 text-red-600" />
-                Remove Cards
-                <span className="text-sm font-normal text-gray-600">({cardRemovalRefund} gold each)</span>
-              </h2>
+            <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <Trash2 className="w-8 h-8 text-black" />
+                <NBHeading level={2} className="text-center">
+                  ❌ REMOVE CARDS
+                </NBHeading>
+              </div>
+              <div className="flex items-center justify-center mb-4">
+                <NBBadge color="red" className="text-sm px-4 py-2">
+                  +{cardRemovalRefund} 💰 EACH
+                </NBBadge>
+              </div>
 
               {gameState.unlockedCards && gameState.unlockedCards.length > 3 ? (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -750,36 +772,42 @@ export const Shop = () => {
                     <button
                       key={index}
                       onClick={() => handleRemoveCard(card)}
-                      className="w-full bg-gradient-to-r from-red-500 to-orange-500 p-3 rounded-lg border-2 border-red-300 hover:scale-105 transition-all shadow-lg flex items-center justify-between group"
+                      className="w-full nb-bg-red nb-border-lg nb-shadow p-3 nb-hover transition-all flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
-                        <CreditCard className="w-8 h-8 text-white" />
+                        <CreditCard className="w-8 h-8 text-black" />
                         <div className="text-left">
-                          <div className="text-white font-bold">{card.name}</div>
-                          <div className="text-red-100 text-sm">{card.description}</div>
+                          <div className="text-black font-black text-sm uppercase">{card.name}</div>
+                          <div className="text-gray-800 text-xs font-semibold line-clamp-1">{card.description}</div>
                         </div>
                       </div>
-                      <div className="bg-green-500 px-3 py-1 rounded-full text-white font-bold text-sm flex items-center gap-1">
+                      <NBBadge color="green" className="px-3 py-1 text-sm flex items-center gap-1">
                         <Coins className="w-4 h-4" />
                         +{cardRemovalRefund}
-                      </div>
+                      </NBBadge>
                     </button>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <p>You need at least 3 cards!</p>
+                <div className="text-center py-8 nb-bg-white nb-border-lg p-4">
+                  <p className="text-gray-700 font-bold">⚠️ You need at least 3 cards!</p>
                 </div>
               )}
             </div>
 
             {/* SELL ITEMS Section */}
-            <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl">
-              <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 flex items-center justify-center gap-2">
-                <Coins className="w-6 h-6 text-green-600" />
-                Sell Items
-                <span className="text-sm font-normal text-gray-600">(50% refund)</span>
-              </h2>
+            <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <Coins className="w-8 h-8 text-black" />
+                <NBHeading level={2} className="text-center">
+                  💰 SELL ITEMS
+                </NBHeading>
+              </div>
+              <div className="flex items-center justify-center mb-4">
+                <NBBadge color="yellow" className="text-sm px-4 py-2">
+                  50% REFUND
+                </NBBadge>
+              </div>
 
               {playerItems.length > 0 ? (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -790,26 +818,26 @@ export const Shop = () => {
                       <button
                         key={index}
                         onClick={() => handleSellItem(item)}
-                        className="w-full bg-gradient-to-r from-green-500 to-teal-500 p-3 rounded-lg border-2 border-green-300 hover:scale-105 transition-all shadow-lg flex items-center justify-between"
+                        className="w-full nb-bg-green nb-border-lg nb-shadow p-3 nb-hover transition-all flex items-center justify-between"
                       >
                         <div className="flex items-center gap-3">
                           <div className="text-3xl">{item.emoji}</div>
                           <div className="text-left">
-                            <div className="text-white font-bold">{item.name}</div>
-                            <div className="text-green-100 text-sm">{item.description}</div>
+                            <div className="text-black font-black text-sm uppercase">{item.name}</div>
+                            <div className="text-gray-800 text-xs font-semibold line-clamp-1">{item.description}</div>
                           </div>
                         </div>
-                        <div className="bg-yellow-500 px-3 py-1 rounded-full text-black font-bold text-sm flex items-center gap-1">
+                        <NBBadge color="yellow" className="px-3 py-1 text-sm flex items-center gap-1">
                           <Coins className="w-4 h-4" />
                           +{sellPrice}
-                        </div>
+                        </NBBadge>
                       </button>
                     );
                   })}
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <p>Your inventory is empty!</p>
+                <div className="text-center py-8 nb-bg-white nb-border-lg p-4">
+                  <p className="text-gray-700 font-bold">📦 Your inventory is empty!</p>
                 </div>
               )}
             </div>
@@ -817,13 +845,15 @@ export const Shop = () => {
 
           {/* Leave Button */}
           <div className="text-center">
-            <button
+            <NBButton
               onClick={handleLeaveShop}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-lg font-bold text-xl transition-all transform hover:scale-105 shadow-lg flex items-center gap-2 mx-auto"
+              variant="purple"
+              size="lg"
+              className="flex items-center gap-3 mx-auto text-xl px-12 py-6"
             >
-              <ArrowLeft className="w-6 h-6" />
-              Leave Shop
-            </button>
+              <ArrowLeft className="w-8 h-8" />
+              <span>LEAVE SHOP</span>
+            </NBButton>
           </div>
         </div>
       </div>
