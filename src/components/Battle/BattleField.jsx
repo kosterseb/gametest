@@ -348,17 +348,9 @@ export const BattleField = ({
 
         {/* Enemy Side */}
         <div className="flex flex-col items-center space-y-2">
-          {/* Enemy Type Badge */}
-          <div className="flex items-center space-x-2">
-            {enemy.isElite && (
-              <NBBadge color="orange" className="text-xs">⭐ ELITE</NBBadge>
-            )}
-            {enemy.isBoss && (
-              <NBBadge color="purple" className="text-xs">👑 BOSS</NBBadge>
-            )}
-            {!enemy.isElite && !enemy.isBoss && (
-              <NBBadge color="white" className="text-xs">💀 ENEMY</NBBadge>
-            )}
+          {/* Enemy Name */}
+          <div className="nb-bg-white nb-border-lg nb-shadow px-4 py-2">
+            <p className="text-sm font-black uppercase text-center tracking-wide">{enemy.name || 'Unknown Enemy'}</p>
           </div>
 
           {/* Enemy Avatar */}
@@ -370,10 +362,6 @@ export const BattleField = ({
             isHealing={isEnemyHealing}
             isAttacking={isEnemyAttacking}
           />
-
-          <div className="nb-bg-white nb-border-lg nb-shadow px-4 py-2">
-            <p className="text-sm font-black uppercase text-center tracking-wide">{enemy.name || 'Unknown Enemy'}</p>
-          </div>
 
           {/* Enemy Health Bar */}
           <div className="w-full">

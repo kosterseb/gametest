@@ -17,11 +17,14 @@ export const ProfileCreation = ({ slotNumber }) => {
   const [avatarSeed, setAvatarSeed] = useState(generateRandomSeed());
   const [nameError, setNameError] = useState('');
 
-  // Avatar customization options
-  const [backgroundRotation, setBackgroundRotation] = useState(0);
-  const [flip, setFlip] = useState(false);
-  const [scale, setScale] = useState(100);
-  const [radius, setRadius] = useState(0);
+  // Avatar customization options - Hair, Lips, Shirt colors
+  const hairColors = ['0d0d0d', '4a312c', 'f59e0b', 'ef4444', 'a855f7', '06b6d4', 'ec4899'];
+  const mouthColors = ['f87171', 'fca5a5', 'fb923c', 'fb7185', 'f472b6', 'c084fc'];
+  const shirtColors = ['ef4444', 'f97316', 'eab308', '22c55e', '06b6d4', '3b82f6', '8b5cf6', 'ec4899'];
+
+  const [hairColorIndex, setHairColorIndex] = useState(0);
+  const [mouthColorIndex, setMouthColorIndex] = useState(0);
+  const [shirtColorIndex, setShirtColorIndex] = useState(4);
 
   function generateRandomSeed() {
     return Math.random().toString(36).substring(2, 15);
@@ -87,7 +90,7 @@ export const ProfileCreation = ({ slotNumber }) => {
     navigate('/map');
   };
 
-  const avatarUrl = `https://api.dicebear.com/9.x/notionists/svg?seed=${avatarSeed}&backgroundRotation=${backgroundRotation}&flip=${flip}&scale=${scale}&radius=${radius}`;
+  const avatarUrl = `https://api.dicebear.com/9.x/notionists/svg?seed=${avatarSeed}&hairColor=${hairColors[hairColorIndex]}&mouthColor=${mouthColors[mouthColorIndex]}&shirtColor=${shirtColors[shirtColorIndex]}`;
 
   return (
     <PageTransition>
@@ -150,78 +153,60 @@ export const ProfileCreation = ({ slotNumber }) => {
                   CUSTOMIZE YOUR LOOK
                 </NBHeading>
 
-                {/* Background Rotation Slider */}
+                {/* Hair Color Selector */}
                 <div className="mb-6">
-                  <label className="text-black font-black text-sm uppercase mb-2 block">
-                    Background Rotation: {backgroundRotation}°
+                  <label className="text-black font-black text-sm uppercase mb-3 block">
+                    💇 HAIR COLOR
                   </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="360"
-                    value={backgroundRotation}
-                    onChange={(e) => setBackgroundRotation(parseInt(e.target.value))}
-                    className="w-full h-4 nb-bg-cyan nb-border nb-shadow appearance-none cursor-pointer"
-                    style={{
-                      background: `linear-gradient(to right, #22d3ee ${(backgroundRotation / 360) * 100}%, white ${(backgroundRotation / 360) * 100}%)`
-                    }}
-                  />
+                  <div className="flex gap-2 flex-wrap">
+                    {hairColors.map((color, index) => (
+                      <button
+                        key={color}
+                        onClick={() => setHairColorIndex(index)}
+                        className={`w-12 h-12 nb-border-lg nb-shadow nb-hover ${hairColorIndex === index ? 'nb-shadow-colored-yellow ring-4 ring-yellow-400' : ''}`}
+                        style={{ backgroundColor: `#${color}` }}
+                      />
+                    ))}
+                  </div>
                 </div>
 
-                {/* Scale Slider */}
+                {/* Lips/Mouth Color Selector */}
                 <div className="mb-6">
-                  <label className="text-black font-black text-sm uppercase mb-2 block">
-                    Avatar Scale: {scale}%
+                  <label className="text-black font-black text-sm uppercase mb-3 block">
+                    💋 LIPS COLOR
                   </label>
-                  <input
-                    type="range"
-                    min="80"
-                    max="120"
-                    value={scale}
-                    onChange={(e) => setScale(parseInt(e.target.value))}
-                    className="w-full h-4 nb-bg-green nb-border nb-shadow appearance-none cursor-pointer"
-                    style={{
-                      background: `linear-gradient(to right, #22c55e ${((scale - 80) / 40) * 100}%, white ${((scale - 80) / 40) * 100}%)`
-                    }}
-                  />
+                  <div className="flex gap-2 flex-wrap">
+                    {mouthColors.map((color, index) => (
+                      <button
+                        key={color}
+                        onClick={() => setMouthColorIndex(index)}
+                        className={`w-12 h-12 nb-border-lg nb-shadow nb-hover ${mouthColorIndex === index ? 'nb-shadow-colored-yellow ring-4 ring-yellow-400' : ''}`}
+                        style={{ backgroundColor: `#${color}` }}
+                      />
+                    ))}
+                  </div>
                 </div>
 
-                {/* Radius Slider */}
+                {/* Shirt Color Selector */}
                 <div className="mb-6">
-                  <label className="text-black font-black text-sm uppercase mb-2 block">
-                    Corner Radius: {radius}
+                  <label className="text-black font-black text-sm uppercase mb-3 block">
+                    👕 SHIRT COLOR
                   </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="50"
-                    value={radius}
-                    onChange={(e) => setRadius(parseInt(e.target.value))}
-                    className="w-full h-4 nb-bg-purple nb-border nb-shadow appearance-none cursor-pointer"
-                    style={{
-                      background: `linear-gradient(to right, #a855f7 ${(radius / 50) * 100}%, white ${(radius / 50) * 100}%)`
-                    }}
-                  />
-                </div>
-
-                {/* Flip Toggle */}
-                <div className="mb-6">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <div
-                      onClick={() => setFlip(!flip)}
-                      className={`w-16 h-8 ${flip ? 'nb-bg-green' : 'nb-bg-white'} nb-border-lg nb-shadow flex items-center justify-center cursor-pointer nb-hover`}
-                    >
-                      <div className={`w-6 h-6 nb-bg-black transition-transform ${flip ? 'translate-x-3' : '-translate-x-3'}`}></div>
-                    </div>
-                    <span className="text-black font-black text-sm uppercase">
-                      FLIP AVATAR
-                    </span>
-                  </label>
+                  <div className="flex gap-2 flex-wrap">
+                    {shirtColors.map((color, index) => (
+                      <button
+                        key={color}
+                        onClick={() => setShirtColorIndex(index)}
+                        className={`w-12 h-12 nb-border-lg nb-shadow nb-hover ${shirtColorIndex === index ? 'nb-shadow-colored-yellow ring-4 ring-yellow-400' : ''}`}
+                        style={{ backgroundColor: `#${color}` }}
+                      />
+                    ))}
+                  </div>
                 </div>
 
                 <div className="nb-bg-cyan nb-border nb-shadow p-3 mt-auto">
                   <p className="text-black font-bold text-xs uppercase text-center">
-                    💡 Adjust sliders to customize your character's appearance!
+                    🎨 Click colors to customize your character!
                   </p>
                 </div>
               </div>
