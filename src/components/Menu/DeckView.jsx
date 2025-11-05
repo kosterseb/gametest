@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useGame } from '../../context/GameContext';
-import { CardCompact } from '../Cards/Card';
+import { Card } from '../Cards/Card';
 import { BookOpen, Check, X } from 'lucide-react';
 
 export const DeckView = () => {
@@ -91,11 +91,13 @@ export const DeckView = () => {
             return (
               <div key={index} className="relative">
                 {/* Card Component */}
-                <CardCompact
+                <Card
                   card={card}
                   onClick={() => handleToggleCard(card)}
                   disabled={false}
-                  owned={false}
+                  compact={true}
+                  draggable={false}
+                  showCost={false}
                 />
                 
                 {/* Selection Indicator Overlay */}

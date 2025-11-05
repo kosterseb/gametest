@@ -4,7 +4,7 @@ import { useRouter } from '../../hooks/useRouter';
 import { getCardRewardOptions } from '../../data/cards';
 import { ITEM_RARITY_CONFIG } from '../../data/items';
 import { PageTransition } from './PageTransition';
-import { CardCompact } from '../Cards/Card';
+import { Card } from '../Cards/Card';
 import { Trophy, Package, AlertCircle, Check, X } from 'lucide-react';
 
 export const UnifiedRewardScreen = () => {
@@ -194,11 +194,13 @@ export const UnifiedRewardScreen = () => {
 
                     return (
                       <div key={index} className="relative">
-                        <CardCompact
+                        <Card
                           card={card}
                           onClick={() => !alreadyOwned && handleSelectCard(card)}
                           disabled={alreadyOwned}
-                          owned={alreadyOwned}
+                          compact={true}
+                          draggable={false}
+                          showCost={false}
                         />
                       </div>
                     );
