@@ -17,6 +17,12 @@ export const ProfileCreation = ({ slotNumber }) => {
   const [avatarSeed, setAvatarSeed] = useState(generateRandomSeed());
   const [nameError, setNameError] = useState('');
 
+  // Avatar customization options
+  const [backgroundRotation, setBackgroundRotation] = useState(0);
+  const [flip, setFlip] = useState(false);
+  const [scale, setScale] = useState(100);
+  const [radius, setRadius] = useState(0);
+
   function generateRandomSeed() {
     return Math.random().toString(36).substring(2, 15);
   }
@@ -81,12 +87,12 @@ export const ProfileCreation = ({ slotNumber }) => {
     navigate('/map');
   };
 
-  const avatarUrl = `https://api.dicebear.com/9.x/notionists/svg?seed=${avatarSeed}`;
+  const avatarUrl = `https://api.dicebear.com/9.x/notionists/svg?seed=${avatarSeed}&backgroundRotation=${backgroundRotation}&flip=${flip}&scale=${scale}&radius=${radius}`;
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-black p-8 flex items-center justify-center">
-        <div className="max-w-2xl w-full">
+      <div className="min-h-screen bg-black p-4 flex items-center justify-center">
+        <div className="max-w-6xl w-full h-[95vh]">
           {/* Back Button */}
           <NBButton
             onClick={() => navigate('/save-select')}
@@ -99,13 +105,13 @@ export const ProfileCreation = ({ slotNumber }) => {
           </NBButton>
 
           {/* Main Card */}
-          <div className="nb-bg-purple nb-border-xl nb-shadow-xl p-8">
+          <div className="nb-bg-purple nb-border-xl nb-shadow-xl p-8 h-full flex flex-col">
             {/* Header */}
-            <div className="text-center mb-8">
-              <NBBadge color="yellow" className="px-6 py-2 mb-4 text-sm">
+            <div className="text-center mb-6">
+              <NBBadge color="yellow" className="px-6 py-2 mb-3 text-sm">
                 SAVE SLOT {targetSlot}
               </NBBadge>
-              <NBHeading level={1} className="text-black mb-4">
+              <NBHeading level={1} className="text-black mb-3">
                 CREATE YOUR HERO
               </NBHeading>
               <div className="nb-bg-cyan nb-border-lg nb-shadow px-6 py-2 inline-block">
@@ -115,50 +121,121 @@ export const ProfileCreation = ({ slotNumber }) => {
               </div>
             </div>
 
-            {/* Avatar Selection */}
-            <div className="mb-8">
-              <NBHeading level={3} className="text-black mb-4 flex items-center gap-2">
-                <User className="w-6 h-6" />
-                CHOOSE YOUR AVATAR
-              </NBHeading>
+            {/* Avatar Selection - Grid Layout */}
+            <div className="grid grid-cols-2 gap-8 mb-6 flex-1">
+              {/* Left: Avatar Display */}
+              <div className="flex flex-col items-center justify-center nb-bg-white nb-border-lg nb-shadow p-8">
+                <div className="w-80 h-80 nb-border-xl nb-shadow bg-white overflow-hidden mb-6">
+                  <img
+                    src={avatarUrl}
+                    alt="Your avatar"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <NBButton
+                  onClick={handleRandomizeAvatar}
+                  variant="success"
+                  size="xl"
+                  className="flex items-center gap-3 w-full justify-center"
+                >
+                  <RefreshCw className="w-6 h-6" />
+                  <span>RANDOMIZE AVATAR</span>
+                </NBButton>
+              </div>
 
-              <div className="flex items-center gap-6 nb-bg-white nb-border-lg nb-shadow p-6">
-                {/* Avatar Display */}
-                <div className="flex-shrink-0">
-                  <div className="w-32 h-32 nb-border-xl nb-shadow bg-white overflow-hidden">
-                    <img
-                      src={avatarUrl}
-                      alt="Your avatar"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+              {/* Right: Customization Controls */}
+              <div className="nb-bg-white nb-border-lg nb-shadow p-6 flex flex-col">
+                <NBHeading level={3} className="text-black mb-6 flex items-center gap-2">
+                  <User className="w-6 h-6" />
+                  CUSTOMIZE YOUR LOOK
+                </NBHeading>
+
+                {/* Background Rotation Slider */}
+                <div className="mb-6">
+                  <label className="text-black font-black text-sm uppercase mb-2 block">
+                    Background Rotation: {backgroundRotation}°
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="360"
+                    value={backgroundRotation}
+                    onChange={(e) => setBackgroundRotation(parseInt(e.target.value))}
+                    className="w-full h-4 nb-bg-cyan nb-border nb-shadow appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, #22d3ee ${(backgroundRotation / 360) * 100}%, white ${(backgroundRotation / 360) * 100}%)`
+                    }}
+                  />
                 </div>
 
-                {/* Randomize Button */}
-                <div className="flex-1 text-center">
-                  <NBButton
-                    onClick={handleRandomizeAvatar}
-                    variant="success"
-                    size="lg"
-                    className="flex items-center gap-2 mx-auto"
-                  >
-                    <RefreshCw className="w-5 h-5" />
-                    <span>RANDOMIZE</span>
-                  </NBButton>
-                  <p className="text-black font-bold text-sm mt-3 uppercase">
-                    Click to generate a new look
+                {/* Scale Slider */}
+                <div className="mb-6">
+                  <label className="text-black font-black text-sm uppercase mb-2 block">
+                    Avatar Scale: {scale}%
+                  </label>
+                  <input
+                    type="range"
+                    min="80"
+                    max="120"
+                    value={scale}
+                    onChange={(e) => setScale(parseInt(e.target.value))}
+                    className="w-full h-4 nb-bg-green nb-border nb-shadow appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, #22c55e ${((scale - 80) / 40) * 100}%, white ${((scale - 80) / 40) * 100}%)`
+                    }}
+                  />
+                </div>
+
+                {/* Radius Slider */}
+                <div className="mb-6">
+                  <label className="text-black font-black text-sm uppercase mb-2 block">
+                    Corner Radius: {radius}
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="50"
+                    value={radius}
+                    onChange={(e) => setRadius(parseInt(e.target.value))}
+                    className="w-full h-4 nb-bg-purple nb-border nb-shadow appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, #a855f7 ${(radius / 50) * 100}%, white ${(radius / 50) * 100}%)`
+                    }}
+                  />
+                </div>
+
+                {/* Flip Toggle */}
+                <div className="mb-6">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <div
+                      onClick={() => setFlip(!flip)}
+                      className={`w-16 h-8 ${flip ? 'nb-bg-green' : 'nb-bg-white'} nb-border-lg nb-shadow flex items-center justify-center cursor-pointer nb-hover`}
+                    >
+                      <div className={`w-6 h-6 nb-bg-black transition-transform ${flip ? 'translate-x-3' : '-translate-x-3'}`}></div>
+                    </div>
+                    <span className="text-black font-black text-sm uppercase">
+                      FLIP AVATAR
+                    </span>
+                  </label>
+                </div>
+
+                <div className="nb-bg-cyan nb-border nb-shadow p-3 mt-auto">
+                  <p className="text-black font-bold text-xs uppercase text-center">
+                    💡 Adjust sliders to customize your character's appearance!
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Name Input */}
-            <div className="mb-8">
-              <NBHeading level={3} className="text-black mb-4">
-                WHAT'S YOUR NAME?
-              </NBHeading>
+            {/* Name Input - Compact */}
+            <div className="grid grid-cols-2 gap-8 mb-6">
+              {/* Name Input */}
+              <div>
+                <NBHeading level={3} className="text-black mb-3">
+                  WHAT'S YOUR NAME?
+                </NBHeading>
 
-              <input
+                <input
                 type="text"
                 value={profileName}
                 onChange={handleNameChange}
@@ -197,37 +274,41 @@ export const ProfileCreation = ({ slotNumber }) => {
               </div>
             </div>
 
-            {/* Preview Card */}
-            {profileName.length >= 2 && (
-              <div className="mb-8 nb-bg-yellow nb-border-lg nb-shadow p-4">
-                <div className="nb-bg-white nb-border nb-shadow px-3 py-1 inline-block mb-3">
-                  <p className="text-black font-black text-xs uppercase">Preview:</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <img
-                    src={avatarUrl}
-                    alt="Preview"
-                    className="w-12 h-12 nb-border-xl"
-                  />
-                  <div>
-                    <div className="text-black font-black text-lg uppercase">{profileName}</div>
-                    <div className="text-black font-bold text-sm">LEVEL 1 • 0 XP</div>
+              {/* Preview + Create Button Column */}
+              <div className="flex flex-col gap-4">
+                {/* Preview Card */}
+                {profileName.length >= 2 && (
+                  <div className="nb-bg-yellow nb-border-lg nb-shadow p-4">
+                    <div className="nb-bg-white nb-border nb-shadow px-3 py-1 inline-block mb-3">
+                      <p className="text-black font-black text-xs uppercase">Preview:</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={avatarUrl}
+                        alt="Preview"
+                        className="w-12 h-12 nb-border-xl"
+                      />
+                      <div>
+                        <div className="text-black font-black text-lg uppercase">{profileName}</div>
+                        <div className="text-black font-bold text-sm">LEVEL 1 • 0 XP</div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            )}
+                )}
 
-            {/* Create Button */}
-            <NBButton
-              onClick={handleCreateProfile}
-              disabled={profileName.trim().length < 2 || nameError !== ''}
-              variant={profileName.trim().length >= 2 && !nameError ? 'success' : 'white'}
-              size="xl"
-              className="w-full flex items-center justify-center gap-2"
-            >
-              <span>START ADVENTURE</span>
-              <ArrowRight className="w-6 h-6" />
-            </NBButton>
+                {/* Create Button */}
+                <NBButton
+                  onClick={handleCreateProfile}
+                  disabled={profileName.trim().length < 2 || nameError !== ''}
+                  variant={profileName.trim().length >= 2 && !nameError ? 'success' : 'white'}
+                  size="xl"
+                  className="flex items-center justify-center gap-2"
+                >
+                  <span>START ADVENTURE</span>
+                  <ArrowRight className="w-6 h-6" />
+                </NBButton>
+              </div>
+            </div>
 
             {/* Info Text */}
             <div className="mt-6 nb-bg-cyan nb-border-lg nb-shadow p-4">
