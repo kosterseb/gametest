@@ -1,5 +1,6 @@
 import React from 'react';
 import { Coins, Map, Clock, ArrowLeft, Menu } from 'lucide-react';
+import { NBButton, NBBadge } from '../UI/NeoBrutalUI';
 
 export const GameHeader = ({
   battleNumber,
@@ -12,53 +13,57 @@ export const GameHeader = ({
     <div className="flex justify-between items-center w-full">
       {/* Forfeit Button */}
       {onForfeit && (
-        <button
+        <NBButton
           onClick={onForfeit}
-          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 transition-all shadow-lg text-sm"
+          variant="danger"
+          size="sm"
+          className="flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          Forfeit
-        </button>
+          <span>Forfeit</span>
+        </NBButton>
       )}
 
       {/* Stat Trackers */}
-      <div className="flex gap-4 items-center ml-auto">
+      <div className="flex gap-3 items-center ml-auto">
         {/* Floor Number */}
-        <div className="flex items-center space-x-2 bg-purple-100 px-4 py-1.5 rounded-lg">
-          <Map className="w-5 h-5 text-purple-600" />
+        <div className="nb-bg-purple nb-border-lg nb-shadow px-4 py-2 flex items-center gap-2">
+          <Map className="w-5 h-5" />
           <div className="flex flex-col">
-            <span className="text-xs text-purple-600 font-semibold leading-tight">FLOOR</span>
-            <span className="text-lg font-bold text-purple-700 leading-tight">{battleNumber}</span>
+            <span className="text-xs font-black uppercase leading-tight tracking-wide">Floor</span>
+            <span className="text-2xl font-black leading-tight">{battleNumber}</span>
           </div>
         </div>
 
         {/* Turn Count */}
-        <div className="flex items-center space-x-2 bg-blue-100 px-4 py-1.5 rounded-lg">
-          <Clock className="w-5 h-5 text-blue-600" />
+        <div className="nb-bg-cyan nb-border-lg nb-shadow px-4 py-2 flex items-center gap-2">
+          <Clock className="w-5 h-5" />
           <div className="flex flex-col">
-            <span className="text-xs text-blue-600 font-semibold leading-tight">TURN</span>
-            <span className="text-lg font-bold text-blue-700 leading-tight">{turnCount}</span>
+            <span className="text-xs font-black uppercase leading-tight tracking-wide">Turn</span>
+            <span className="text-2xl font-black leading-tight">{turnCount}</span>
           </div>
         </div>
 
         {/* Gold */}
-        <div className="flex items-center space-x-2 bg-yellow-100 px-4 py-1.5 rounded-lg">
-          <Coins className="w-5 h-5 text-yellow-600" />
+        <div className="nb-bg-yellow nb-border-lg nb-shadow px-4 py-2 flex items-center gap-2">
+          <Coins className="w-5 h-5" />
           <div className="flex flex-col">
-            <span className="text-xs text-yellow-600 font-semibold leading-tight">GOLD</span>
-            <span className="text-lg font-bold text-yellow-700 leading-tight">{gold}</span>
+            <span className="text-xs font-black uppercase leading-tight tracking-wide">Gold</span>
+            <span className="text-2xl font-black leading-tight">{gold}</span>
           </div>
         </div>
 
         {/* Menu Button */}
         {onMenuClick && (
-          <button
+          <NBButton
             onClick={onMenuClick}
-            className="bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-lg hover:scale-105"
+            variant="white"
+            size="sm"
+            className="flex items-center gap-2"
           >
             <Menu className="w-5 h-5" />
-            <span className="font-bold">Menu</span>
-          </button>
+            <span>Menu</span>
+          </NBButton>
         )}
       </div>
     </div>
