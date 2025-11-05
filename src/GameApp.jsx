@@ -19,6 +19,7 @@ import { PreBattleLoadout } from './components/UI/PreBattleLoadout';
 import { BattleMenu } from './components/UI/BattleMenu';
 import { GameMenu } from './components/UI/GameMenu';
 import { Menu, User } from 'lucide-react';
+import { NBButton } from './components/UI/NeoBrutalUI';
 
 const GameApp = () => {
   const { currentRoute } = useRouter();
@@ -82,26 +83,30 @@ const GameApp = () => {
     <div className="relative min-h-screen">
       {/* Menu Buttons - Top Right (for non-battle routes) */}
       {showMenuButtons && (
-        <div className="fixed top-4 right-4 z-50 flex gap-2">
+        <div className="fixed top-4 right-4 z-50 flex gap-3">
           {/* Character Button */}
-          <button
+          <NBButton
             onClick={handleOpenCharacterMenu}
-            className="bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg transition-all hover:scale-105"
+            variant="cyan"
+            size="md"
+            className="flex items-center gap-2"
             aria-label="Open character menu"
           >
             <User className="w-5 h-5" />
-            <span className="font-bold">Character</span>
-          </button>
+            <span>CHARACTER</span>
+          </NBButton>
 
           {/* Settings Menu Button */}
-          <button
+          <NBButton
             onClick={() => setIsMenuOpen(true)}
-            className="bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg transition-all hover:scale-105"
+            variant="white"
+            size="md"
+            className="flex items-center gap-2"
             aria-label="Open menu"
           >
             <Menu className="w-5 h-5" />
-            <span className="font-bold">Menu</span>
-          </button>
+            <span>MENU</span>
+          </NBButton>
         </div>
       )}
 
