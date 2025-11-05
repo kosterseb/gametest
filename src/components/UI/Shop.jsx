@@ -3,7 +3,7 @@ import { useGame } from '../../context/GameContext';
 import { useRouter } from '../../hooks/useRouter';
 import { cardTemplates, rollCardRarity } from '../../data/cards';
 import { ITEMS, createItemInstance } from '../../data/items';
-import { CardCompact } from '../Cards/Card';
+import { Card } from '../Cards/Card';
 import { PageTransition } from './PageTransition';
 import { ShoppingCart, ArrowLeft, Coins, Trash2, Package, Heart, Zap, Users, TrendingUp, CreditCard } from 'lucide-react';
 
@@ -363,11 +363,13 @@ export const Shop = () => {
 
                   return (
                     <div key={index} className="relative">
-                      <CardCompact
+                      <Card
                         card={card}
                         onClick={() => !alreadyOwned && !alreadyPurchased && canAfford && handleBuyCard(card, index)}
                         disabled={!canAfford || alreadyOwned || alreadyPurchased}
-                        owned={alreadyOwned}
+                        compact={true}
+                        draggable={false}
+                        showCost={false}
                       />
 
                       {alreadyPurchased && !alreadyOwned && (
