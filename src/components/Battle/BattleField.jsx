@@ -3,6 +3,7 @@ import { Heart, Zap, Skull, Swords } from 'lucide-react';
 import { StatusDisplay } from './StatusDisplay';
 import { PlayerAvatar } from './PlayerAvatar';
 import { EnemyAvatar } from './EnemyAvatar';
+import { NBProgressBar, NBBadge } from '../UI/NeoBrutalUI';
 
 export const BattleField = ({
   enemy,
@@ -154,20 +155,20 @@ export const BattleField = ({
 
     if (enemyHealth < prevHealth) {
       // Enemy took damage - trigger enemy damage + player attack animations
-      console.log('⚔️ Enemy damage detected:', prevHealth, '->', enemyHealth);
+      console.log('💥 Enemy damage detected:', prevHealth, '->', enemyHealth);
       prevEnemyHealthRef.current = enemyHealth;
       playerAnimationInProgressRef.current = true;
       enemyAnimationInProgressRef.current = true;
-
-      // Player attack effect
-      setIsPlayerAttacking(true);
-      setIsPlayerBeingAttacked(false);
-      setIsPlayerHealing(false);
 
       // Enemy damage effect
       setIsEnemyBeingAttacked(true);
       setIsEnemyHealing(false);
       setIsEnemyAttacking(false);
+
+      // Player attack effect
+      setIsPlayerAttacking(true);
+      setIsPlayerBeingAttacked(false);
+      setIsPlayerHealing(false);
 
       onAttackAnimationChange(true);
       onCombatStateChange({
@@ -184,9 +185,9 @@ export const BattleField = ({
       }, 1500);
 
       const fullTimer = setTimeout(() => {
-        console.log('⚔️ Clearing player attack + enemy damage animations');
-        setIsPlayerAttacking(false);
+        console.log('💥 Clearing enemy damage + player attack animations');
         setIsEnemyBeingAttacked(false);
+        setIsPlayerAttacking(false);
         playerAnimationInProgressRef.current = false;
         enemyAnimationInProgressRef.current = false;
         onCombatStateChange({
@@ -259,7 +260,7 @@ export const BattleField = ({
   const enemyEnergyPercentage = Math.max(0, Math.min(100, (enemyEnergy / maxEnemyEnergy) * 100));
 
   // Split battle log into player and enemy actions
-  const playerLogs = battleLog.filter(log => 
+  const playerLogs = battleLog.filter(log =>
     !log.includes(enemy.name) || log.includes('Victory') || log.includes('Turn ended')
   );
   const enemyLogs = battleLog.filter(log =>
@@ -267,12 +268,14 @@ export const BattleField = ({
   );
 
   return (
-    <div className="bg-white bg-opacity-45 p-3 rounded-xl shadow-lg h-full overflow-auto">
+    <div className="p-3 h-full overflow-auto">
       {/* Battle Arena */}
       <div className="grid grid-cols-3 gap-4 mb-2">
         {/* Player Side */}
         <div className="flex flex-col items-center space-y-2">
-          <div className="text-lg font-bold text-blue-600">YOU</div>
+          <NBBadge color="cyan" className="text-lg px-4 py-2">
+            👤 YOU
+          </NBBadge>
 
           {/* Player Avatar */}
           <PlayerAvatar
@@ -286,40 +289,24 @@ export const BattleField = ({
 
           {/* Player Health Bar */}
           <div className="w-full">
-            <div className="flex items-center justify-between mb-0.5">
-              <div className="flex items-center gap-1">
-                <Heart className="w-3 h-3 text-red-500" />
-                <span className="text-xs font-semibold text-gray-600">HP</span>
-              </div>
-              <span className="text-xs font-bold text-gray-800">
-                {playerHealth}/{maxPlayerHealth}
-              </span>
-            </div>
-            <div className="w-full h-3 bg-gray-300 rounded-full overflow-hidden border border-gray-400">
-              <div
-                className="h-full bg-gradient-to-r from-red-500 to-pink-500 transition-all duration-300"
-                style={{ width: `${playerHealthPercentage}%` }}
-              />
-            </div>
+            <NBProgressBar
+              value={playerHealth}
+              max={maxPlayerHealth}
+              color="red"
+              label="❤️ HP"
+              showValue={true}
+            />
           </div>
 
           {/* Player Energy Bar */}
           <div className="w-full">
-            <div className="flex items-center justify-between mb-0.5">
-              <div className="flex items-center gap-1">
-                <Zap className="w-3 h-3 text-blue-500" />
-                <span className="text-xs font-semibold text-gray-600">ENERGY</span>
-              </div>
-              <span className="text-xs font-bold text-gray-800">
-                {playerEnergy}/{maxEnergy}
-              </span>
-            </div>
-            <div className="w-full h-3 bg-gray-300 rounded-full overflow-hidden border border-gray-400">
-              <div
-                className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-300"
-                style={{ width: `${energyPercentage}%` }}
-              />
-            </div>
+            <NBProgressBar
+              value={playerEnergy}
+              max={maxEnergy}
+              color="cyan"
+              label="⚡ ENERGY"
+              showValue={true}
+            />
           </div>
 
           {/* Player Statuses */}
@@ -330,14 +317,14 @@ export const BattleField = ({
           )}
 
           {/* Player Battle Log */}
-          <div className="w-full bg-blue-50 border border-blue-300 p-2 rounded-lg">
-            <h4 className="text-xs font-bold text-blue-700 mb-1">YOUR ACTIONS:</h4>
-            <div className="space-y-0.5 max-h-16 overflow-y-auto text-xs">
+          <div className="w-full nb-bg-cyan nb-border-lg nb-shadow p-3">
+            <h4 className="text-xs font-black uppercase mb-2 tracking-wide">📝 Your Actions:</h4>
+            <div className="space-y-1 max-h-16 overflow-y-auto text-xs nb-bg-white nb-border p-2">
               {playerLogs.length === 0 ? (
-                <p className="text-xs text-gray-500 italic">No actions yet...</p>
+                <p className="text-xs text-gray-500 italic font-semibold">No actions yet...</p>
               ) : (
                 playerLogs.slice(-3).map((log, index) => (
-                  <p key={index} className="text-xs text-gray-700 leading-tight">
+                  <p key={index} className="text-xs font-semibold leading-tight">
                     {log}
                   </p>
                 ))
@@ -347,13 +334,14 @@ export const BattleField = ({
         </div>
 
         {/* VS Indicator */}
-        <div className="flex flex-col items-center justify-center">
-          <Swords className={`w-10 h-10 ${isEnemyTurn ? 'text-red-600 animate-pulse' : 'text-gray-400'} mb-2`} />
-          <div className={`text-sm font-bold px-3 py-1 rounded-lg ${
-            isEnemyTurn ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-          }`}>
-            {isEnemyTurn ? 'ENEMY TURN' : 'YOUR TURN'}
-          </div>
+        <div className="flex flex-col items-center justify-center gap-4">
+          <Swords className={`w-12 h-12 ${isEnemyTurn ? 'text-red-600 animate-pulse' : 'text-gray-700'}`} />
+          <NBBadge
+            color={isEnemyTurn ? 'red' : 'green'}
+            className="text-sm px-4 py-2"
+          >
+            {isEnemyTurn ? '⚔️ ENEMY TURN' : '✨ YOUR TURN'}
+          </NBBadge>
         </div>
 
         {/* Enemy Side */}
@@ -361,13 +349,13 @@ export const BattleField = ({
           {/* Enemy Type Badge */}
           <div className="flex items-center space-x-2">
             {enemy.isElite && (
-              <span className="bg-orange-500 text-white font-bold text-xs px-2 py-0.5 rounded-full">⭐ ELITE</span>
+              <NBBadge color="orange" className="text-xs">⭐ ELITE</NBBadge>
             )}
             {enemy.isBoss && (
-              <span className="bg-purple-600 text-white font-bold text-xs px-2 py-0.5 rounded-full">👑 BOSS</span>
+              <NBBadge color="purple" className="text-xs">👑 BOSS</NBBadge>
             )}
             {!enemy.isElite && !enemy.isBoss && (
-              <span className="text-gray-500 font-bold text-xs">ENEMY</span>
+              <NBBadge color="white" className="text-xs">💀 ENEMY</NBBadge>
             )}
           </div>
 
@@ -381,44 +369,30 @@ export const BattleField = ({
             isAttacking={isEnemyAttacking}
           />
 
-          <div className="text-base font-bold text-gray-800">{enemy.name || 'Unknown Enemy'}</div>
+          <div className="nb-bg-white nb-border-lg nb-shadow px-4 py-2">
+            <p className="text-sm font-black uppercase text-center tracking-wide">{enemy.name || 'Unknown Enemy'}</p>
+          </div>
 
           {/* Enemy Health Bar */}
           <div className="w-full">
-            <div className="flex items-center justify-between mb-0.5">
-              <div className="flex items-center gap-1">
-                <Skull className="w-3 h-3 text-gray-700" />
-                <span className="text-xs font-semibold text-gray-600">HP</span>
-              </div>
-              <span className="text-xs font-bold text-gray-800">
-                {enemyHealth}/{maxEnemyHealth}
-              </span>
-            </div>
-            <div className="w-full h-3 bg-gray-300 rounded-full overflow-hidden border border-gray-400">
-              <div
-                className="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-300"
-                style={{ width: `${enemyHealthPercentage}%` }}
-              />
-            </div>
+            <NBProgressBar
+              value={enemyHealth}
+              max={maxEnemyHealth}
+              color="green"
+              label="💀 HP"
+              showValue={true}
+            />
           </div>
 
           {/* Enemy Energy Bar */}
           <div className="w-full">
-            <div className="flex items-center justify-between mb-0.5">
-              <div className="flex items-center gap-1">
-                <Zap className="w-3 h-3 text-orange-500" />
-                <span className="text-xs font-semibold text-gray-600">ACTION POINTS</span>
-              </div>
-              <span className="text-xs font-bold text-gray-800">
-                {enemyEnergy}/{maxEnemyEnergy}
-              </span>
-            </div>
-            <div className="w-full h-3 bg-gray-300 rounded-full overflow-hidden border border-gray-400">
-              <div
-                className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-300"
-                style={{ width: `${enemyEnergyPercentage}%` }}
-              />
-            </div>
+            <NBProgressBar
+              value={enemyEnergy}
+              max={maxEnemyEnergy}
+              color="yellow"
+              label="⚡ AP"
+              showValue={true}
+            />
           </div>
 
           {/* Enemy Statuses */}
@@ -429,14 +403,14 @@ export const BattleField = ({
           )}
 
           {/* Enemy Battle Log */}
-          <div className="w-full bg-red-50 border border-red-300 p-2 rounded-lg">
-            <h4 className="text-xs font-bold text-red-700 mb-1">ENEMY ACTIONS:</h4>
-            <div className="space-y-0.5 max-h-16 overflow-y-auto text-xs">
+          <div className="w-full nb-bg-red nb-border-lg nb-shadow p-3">
+            <h4 className="text-xs font-black uppercase mb-2 tracking-wide text-white">💥 Enemy Actions:</h4>
+            <div className="space-y-1 max-h-16 overflow-y-auto text-xs nb-bg-white nb-border p-2">
               {enemyLogs.length === 0 ? (
-                <p className="text-xs text-gray-500 italic">No actions yet...</p>
+                <p className="text-xs text-gray-500 italic font-semibold">No actions yet...</p>
               ) : (
                 enemyLogs.slice(-3).map((log, index) => (
-                  <p key={index} className="text-xs text-gray-700 leading-tight">
+                  <p key={index} className="text-xs font-semibold leading-tight">
                     {log}
                   </p>
                 ))
