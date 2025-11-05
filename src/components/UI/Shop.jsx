@@ -6,11 +6,12 @@ import { ITEMS, createItemInstance } from '../../data/items';
 import { Card } from '../Cards/Card';
 import { PageTransition } from './PageTransition';
 import { ShoppingCart, ArrowLeft, Coins, Trash2, Package, Heart, Zap, Users, TrendingUp, CreditCard } from 'lucide-react';
-import { NBButton, NBCard, NBHeading, NBBadge } from './NeoBrutalUI';
+import { NBButton, NBCard, NBHeading, NBBadge, useNBConfirm } from './NeoBrutalUI';
 
 export const Shop = () => {
   const { gameState, dispatch } = useGame();
   const { navigate } = useRouter();
+  const { confirm, ConfirmDialog } = useNBConfirm();
 
   const [shopOffers, setShopOffers] = useState({ cards: [], items: [] });
   const [purchasedCardIndices, setPurchasedCardIndices] = useState([]);
@@ -59,32 +60,62 @@ export const Shop = () => {
     generateShopOffers();
   }, []);
 
-  const handleReroll = () => {
+  const handleReroll = async () => {
     if (gameState.gold < rerollPrice) {
-      alert('Not enough gold to reroll!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: 'You need more gold to reroll the shop!',
+        confirmText: 'OK',
+        cancelText: '',
+        confirmColor: 'yellow'
+      });
       return;
     }
 
-    if (window.confirm(`Reroll shop for ${rerollPrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Reroll Shop?',
+      message: `Reroll the shop for ${rerollPrice} gold?`,
+      confirmText: 'Reroll',
+      cancelText: 'Cancel',
+      confirmColor: 'yellow',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: rerollPrice });
       generateShopOffers();
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Rerolled shop for ${rerollPrice} gold!` });
     }
   };
 
-  const handleBuyCard = (card, index) => {
+  const handleBuyCard = async (card, index) => {
     if (gameState.gold < cardPrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: 'You need more gold to buy this card!',
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
     if (purchasedCardIndices.includes(index)) {
-      alert('Already purchased this card!');
+      await confirm({
+        title: 'Already Purchased',
+        message: 'You already purchased this card!',
+        confirmText: 'OK',
+        confirmColor: 'yellow'
+      });
       return;
     }
 
     if (gameState.unlockedCards?.some(c => c.name === card.name)) {
-      alert('You already own this card!');
+      await confirm({
+        title: 'Already Owned',
+        message: 'You already own this card!',
+        confirmText: 'OK',
+        confirmColor: 'yellow'
+      });
       return;
     }
 
@@ -94,33 +125,62 @@ export const Shop = () => {
     setPurchasedCardIndices([...purchasedCardIndices, index]);
   };
 
-  const handleRemoveCard = (card) => {
+  const handleRemoveCard = async (card) => {
     if (gameState.unlockedCards.length <= 3) {
-      alert('You must have at least 3 cards!');
+      await confirm({
+        title: 'Cannot Remove Card',
+        message: 'You must have at least 3 cards in your collection!',
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
-    if (window.confirm(`Remove ${card.name} from your collection for ${cardRemovalRefund} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Remove Card?',
+      message: `Remove ${card.name} from your collection for ${cardRemovalRefund} gold?`,
+      confirmText: 'Remove',
+      cancelText: 'Keep',
+      confirmColor: 'red',
+      cancelColor: 'green'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'REMOVE_UNLOCKED_CARD', cardName: card.name });
       dispatch({ type: 'ADD_GOLD', amount: cardRemovalRefund });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Removed ${card.name} for ${cardRemovalRefund} gold!` });
     }
   };
 
-  const handleBuyItem = (item, index) => {
+  const handleBuyItem = async (item, index) => {
     if (gameState.gold < item.price) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: 'You need more gold to buy this item!',
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
     if (purchasedItemIndices.includes(index)) {
-      alert('Already purchased this item!');
+      await confirm({
+        title: 'Already Purchased',
+        message: 'You already purchased this item!',
+        confirmText: 'OK',
+        confirmColor: 'yellow'
+      });
       return;
     }
 
     const bag = gameState.inventory?.bag || [];
     if (!bag.some(slot => slot === null)) {
-      alert('Your bag is full!');
+      await confirm({
+        title: 'Bag Full',
+        message: 'Your bag is full! Sell some items to make room.',
+        confirmText: 'OK',
+        confirmColor: 'orange'
+      });
       return;
     }
 
@@ -130,10 +190,19 @@ export const Shop = () => {
     setPurchasedItemIndices([...purchasedItemIndices, index]);
   };
 
-  const handleSellItem = (item) => {
+  const handleSellItem = async (item) => {
     const sellPrice = Math.floor(item.price * 0.5);
-    
-    if (window.confirm(`Sell ${item.name} for ${sellPrice} gold?`)) {
+
+    const confirmed = await confirm({
+      title: 'Sell Item?',
+      message: `Sell ${item.name} for ${sellPrice} gold?`,
+      confirmText: 'Sell',
+      cancelText: 'Keep',
+      confirmColor: 'yellow',
+      cancelColor: 'green'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'REMOVE_ITEM_FROM_BAG', instanceId: item.instanceId });
       dispatch({ type: 'ADD_GOLD', amount: sellPrice });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Sold ${item.name} for ${sellPrice} gold!` });
@@ -141,19 +210,38 @@ export const Shop = () => {
   };
 
   // Permanent Upgrades
-  const handleBuyHealthUpgrade = () => {
+  const handleBuyHealthUpgrade = async () => {
     if (gameState.gold < healthUpgradePrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: `You need ${healthUpgradePrice} gold to upgrade health!`,
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
     const purchased = gameState.healthUpgradesPurchased || 0;
     if (purchased >= 5) {
-      alert('Maximum health upgrades reached!');
+      await confirm({
+        title: 'Max Upgrades Reached',
+        message: 'You have reached the maximum health upgrades!',
+        confirmText: 'OK',
+        confirmColor: 'purple'
+      });
       return;
     }
 
-    if (window.confirm(`Upgrade Max Health by 10 for ${healthUpgradePrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Upgrade Health?',
+      message: `Upgrade Max Health by 10 for ${healthUpgradePrice} gold?`,
+      confirmText: 'Upgrade',
+      cancelText: 'Cancel',
+      confirmColor: 'green',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: healthUpgradePrice });
       dispatch({ type: 'UPGRADE_HEALTH', amount: 10 });
       dispatch({ type: 'TRACK_UPGRADE', upgradeType: 'health' });
@@ -161,19 +249,38 @@ export const Shop = () => {
     }
   };
 
-  const handleBuyEnergyUpgrade = () => {
+  const handleBuyEnergyUpgrade = async () => {
     if (gameState.gold < energyUpgradePrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: `You need ${energyUpgradePrice} gold to upgrade energy!`,
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
     const purchased = gameState.energyUpgradesPurchased || 0;
     if (purchased >= 5) {
-      alert('Maximum energy upgrades reached!');
+      await confirm({
+        title: 'Max Upgrades Reached',
+        message: 'You have reached the maximum energy upgrades!',
+        confirmText: 'OK',
+        confirmColor: 'purple'
+      });
       return;
     }
 
-    if (window.confirm(`Upgrade Max Energy by 1 for ${energyUpgradePrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Upgrade Energy?',
+      message: `Upgrade Max Energy by 1 for ${energyUpgradePrice} gold?`,
+      confirmText: 'Upgrade',
+      cancelText: 'Cancel',
+      confirmColor: 'blue',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: energyUpgradePrice });
       dispatch({ type: 'UPGRADE_MAX_ENERGY', amount: 1 });
       dispatch({ type: 'TRACK_UPGRADE', upgradeType: 'energy' });
@@ -181,19 +288,38 @@ export const Shop = () => {
     }
   };
 
-  const handleBuyHandSizeUpgrade = () => {
+  const handleBuyHandSizeUpgrade = async () => {
     if (gameState.gold < handSizeUpgradePrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: `You need ${handSizeUpgradePrice} gold to upgrade hand size!`,
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
     const purchased = gameState.handSizeUpgradesPurchased || 0;
     if (purchased >= 5) {
-      alert('Maximum hand size upgrades reached!');
+      await confirm({
+        title: 'Max Upgrades Reached',
+        message: 'You have reached the maximum hand size upgrades!',
+        confirmText: 'OK',
+        confirmColor: 'purple'
+      });
       return;
     }
 
-    if (window.confirm(`Upgrade Hand Size by 1 for ${handSizeUpgradePrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Upgrade Hand Size?',
+      message: `Upgrade Hand Size by 1 for ${handSizeUpgradePrice} gold?`,
+      confirmText: 'Upgrade',
+      cancelText: 'Cancel',
+      confirmColor: 'purple',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: handSizeUpgradePrice });
       dispatch({ type: 'UPGRADE_HAND_SIZE', amount: 1 });
       dispatch({ type: 'TRACK_UPGRADE', upgradeType: 'handSize' });
@@ -202,26 +328,54 @@ export const Shop = () => {
   };
 
   // Boss Abilities
-  const handleBuyDrawAbility = () => {
+  const handleBuyDrawAbility = async () => {
     if (gameState.gold < drawAbilityPrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: `You need ${drawAbilityPrice} gold to unlock this ability!`,
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
-    if (window.confirm(`Unlock Draw Card ability for ${drawAbilityPrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Unlock Draw Ability?',
+      message: `Unlock Draw Card ability for ${drawAbilityPrice} gold?`,
+      confirmText: 'Unlock',
+      cancelText: 'Cancel',
+      confirmColor: 'cyan',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: drawAbilityPrice });
       dispatch({ type: 'PURCHASE_DRAW_ABILITY' });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Unlocked Draw Card ability!` });
     }
   };
 
-  const handleBuyDiscardAbility = () => {
+  const handleBuyDiscardAbility = async () => {
     if (gameState.gold < discardAbilityPrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: `You need ${discardAbilityPrice} gold to unlock this ability!`,
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
-    if (window.confirm(`Unlock Discard for Energy ability for ${discardAbilityPrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Unlock Discard Ability?',
+      message: `Unlock Discard for Energy ability for ${discardAbilityPrice} gold?`,
+      confirmText: 'Unlock',
+      cancelText: 'Cancel',
+      confirmColor: 'cyan',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: discardAbilityPrice });
       dispatch({ type: 'PURCHASE_DISCARD_ABILITY' });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Unlocked Discard for Energy ability!` });
@@ -229,57 +383,114 @@ export const Shop = () => {
   };
 
   // Inventory Upgrades
-  const handleBuyBagSlot = () => {
+  const handleBuyBagSlot = async () => {
     if (gameState.gold < bagSlotPrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: `You need ${bagSlotPrice} gold to expand bag size!`,
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
     const currentBagSize = gameState.inventory?.bag?.length || 6;
     if (currentBagSize >= 12) {
-      alert('Maximum bag size reached!');
+      await confirm({
+        title: 'Maximum Size Reached',
+        message: 'Your bag is already at maximum size!',
+        confirmText: 'OK',
+        confirmColor: 'purple'
+      });
       return;
     }
 
-    if (window.confirm(`Add +1 Bag Slot for ${bagSlotPrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Expand Bag?',
+      message: `Add +1 Bag Slot for ${bagSlotPrice} gold?`,
+      confirmText: 'Expand',
+      cancelText: 'Cancel',
+      confirmColor: 'orange',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: bagSlotPrice });
       dispatch({ type: 'EXPAND_BAG_SIZE' });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Bag size increased!` });
     }
   };
 
-  const handleBuyConsumableSlot = () => {
+  const handleBuyConsumableSlot = async () => {
     if (gameState.gold < consumableSlotPrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: `You need ${consumableSlotPrice} gold to expand consumable slots!`,
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
     const currentConsumableSize = gameState.inventory?.toolBelt?.consumables?.length || 4;
     if (currentConsumableSize >= 8) {
-      alert('Maximum consumable slots reached!');
+      await confirm({
+        title: 'Maximum Slots Reached',
+        message: 'You have reached the maximum consumable slots!',
+        confirmText: 'OK',
+        confirmColor: 'purple'
+      });
       return;
     }
 
-    if (window.confirm(`Add +1 Consumable Slot for ${consumableSlotPrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Expand Consumable Slots?',
+      message: `Add +1 Consumable Slot for ${consumableSlotPrice} gold?`,
+      confirmText: 'Expand',
+      cancelText: 'Cancel',
+      confirmColor: 'orange',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: consumableSlotPrice });
       dispatch({ type: 'EXPAND_CONSUMABLE_SIZE' });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Consumable slots increased!` });
     }
   };
 
-  const handleBuyPassiveSlot = () => {
+  const handleBuyPassiveSlot = async () => {
     if (gameState.gold < passiveSlotPrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: `You need ${passiveSlotPrice} gold to expand passive slots!`,
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
     const currentPassiveSize = gameState.inventory?.toolBelt?.passives?.length || 3;
     if (currentPassiveSize >= 6) {
-      alert('Maximum passive slots reached!');
+      await confirm({
+        title: 'Maximum Slots Reached',
+        message: 'You have reached the maximum passive slots!',
+        confirmText: 'OK',
+        confirmColor: 'purple'
+      });
       return;
     }
 
-    if (window.confirm(`Add +1 Passive Slot for ${passiveSlotPrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Expand Passive Slots?',
+      message: `Add +1 Passive Slot for ${passiveSlotPrice} gold?`,
+      confirmText: 'Expand',
+      cancelText: 'Cancel',
+      confirmColor: 'purple',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: passiveSlotPrice });
       dispatch({ type: 'EXPAND_PASSIVE_SIZE' });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Passive slots increased!` });
@@ -855,6 +1066,9 @@ export const Shop = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog />
     </PageTransition>
   );
 };
