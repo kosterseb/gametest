@@ -18,7 +18,8 @@ export const Card = ({
   draggable = true
 }) => {
   const modifiedCost = getModifiedCardCost(card.energyCost, playerStatuses);
-  const canAfford = playerEnergy >= modifiedCost;
+  // Skip energy check when showCost is false (reward screens, shop, etc.)
+  const canAfford = showCost ? (playerEnergy >= modifiedCost) : true;
   const rarityConfig = RARITY_CONFIG[card.rarity] || RARITY_CONFIG.common;
 
   // 3D tilt effect states (subtle for neo-brutal)

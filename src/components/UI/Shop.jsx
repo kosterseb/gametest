@@ -318,7 +318,7 @@ export const Shop = () => {
                 </div>
                 <div>
                   <NBHeading level={1} className="text-black">
-                    🛒 CARD & ITEM SHOP
+                    CARD & ITEM SHOP
                   </NBHeading>
                   <p className="text-gray-700 font-bold text-sm uppercase tracking-wide">Buy cards, items, upgrades & unlock abilities</p>
                 </div>
@@ -334,7 +334,7 @@ export const Shop = () => {
                   className="flex items-center gap-2"
                 >
                   <TrendingUp className="w-5 h-5" />
-                  <span>Reroll ({rerollPrice} 💰)</span>
+                  <span>Reroll ({rerollPrice}g)</span>
                 </NBButton>
 
                 {/* Gold Display */}
@@ -351,10 +351,10 @@ export const Shop = () => {
             <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
               <div className="flex items-center justify-center gap-3 mb-6">
                 <NBHeading level={2} className="text-center">
-                  🎴 BUY CARDS
+                  BUY CARDS
                 </NBHeading>
                 <NBBadge color="yellow" className="text-sm px-4 py-2">
-                  {cardPrice} 💰 EACH
+                  {cardPrice}g EACH
                 </NBBadge>
               </div>
 
@@ -457,7 +457,7 @@ export const Shop = () => {
             <div className="flex items-center justify-center gap-3 mb-6">
               <TrendingUp className="w-10 h-10 text-black" />
               <NBHeading level={2} className="text-center">
-                💪 PERMANENT UPGRADES
+                PERMANENT UPGRADES
               </NBHeading>
             </div>
 
@@ -558,7 +558,7 @@ export const Shop = () => {
           <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6 mb-6">
             <div className="flex flex-col items-center gap-3 mb-6">
               <NBHeading level={2} className="text-center">
-                👑 BOSS ABILITIES
+                BOSS ABILITIES
               </NBHeading>
               <NBBadge color="orange" className="text-sm px-4 py-2">
                 UNLOCKED BY DEFEATING BOSSES
@@ -576,12 +576,11 @@ export const Shop = () => {
                 {bossesDefeated < 1 && (
                   <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center">
                     <NBBadge color="white" className="text-lg px-6 py-3">
-                      🔒 DEFEAT BOSS 1
+                      LOCKED - DEFEAT BOSS 1
                     </NBBadge>
                   </div>
                 )}
 
-                <div className="text-5xl text-center mb-3">🎴</div>
                 <div className="text-black font-black text-xl mb-2 text-center uppercase">Draw Card Ability</div>
                 <div className="text-gray-800 text-sm mb-4 text-center font-bold">Draw 1 card for 3 energy</div>
 
@@ -613,12 +612,11 @@ export const Shop = () => {
                 {bossesDefeated < 2 && (
                   <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center">
                     <NBBadge color="white" className="text-lg px-6 py-3">
-                      🔒 DEFEAT BOSS 2
+                      LOCKED - DEFEAT BOSS 2
                     </NBBadge>
                   </div>
                 )}
 
-                <div className="text-5xl text-center mb-3">🗑️</div>
                 <div className="text-black font-black text-xl mb-2 text-center uppercase">Discard Ability</div>
                 <div className="text-gray-800 text-sm mb-4 text-center font-bold">Discard for 1 energy</div>
 
@@ -649,7 +647,7 @@ export const Shop = () => {
                 <div className="flex items-center gap-3">
                   <Package className="w-10 h-10 text-black" />
                   <NBHeading level={2} className="text-center">
-                    🎒 INVENTORY UPGRADES
+                    INVENTORY UPGRADES
                   </NBHeading>
                 </div>
                 <NBBadge color="cyan" className="text-sm px-4 py-2">
@@ -757,12 +755,12 @@ export const Shop = () => {
               <div className="flex items-center justify-center gap-3 mb-6">
                 <Trash2 className="w-8 h-8 text-black" />
                 <NBHeading level={2} className="text-center">
-                  ❌ REMOVE CARDS
+                  REMOVE CARDS
                 </NBHeading>
               </div>
               <div className="flex items-center justify-center mb-4">
                 <NBBadge color="red" className="text-sm px-4 py-2">
-                  +{cardRemovalRefund} 💰 EACH
+                  +{cardRemovalRefund}g EACH
                 </NBBadge>
               </div>
 
@@ -790,7 +788,7 @@ export const Shop = () => {
                 </div>
               ) : (
                 <div className="text-center py-8 nb-bg-white nb-border-lg p-4">
-                  <p className="text-gray-700 font-bold">⚠️ You need at least 3 cards!</p>
+                  <p className="text-gray-700 font-bold">You need at least 3 cards!</p>
                 </div>
               )}
             </div>
@@ -800,7 +798,7 @@ export const Shop = () => {
               <div className="flex items-center justify-center gap-3 mb-6">
                 <Coins className="w-8 h-8 text-black" />
                 <NBHeading level={2} className="text-center">
-                  💰 SELL ITEMS
+                  SELL ITEMS
                 </NBHeading>
               </div>
               <div className="flex items-center justify-center mb-4">
@@ -837,7 +835,7 @@ export const Shop = () => {
                 </div>
               ) : (
                 <div className="text-center py-8 nb-bg-white nb-border-lg p-4">
-                  <p className="text-gray-700 font-bold">📦 Your inventory is empty!</p>
+                  <p className="text-gray-700 font-bold">Your inventory is empty!</p>
                 </div>
               )}
             </div>

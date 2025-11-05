@@ -18,6 +18,7 @@ import { CoinFlip } from '../Battle/CoinFlip';
 import { TorusTunnelBackground } from '../Battle/TorusTunnelBackground';
 import { CardHand } from '../Cards/CardHand';
 import { CardPlayParticles } from '../Effects/CardPlayParticles';
+import { NBButton } from '../UI/NeoBrutalUI';
 import { BattleMenu } from '../UI/BattleMenu';
 import {
   applyStatus,
@@ -1128,21 +1129,19 @@ export const BattleRoute = () => {
           {/* Cards Area - 28% */}
           <div className="h-[28%] px-3 py-2 flex flex-col overflow-hidden relative">
             {/* End Turn Button - Floating on Right Side */}
-            <button
+            <NBButton
               onClick={handleEndTurn}
               disabled={isEnemyTurn || isAttackAnimationPlaying}
+              variant={isEnemyTurn || isAttackAnimationPlaying ? 'white' : 'danger'}
+              size="lg"
               className={`
                 absolute top-4 right-4 z-50
-                px-8 py-4 rounded-2xl font-bold text-xl
-                transform transition-all duration-300
-                shadow-2xl
-                ${isEnemyTurn || isAttackAnimationPlaying
-                  ? 'bg-gray-700 cursor-not-allowed text-gray-400 scale-95 opacity-50'
-                  : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white cursor-pointer hover:scale-110 hover:shadow-red-500/50 animate-pulse'}
+                px-8 py-4 text-xl
+                ${isEnemyTurn || isAttackAnimationPlaying ? 'opacity-50 cursor-not-allowed' : ''}
               `}
             >
-              {isEnemyTurn ? '⏳ Enemy Turn...' : '⚔️ End Turn'}
-            </button>
+              {isEnemyTurn ? 'ENEMY TURN...' : 'END TURN'}
+            </NBButton>
 
             <div className="flex justify-between items-center mb-2">
               <div>
