@@ -1,46 +1,57 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 export const CardPlayParticles = ({ x, y, color = 'blue', onComplete }) => {
   const [particles, setParticles] = useState([]);
+  const animationFrameRef = useRef(null);
+  const startTimeRef = useRef(Date.now());
 
   useEffect(() => {
-    // Generate random particles - INCREASED from 20 to 50
-    const newParticles = Array.from({ length: 50 }, (_, i) => ({
+    // Generate fewer particles - REDUCED from 50 to 15 for better performance
+    const newParticles = Array.from({ length: 15 }, (_, i) => ({
       id: i,
       x: x,
       y: y,
-      angle: (Math.PI * 2 * i) / 50 + (Math.random() - 0.5) * 0.3, // Add randomness to angle
-      speed: 3 + Math.random() * 8, // INCREASED speed from 2-5 to 3-11
-      size: 6 + Math.random() * 12, // INCREASED size from 4-12 to 6-18
+      angle: (Math.PI * 2 * i) / 15 + (Math.random() - 0.5) * 0.3,
+      speed: 2 + Math.random() * 4, // Reduced speed range
+      size: 4 + Math.random() * 8, // Reduced size range
       life: 1,
-      decay: 0.015 + Math.random() * 0.01, // Variable decay rate
+      decay: 0.02 + Math.random() * 0.01,
     }));
 
     setParticles(newParticles);
+    startTimeRef.current = Date.now();
 
-    // Animate particles
-    const interval = setInterval(() => {
+    // Use requestAnimationFrame for better performance than setInterval
+    const animate = () => {
+      const elapsed = Date.now() - startTimeRef.current;
+
+      if (elapsed > 1200) { // Reduced duration from 1500ms to 1200ms
+        if (onComplete) onComplete();
+        return;
+      }
+
       setParticles((prev) =>
-        prev.map((p) => ({
-          ...p,
-          x: p.x + Math.cos(p.angle) * p.speed,
-          y: p.y + Math.sin(p.angle) * p.speed - 2, // Add upward drift
-          speed: p.speed * 0.97, // Slightly slower deceleration
-          life: p.life - p.decay,
-          size: p.size * 0.96,
-        })).filter((p) => p.life > 0)
+        prev
+          .map((p) => ({
+            ...p,
+            x: p.x + Math.cos(p.angle) * p.speed,
+            y: p.y + Math.sin(p.angle) * p.speed - 1.5,
+            speed: p.speed * 0.96,
+            life: p.life - p.decay,
+            size: p.size * 0.95,
+          }))
+          .filter((p) => p.life > 0)
       );
-    }, 16);
 
-    // Cleanup after animation
-    const timeout = setTimeout(() => {
-      clearInterval(interval);
-      if (onComplete) onComplete();
-    }, 1500); // Increased from 1000 to 1500ms for longer explosion
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(animate);
 
     return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
   }, [x, y, onComplete]);
 
@@ -55,20 +66,20 @@ export const CardPlayParticles = ({ x, y, color = 'blue', onComplete }) => {
     }
   };
 
+  const colorClass = getColorClass(); // Memoize color class
+
   return (
     <div className="fixed inset-0 pointer-events-none z-50">
       {particles.map((particle) => (
         <div
           key={particle.id}
-          className={`absolute rounded-full ${getColorClass()} shadow-lg`}
+          className={`absolute rounded-full ${colorClass}`}
           style={{
-            left: `${particle.x}px`,
-            top: `${particle.y}px`,
+            transform: `translate(${particle.x}px, ${particle.y}px) translate(-50%, -50%)`,
             width: `${particle.size}px`,
             height: `${particle.size}px`,
             opacity: particle.life,
-            transform: 'translate(-50%, -50%)',
-            transition: 'all 0.016s linear',
+            willChange: 'transform, opacity', // Optimize GPU rendering
           }}
         />
       ))}
