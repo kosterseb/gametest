@@ -21,7 +21,7 @@ export const Card = ({
   const canAfford = playerEnergy >= modifiedCost;
   const rarityConfig = RARITY_CONFIG[card.rarity] || RARITY_CONFIG.common;
 
-  // 3D tilt effect states
+  // 3D tilt effect states (subtle for neo-brutal)
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
 
@@ -33,7 +33,7 @@ export const Card = ({
   const cardRef = useRef(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
 
-  // Handle 3D tilt effect on mouse move
+  // Handle subtle 3D tilt effect on mouse move
   const handleMouseMove = (e) => {
     if (disabled || (!canAfford && !discardMode) || isDragging) return;
 
@@ -43,8 +43,8 @@ export const Card = ({
     const y = e.clientY - rect.top;
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
-    const rotateX = (y - centerY) / 10; // Tilt based on vertical position
-    const rotateY = (centerX - x) / 10; // Tilt based on horizontal position
+    const rotateX = (y - centerY) / 15; // Subtle tilt
+    const rotateY = (centerX - x) / 15;
 
     setTilt({ x: rotateX, y: rotateY });
   };
@@ -64,7 +64,7 @@ export const Card = ({
   const handleMouseDown = (e) => {
     if (!draggable || disabled || (!canAfford && !discardMode)) return;
 
-    e.preventDefault(); // Prevent text selection and default drag
+    e.preventDefault();
 
     const rect = cardRef.current.getBoundingClientRect();
     const offsetX = e.clientX - rect.left;
@@ -86,7 +86,6 @@ export const Card = ({
         y: e.clientY - dragOffset.y
       });
 
-      // Check if in play zone (upper 60% of screen)
       const inPlayZone = e.clientY < window.innerHeight * 0.6;
       setIsInPlayZone(inPlayZone);
     };
@@ -95,7 +94,6 @@ export const Card = ({
       setIsDragging(false);
       setIsInPlayZone(false);
 
-      // Check if dropped in valid area (upper 60% of screen)
       if (e.clientY < window.innerHeight * 0.6 && onClick) {
         onClick();
       }
@@ -110,14 +108,15 @@ export const Card = ({
     };
   }, [isDragging, dragOffset, onClick]);
 
+  // Neo-brutal solid colors based on card type
   const getCardColor = () => {
     switch (card.type) {
-      case 'damage': return 'from-red-500 to-red-700';
-      case 'heal': return 'from-green-500 to-green-700';
-      case 'utility': return 'from-blue-500 to-blue-700';
-      case 'cleanse': return 'from-purple-500 to-purple-700';
-      case 'status': return 'from-amber-500 to-amber-700';
-      default: return 'from-gray-500 to-gray-700';
+      case 'damage': return 'nb-bg-red';
+      case 'heal': return 'nb-bg-green';
+      case 'utility': return 'nb-bg-blue';
+      case 'cleanse': return 'nb-bg-purple';
+      case 'status': return 'nb-bg-orange';
+      default: return 'nb-bg-white';
     }
   };
 
@@ -136,46 +135,33 @@ export const Card = ({
 
   const cardStyle = {
     transform: isHovering && !isDragging
-      ? `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-20px) scale(1.05)`
+      ? `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-8px) scale(1.05)`
       : 'perspective(1000px) rotateX(0deg) rotateY(0deg)',
-    transition: isDragging ? 'none' : 'transform 0.2s ease-out',
+    transition: isDragging ? 'none' : 'transform 0.15s ease-out',
     transformStyle: 'preserve-3d',
-    opacity: isDragging ? 0.3 : 1, // Make original card semi-transparent when dragging
-    userSelect: 'none', // Prevent text selection
-    WebkitUserSelect: 'none', // Safari
+    opacity: isDragging ? 0.4 : 1,
+    userSelect: 'none',
+    WebkitUserSelect: 'none',
   };
 
   const draggingCardStyle = {
     position: 'fixed',
     left: `${dragPosition.x}px`,
     top: `${dragPosition.y}px`,
-    transform: 'scale(1.1) rotate(-5deg)',
+    transform: 'scale(1.15) rotate(-3deg)',
     transformStyle: 'preserve-3d',
     zIndex: 9999,
     pointerEvents: 'none',
     cursor: 'grabbing',
-    filter: isInPlayZone ? 'drop-shadow(0 0 20px rgba(34, 197, 94, 0.8)) brightness(1.2)' : 'none',
-    transition: 'filter 0.2s ease-out',
   };
 
   const cardContent = (
     <>
-      {/* Rarity Glow Effect */}
-      <div className={`absolute inset-0 ${rarityConfig.glowColor} opacity-0 group-hover:opacity-20 transition-opacity`}></div>
-
-      {/* Shine effect for 3D feel */}
-      <div
-        className="absolute inset-0 bg-gradient-to-br from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
-        style={{
-          transform: `translateX(${tilt.y * 2}px) translateY(${tilt.x * 2}px)`
-        }}
-      ></div>
-
       {/* Header - Type Badge */}
       <div className="absolute top-2 left-2 z-10">
-        <div className="bg-black bg-opacity-70 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-lg">
+        <div className="bg-black nb-border px-3 py-1 flex items-center gap-1.5 nb-shadow">
           {getTypeIcon()}
-          <span className="text-white text-xs font-bold uppercase tracking-wide">{card.type}</span>
+          <span className="text-white text-xs font-bold uppercase tracking-wider">{card.type}</span>
         </div>
       </div>
 
@@ -184,11 +170,10 @@ export const Card = ({
         <div className="absolute top-2 right-2 z-10">
           <div className={`
             flex items-center justify-center
-            w-10 h-10 rounded-full
-            ${canAfford || discardMode ? 'bg-blue-500' : 'bg-red-500'}
-            shadow-lg border-2 border-white
+            w-12 h-12 nb-border-lg nb-shadow
+            ${canAfford || discardMode ? 'nb-bg-cyan' : 'bg-gray-400'}
           `}>
-            <span className="text-white font-bold text-lg">
+            <span className="text-black font-black text-xl">
               {modifiedCost}
             </span>
           </div>
@@ -196,7 +181,7 @@ export const Card = ({
       )}
 
       {/* Card Icon - Center */}
-      <div className="flex-1 flex items-center justify-center pt-10 pb-3">
+      <div className="flex-1 flex items-center justify-center pt-12 pb-3">
         <CardIcon
           cardName={card.name}
           cardType={card.type}
@@ -207,36 +192,36 @@ export const Card = ({
 
       {/* Card Name */}
       <div className="px-4 pb-2">
-        <h3 className={`text-white font-bold text-center ${compact ? 'text-base' : 'text-lg'} leading-tight drop-shadow-lg`}>
+        <h3 className={`text-black font-black text-center ${compact ? 'text-sm' : 'text-base'} leading-tight uppercase tracking-wide`}>
           {card.name}
         </h3>
       </div>
 
       {/* Card Description */}
       <div className="px-4 pb-3">
-        <p className={`text-white text-center ${compact ? 'text-xs' : 'text-sm'} opacity-90 leading-snug line-clamp-2`}>
+        <p className={`text-black text-center ${compact ? 'text-xs' : 'text-sm'} font-semibold leading-snug line-clamp-2`}>
           {card.description}
         </p>
       </div>
 
       {/* Bottom Bar - Stats and Rarity */}
-      <div className="bg-black bg-opacity-50 backdrop-blur-sm p-2.5 mt-auto">
+      <div className="bg-black p-2.5 mt-auto nb-border-t-lg">
         {/* Stats Display */}
         <div className="flex justify-center gap-2 mb-2">
           {card.baseDamage && (
-            <div className="bg-red-600 px-3 py-1 rounded-full shadow-md flex items-center gap-1">
-              <Sword className="w-3 h-3 text-white" />
-              <span className="text-white font-bold text-sm">{card.baseDamage}</span>
+            <div className="nb-bg-red nb-border nb-shadow px-3 py-1 flex items-center gap-1">
+              <Sword className="w-3 h-3 text-black" />
+              <span className="text-black font-bold text-sm">{card.baseDamage}</span>
             </div>
           )}
           {card.baseHeal && (
-            <div className="bg-green-600 px-3 py-1 rounded-full shadow-md flex items-center gap-1">
-              <Heart className="w-3 h-3 text-white" />
-              <span className="text-white font-bold text-sm">+{card.baseHeal}</span>
+            <div className="nb-bg-green nb-border nb-shadow px-3 py-1 flex items-center gap-1">
+              <Heart className="w-3 h-3 text-black" />
+              <span className="text-black font-bold text-sm">+{card.baseHeal}</span>
             </div>
           )}
           {card.diceRoll && (
-            <div className="bg-yellow-500 px-3 py-1 rounded-full shadow-md">
+            <div className="nb-bg-yellow nb-border nb-shadow px-3 py-1">
               <span className="text-black font-bold text-sm">🎲</span>
             </div>
           )}
@@ -244,26 +229,26 @@ export const Card = ({
 
         {/* Rarity Badge */}
         <div className="flex justify-center">
-          <div className={`${rarityConfig.bgColor} ${rarityConfig.borderColor} border-2 px-3 py-1 rounded-full shadow-md`}>
-            <span className={`${rarityConfig.color} text-xs font-bold uppercase tracking-wider`}>{rarityConfig.name}</span>
+          <div className="nb-bg-white nb-border nb-shadow px-3 py-1">
+            <span className="text-black text-xs font-black uppercase tracking-widest">{rarityConfig.name}</span>
           </div>
         </div>
       </div>
 
       {/* Discard Mode Overlay */}
       {discardMode && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="text-white font-bold text-lg drop-shadow-lg">
-            DISCARD FOR 1 ⚡
+        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center">
+          <div className="nb-bg-yellow nb-border-lg nb-shadow px-6 py-3">
+            <p className="text-black font-black text-lg uppercase">Discard for 1 ⚡</p>
           </div>
         </div>
       )}
 
       {/* Cannot Afford Overlay */}
       {!canAfford && !discardMode && !disabled && (
-        <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-          <div className="text-red-400 font-bold text-sm drop-shadow-lg">
-            NOT ENOUGH ENERGY
+        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center">
+          <div className="nb-bg-red nb-border-lg nb-shadow px-4 py-2">
+            <p className="text-white font-black text-sm uppercase">Not Enough Energy</p>
           </div>
         </div>
       )}
@@ -284,24 +269,23 @@ export const Card = ({
         style={cardStyle}
         className={`
         ${cardSize} ${cardHeight}
-        bg-gradient-to-br ${getCardColor()}
-        rounded-2xl
-        border-4 ${rarityConfig.borderColor}
-        transition-all duration-200
+        ${getCardColor()}
+        nb-border-xl nb-shadow-xl
+        transition-all duration-150
         ${disabled || (!canAfford && !discardMode)
           ? 'opacity-50 cursor-not-allowed'
           : isDragging
-          ? 'cursor-grabbing shadow-2xl'
-          : 'cursor-grab shadow-xl'}
-        ${glowing ? 'animate-pulse ring-4 ring-yellow-400' : ''}
-        ${isHovering ? 'shadow-2xl ring-2 ring-white ring-opacity-50' : ''}
+          ? 'cursor-grabbing'
+          : 'cursor-grab'}
+        ${glowing ? 'animate-pulse nb-shadow-colored-yellow' : ''}
+        ${isHovering ? 'nb-shadow-colored-yellow' : ''}
         relative overflow-hidden
         flex flex-col
         group
       `}
-    >
-      {cardContent}
-    </button>
+      >
+        {cardContent}
+      </button>
 
       {/* Dragging clone - rendered as portal at document root */}
       {isDragging && createPortal(
@@ -309,11 +293,9 @@ export const Card = ({
           style={draggingCardStyle}
           className={`
             ${cardSize} ${cardHeight}
-            bg-gradient-to-br ${getCardColor()}
-            rounded-2xl
-            border-4 ${isInPlayZone ? 'border-green-400 animate-pulse' : rarityConfig.borderColor}
-            ${isInPlayZone ? 'ring-4 ring-green-400 ring-opacity-75' : ''}
-            shadow-2xl
+            ${getCardColor()}
+            nb-border-xl ${isInPlayZone ? 'nb-shadow-colored-green border-8 border-green-400' : 'nb-shadow-xl'}
+            ${isInPlayZone ? 'animate-pulse' : ''}
             relative overflow-hidden
             flex flex-col
             group
@@ -322,99 +304,11 @@ export const Card = ({
           {cardContent}
           {/* Play zone indicator overlay */}
           {isInPlayZone && (
-            <div className="absolute inset-0 bg-green-500 opacity-10 pointer-events-none animate-pulse"></div>
+            <div className="absolute inset-0 bg-green-400 opacity-20 pointer-events-none"></div>
           )}
         </div>,
         document.body
       )}
     </>
-  );
-};
-
-// Compact version for rewards/shop/deck
-export const CardCompact = ({ card, onClick, disabled = false, owned = false }) => {
-  const rarityConfig = RARITY_CONFIG[card.rarity] || RARITY_CONFIG.common;
-
-  const getCardGradient = (type) => {
-    switch (type) {
-      case 'damage': return 'from-red-500 to-red-700';
-      case 'heal': return 'from-green-500 to-green-700';
-      case 'utility': return 'from-blue-500 to-blue-700';
-      case 'cleanse': return 'from-purple-500 to-purple-700';
-      case 'status': return 'from-amber-500 to-amber-700';
-      default: return 'from-gray-500 to-gray-700';
-    }
-  };
-
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled || owned}
-      className={`
-        relative w-48 h-64
-        bg-gradient-to-br ${getCardGradient(card.type)}
-        rounded-xl border-4 ${rarityConfig.borderColor}
-        shadow-2xl
-        ${disabled || owned ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105 hover:-translate-y-2'}
-        transition-all duration-300
-        overflow-hidden
-        p-4
-        flex flex-col
-      `}
-    >
-      {/* Owned Badge */}
-      {owned && (
-        <div className="absolute top-2 right-2 bg-gray-700 text-white px-3 py-1 rounded-full text-xs font-bold z-10">
-          OWNED
-        </div>
-      )}
-
-      {/* Icon */}
-      <div className="flex justify-center mb-4 mt-2">
-        <CardIcon
-          cardName={card.name}
-          cardType={card.type}
-          size={64}
-          showGlow={!disabled && !owned}
-        />
-      </div>
-
-      {/* Name */}
-      <h3 className="text-white font-bold text-lg text-center mb-2 drop-shadow-lg">
-        {card.name}
-      </h3>
-
-      {/* Description */}
-      <p className="text-white text-sm text-center opacity-90 mb-auto">
-        {card.description}
-      </p>
-
-      {/* Stats & Rarity - Bottom */}
-      <div className="mt-auto">
-        <div className="flex justify-center gap-3 mb-2">
-          <div className="bg-blue-500 px-3 py-1 rounded-full flex items-center gap-1">
-            <Zap className="w-4 h-4 text-white" />
-            <span className="text-white font-bold">{card.energyCost}</span>
-          </div>
-          {card.baseDamage && (
-            <div className="bg-red-600 px-3 py-1 rounded-full">
-              <span className="text-white font-bold">{card.baseDamage}</span>
-            </div>
-          )}
-          {card.baseHeal && (
-            <div className="bg-green-600 px-3 py-1 rounded-full">
-              <span className="text-white font-bold">+{card.baseHeal}</span>
-            </div>
-          )}
-        </div>
-        
-        {/* Rarity Badge at Bottom */}
-        <div className="flex justify-center">
-          <div className={`${rarityConfig.bgColor} ${rarityConfig.borderColor} border-2 px-3 py-1 rounded-full`}>
-            <span className={`${rarityConfig.color} text-xs font-bold`}>{rarityConfig.name}</span>
-          </div>
-        </div>
-      </div>
-    </button>
   );
 };
