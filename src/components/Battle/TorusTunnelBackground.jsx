@@ -14,15 +14,9 @@ export const TorusTunnelBackground = ({
 
   // Initialize Three.js scene - converted from original CodePen
   useEffect(() => {
-    console.log('🌀 TorusTunnelBackground useEffect triggered');
-    console.log('🌀 containerRef.current:', containerRef.current);
-
     if (!containerRef.current) {
-      console.log('❌ Container ref not available, skipping initialization');
       return;
     }
-
-    console.log('✅ Starting torus tunnel initialization...');
 
     // Setup renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -31,14 +25,12 @@ export const TorusTunnelBackground = ({
 
     // Check if container already has a canvas
     if (containerRef.current.children.length > 0) {
-      console.log('⚠️ Container already has children, clearing...');
       while (containerRef.current.firstChild) {
         containerRef.current.removeChild(containerRef.current.firstChild);
       }
     }
 
     containerRef.current.appendChild(renderer.domElement);
-    console.log('✅ Renderer added to DOM');
 
     // Setup camera (original settings)
     const camera = new THREE.PerspectiveCamera(
@@ -107,26 +99,16 @@ export const TorusTunnelBackground = ({
       }
 
       renderer.render(scene, camera);
-
-      // Debug every 60 frames
       frameCount++;
-      if (frameCount % 60 === 0) {
-        console.log('🌀 Frame', frameCount, '- First torus Z:', tabTorus[0].position.z.toFixed(1), '- Speed:', speedRef.current);
-      }
     };
 
-    console.log('🌀 Torus tunnel initialized - Speed:', speedRef.current, 'Rotation:', rotationRef.current);
-    console.log('🌀 Starting animation loop...');
     animate();
-    console.log('✅ Animation loop started!');
 
     // Cleanup
     return () => {
-      console.log('🧹 Cleaning up torus tunnel...');
       window.removeEventListener('resize', handleResize);
 
       if (animationFrameRef.current) {
-        console.log('🛑 Cancelling animation frame:', animationFrameRef.current);
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
@@ -141,12 +123,11 @@ export const TorusTunnelBackground = ({
         try {
           containerRef.current.removeChild(renderer.domElement);
         } catch (e) {
-          console.log('⚠️ Error removing canvas:', e.message);
+          // Silently handle removal error
         }
       }
 
       renderer.dispose();
-      console.log('✅ Cleanup complete');
     };
   }, []); // Only initialize once
 
@@ -154,7 +135,6 @@ export const TorusTunnelBackground = ({
   useEffect(() => {
     speedRef.current = baseSpeed;
     rotationRef.current = baseRotation;
-    console.log('🌀 Updated speed:', baseSpeed, 'rotation:', baseRotation);
   }, [baseSpeed, baseRotation]);
 
   return (
