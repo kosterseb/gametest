@@ -4,6 +4,7 @@ import { useRouter } from '../../hooks/useRouter';
 import { getAllSaveSlots, loadSave, deleteSave, getTimeSinceLastPlayed } from '../../utils/SaveManager';
 import { PageTransition } from './PageTransition';
 import { Save, Trash2, Plus, Crown, ArrowLeft } from 'lucide-react';
+import { NBButton, NBHeading, NBBadge } from './NeoBrutalUI';
 
 export const SaveSlotSelection = () => {
   const { dispatch } = useGame();
@@ -58,24 +59,30 @@ export const SaveSlotSelection = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
+      <div className="min-h-screen bg-black p-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
-            <button
+            <NBButton
               onClick={() => navigate('/')}
-              className="absolute top-8 left-8 flex items-center gap-2 text-white hover:text-purple-300 transition-colors"
+              variant="white"
+              size="md"
+              className="absolute top-8 left-8 flex items-center gap-2"
             >
               <ArrowLeft className="w-5 h-5" />
-              Back to Menu
-            </button>
+              <span>BACK TO MENU</span>
+            </NBButton>
 
-            <h1 className="text-5xl font-bold text-white mb-4">
-              Select Save Slot
-            </h1>
-            <p className="text-purple-300 text-lg">
-              Choose a slot to start your adventure
-            </p>
+            <div className="nb-bg-purple nb-border-xl nb-shadow-xl p-8 mb-6 inline-block">
+              <NBHeading level={1} className="text-black mb-4">
+                SELECT SAVE SLOT
+              </NBHeading>
+              <div className="nb-bg-cyan nb-border-lg nb-shadow px-6 py-2 inline-block">
+                <p className="text-black font-bold text-sm uppercase">
+                  Choose a slot to start your adventure
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Save Slots */}
