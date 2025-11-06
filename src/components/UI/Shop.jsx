@@ -507,25 +507,25 @@ export const Shop = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen nb-bg-yellow p-6">
-        <div className="max-w-7xl mx-auto h-full flex gap-6">
+      <div className="h-screen nb-bg-yellow p-3 overflow-hidden">
+        <div className="max-w-7xl mx-auto h-full flex gap-3">
           {/* LEFT PANEL - Shop Character (30%) */}
-          <div className="w-[30%] flex flex-col gap-6">
+          <div className="w-[30%] flex flex-col gap-3">
             {/* Header with Gold */}
-            <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
-              <div className="text-center mb-4">
-                <div className="nb-bg-orange nb-border-lg nb-shadow p-3 inline-block mb-3">
-                  <ShoppingCart className="w-16 h-16 text-black" />
+            <div className="nb-bg-white nb-border-xl nb-shadow-xl p-4">
+              <div className="text-center mb-3">
+                <div className="nb-bg-orange nb-border-lg nb-shadow p-2 inline-block mb-2">
+                  <ShoppingCart className="w-12 h-12 text-black" />
                 </div>
-                <NBHeading level={1} className="text-black mb-2">
+                <NBHeading level={1} className="text-black mb-1 text-2xl">
                   SHOP
                 </NBHeading>
               </div>
 
               {/* Gold Display */}
-              <div className="nb-bg-yellow nb-border-xl nb-shadow-xl px-6 py-4 flex items-center justify-center gap-3 mb-4">
-                <Coins className="w-10 h-10 text-black" />
-                <span className="text-5xl font-black text-black">{gameState.gold}</span>
+              <div className="nb-bg-yellow nb-border-xl nb-shadow-xl px-4 py-3 flex items-center justify-center gap-2 mb-3">
+                <Coins className="w-8 h-8 text-black" />
+                <span className="text-4xl font-black text-black">{gameState.gold}</span>
               </div>
 
               {/* Reroll Button */}
@@ -533,22 +533,22 @@ export const Shop = () => {
                 onClick={handleReroll}
                 disabled={gameState.gold < rerollPrice}
                 variant={gameState.gold >= rerollPrice ? 'purple' : 'white'}
-                size="lg"
+                size="md"
                 className="w-full flex items-center justify-center gap-2"
               >
-                <TrendingUp className="w-5 h-5" />
+                <TrendingUp className="w-4 h-4" />
                 <span>Reroll ({rerollPrice}g)</span>
               </NBButton>
             </div>
 
             {/* Shop Character Placeholder */}
-            <div className="nb-bg-purple nb-border-xl nb-shadow-xl p-8 flex-1 flex items-center justify-center">
+            <div className="nb-bg-purple nb-border-xl nb-shadow-xl p-6 flex-1 flex items-center justify-center">
               <div className="text-center">
-                <div className="text-9xl mb-4">🧙</div>
-                <NBBadge color="yellow" className="px-6 py-3 text-lg">
+                <div className="text-7xl mb-3">🧙</div>
+                <NBBadge color="yellow" className="px-4 py-2 text-sm">
                   SHOPKEEPER
                 </NBBadge>
-                <p className="text-white font-bold text-sm mt-4 uppercase">
+                <p className="text-white font-bold text-xs mt-2 uppercase">
                   Character Coming Soon!
                 </p>
               </div>
@@ -558,22 +558,22 @@ export const Shop = () => {
             <NBButton
               onClick={handleLeaveShop}
               variant="danger"
-              size="xl"
-              className="flex items-center justify-center gap-3"
+              size="lg"
+              className="flex items-center justify-center gap-2"
             >
-              <ArrowLeft className="w-6 h-6" />
+              <ArrowLeft className="w-5 h-5" />
               <span>LEAVE SHOP</span>
             </NBButton>
           </div>
 
           {/* RIGHT PANEL - Content (70%) */}
-          <div className="w-[70%] flex flex-col">
+          <div className="w-[70%] flex flex-col h-full">
             {/* Tab Switcher */}
-            <div className="flex gap-4 mb-6">
+            <div className="flex gap-3 mb-3">
               <button
                 onClick={() => setActiveTab('buy')}
                 className={`
-                  flex-1 py-4 font-black text-2xl uppercase
+                  flex-1 py-3 font-black text-xl uppercase
                   nb-border-xl nb-shadow-xl
                   ${activeTab === 'buy' ? 'nb-bg-green' : 'nb-bg-white'}
                   nb-hover transition-all
@@ -584,7 +584,7 @@ export const Shop = () => {
               <button
                 onClick={() => setActiveTab('sell')}
                 className={`
-                  flex-1 py-4 font-black text-2xl uppercase
+                  flex-1 py-3 font-black text-xl uppercase
                   nb-border-xl nb-shadow-xl
                   ${activeTab === 'sell' ? 'nb-bg-orange' : 'nb-bg-white'}
                   nb-hover transition-all
@@ -594,35 +594,35 @@ export const Shop = () => {
               </button>
             </div>
 
-            {/* Tab Content - Scrollable */}
-            <div className="flex-1 overflow-y-auto space-y-6">
+            {/* Tab Content - Fixed Height with Scrolling */}
+            <div className="flex-1 overflow-y-auto space-y-3">
               {activeTab === 'buy' ? (
                 <>
                   {/* BUY CARD PACKS Section */}
-                  <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
-                    <NBHeading level={2} className="text-center mb-6">
+                  <div className="nb-bg-white nb-border-xl nb-shadow-xl p-3">
+                    <NBHeading level={2} className="text-center mb-3 text-lg">
                       🎴 CARD PACKS
                     </NBHeading>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-2">
                       {/* Bronze Pack */}
                       <button
                         onClick={() => handleBuyPack('bronze')}
                         disabled={gameState.gold < packPrices.bronze}
                         className={`
-                          nb-bg-orange nb-border-xl nb-shadow-lg p-6
+                          nb-bg-orange nb-border-xl nb-shadow-lg p-3
                           ${gameState.gold >= packPrices.bronze ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
                           transition-all
                         `}
                       >
-                        <div className="text-6xl mb-3">🥉</div>
-                        <div className="text-black font-black text-2xl mb-2">BRONZE PACK</div>
-                        <div className="text-gray-800 text-sm mb-3 font-bold">3 Common Cards</div>
+                        <div className="text-4xl mb-2">🥉</div>
+                        <div className="text-black font-black text-lg mb-1">BRONZE</div>
+                        <div className="text-gray-800 text-xs mb-2 font-bold">3 Common</div>
                         <NBBadge
                           color={gameState.gold >= packPrices.bronze ? 'yellow' : 'white'}
-                          className="px-4 py-2 text-lg inline-flex items-center gap-2"
+                          className="px-3 py-1 text-sm inline-flex items-center gap-1"
                         >
-                          <Coins className="w-5 h-5" />
+                          <Coins className="w-4 h-4" />
                           {packPrices.bronze}
                         </NBBadge>
                       </button>
@@ -632,19 +632,19 @@ export const Shop = () => {
                         onClick={() => handleBuyPack('silver')}
                         disabled={gameState.gold < packPrices.silver}
                         className={`
-                          nb-bg-cyan nb-border-xl nb-shadow-lg p-6
+                          nb-bg-cyan nb-border-xl nb-shadow-lg p-3
                           ${gameState.gold >= packPrices.silver ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
                           transition-all
                         `}
                       >
-                        <div className="text-6xl mb-3">🥈</div>
-                        <div className="text-black font-black text-2xl mb-2">SILVER PACK</div>
-                        <div className="text-gray-800 text-sm mb-3 font-bold">2 Common + 1 Rare</div>
+                        <div className="text-4xl mb-2">🥈</div>
+                        <div className="text-black font-black text-lg mb-1">SILVER</div>
+                        <div className="text-gray-800 text-xs mb-2 font-bold">2 Com + 1 Rare</div>
                         <NBBadge
                           color={gameState.gold >= packPrices.silver ? 'yellow' : 'white'}
-                          className="px-4 py-2 text-lg inline-flex items-center gap-2"
+                          className="px-3 py-1 text-sm inline-flex items-center gap-1"
                         >
-                          <Coins className="w-5 h-5" />
+                          <Coins className="w-4 h-4" />
                           {packPrices.silver}
                         </NBBadge>
                       </button>
@@ -654,19 +654,19 @@ export const Shop = () => {
                         onClick={() => handleBuyPack('gold')}
                         disabled={gameState.gold < packPrices.gold}
                         className={`
-                          nb-bg-yellow nb-border-xl nb-shadow-lg p-6
+                          nb-bg-yellow nb-border-xl nb-shadow-lg p-3
                           ${gameState.gold >= packPrices.gold ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
                           transition-all
                         `}
                       >
-                        <div className="text-6xl mb-3">🥇</div>
-                        <div className="text-black font-black text-2xl mb-2">GOLD PACK</div>
-                        <div className="text-gray-800 text-sm mb-3 font-bold">1 Common + 2 Rare</div>
+                        <div className="text-4xl mb-2">🥇</div>
+                        <div className="text-black font-black text-lg mb-1">GOLD</div>
+                        <div className="text-gray-800 text-xs mb-2 font-bold">1 Com + 2 Rare</div>
                         <NBBadge
                           color={gameState.gold >= packPrices.gold ? 'green' : 'white'}
-                          className="px-4 py-2 text-lg inline-flex items-center gap-2"
+                          className="px-3 py-1 text-sm inline-flex items-center gap-1"
                         >
-                          <Coins className="w-5 h-5" />
+                          <Coins className="w-4 h-4" />
                           {packPrices.gold}
                         </NBBadge>
                       </button>
@@ -676,19 +676,19 @@ export const Shop = () => {
                         onClick={() => handleBuyPack('diamond')}
                         disabled={gameState.gold < packPrices.diamond}
                         className={`
-                          nb-bg-purple nb-border-xl nb-shadow-lg p-6
+                          nb-bg-purple nb-border-xl nb-shadow-lg p-3
                           ${gameState.gold >= packPrices.diamond ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
                           transition-all
                         `}
                       >
-                        <div className="text-6xl mb-3">💎</div>
-                        <div className="text-black font-black text-2xl mb-2">DIAMOND PACK</div>
-                        <div className="text-gray-800 text-sm mb-3 font-bold">3 Rare/Epic Cards</div>
+                        <div className="text-4xl mb-2">💎</div>
+                        <div className="text-black font-black text-lg mb-1">DIAMOND</div>
+                        <div className="text-gray-800 text-xs mb-2 font-bold">3 Rare/Epic</div>
                         <NBBadge
                           color={gameState.gold >= packPrices.diamond ? 'green' : 'white'}
-                          className="px-4 py-2 text-lg inline-flex items-center gap-2"
+                          className="px-3 py-1 text-sm inline-flex items-center gap-1"
                         >
-                          <Coins className="w-5 h-5" />
+                          <Coins className="w-4 h-4" />
                           {packPrices.diamond}
                         </NBBadge>
                       </button>
@@ -696,15 +696,15 @@ export const Shop = () => {
                   </div>
 
                   {/* BUY ITEMS Section */}
-                  <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
-                    <div className="flex items-center justify-center gap-3 mb-6">
-                      <Package className="w-8 h-8 text-black" />
-                      <NBHeading level={2} className="text-center">
+                  <div className="nb-bg-white nb-border-xl nb-shadow-xl p-3">
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <Package className="w-6 h-6 text-black" />
+                      <NBHeading level={2} className="text-center text-lg">
                         BUY ITEMS
                       </NBHeading>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                       {shopOffers.items.map((item, index) => {
                         const alreadyPurchased = purchasedItemIndices.includes(index);
                         const canAfford = gameState.gold >= item.price;
@@ -747,39 +747,39 @@ export const Shop = () => {
                   </div>
 
                   {/* PERMANENT UPGRADES Section */}
-                  <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
-                    <div className="flex items-center justify-center gap-3 mb-6">
-                      <TrendingUp className="w-10 h-10 text-black" />
-                      <NBHeading level={2} className="text-center">
-                        PERMANENT UPGRADES
+                  <div className="nb-bg-white nb-border-xl nb-shadow-xl p-3">
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <TrendingUp className="w-6 h-6 text-black" />
+                      <NBHeading level={2} className="text-center text-lg">
+                        UPGRADES
                       </NBHeading>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-3 gap-2">
                       {/* Max Health Upgrade */}
                       <button
                         onClick={handleBuyHealthUpgrade}
                         disabled={gameState.gold < healthUpgradePrice || healthUpgradesPurchased >= maxUpgrades}
                         className={`
                           nb-bg-red nb-border-xl nb-shadow-lg
-                          p-6 relative
+                          p-2 relative
                           ${(gameState.gold >= healthUpgradePrice && healthUpgradesPurchased < maxUpgrades) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
                           transition-all
                         `}
                       >
-                        <Heart className="w-12 h-12 text-black mx-auto mb-3" />
-                        <div className="text-black font-black text-xl mb-2 uppercase">+10 Max HP</div>
-                        <div className="text-gray-800 text-xs mb-3 font-bold">({healthUpgradesPurchased}/{maxUpgrades})</div>
+                        <Heart className="w-8 h-8 text-black mx-auto mb-1" />
+                        <div className="text-black font-black text-sm mb-1 uppercase">+10 HP</div>
+                        <div className="text-gray-800 text-xs mb-2 font-bold">({healthUpgradesPurchased}/{maxUpgrades})</div>
                         {healthUpgradesPurchased >= maxUpgrades ? (
-                          <NBBadge color="white" className="px-3 py-1 text-sm">
-                            MAXED
+                          <NBBadge color="white" className="px-2 py-0.5 text-xs">
+                            MAX
                           </NBBadge>
                         ) : (
                           <NBBadge
                             color={gameState.gold >= healthUpgradePrice ? 'green' : 'white'}
-                            className="px-3 py-1 text-sm inline-flex items-center gap-1"
+                            className="px-2 py-0.5 text-xs inline-flex items-center gap-1"
                           >
-                            <Coins className="w-4 h-4" />
+                            <Coins className="w-3 h-3" />
                             {healthUpgradePrice}
                           </NBBadge>
                         )}
@@ -791,24 +791,24 @@ export const Shop = () => {
                         disabled={gameState.gold < energyUpgradePrice || energyUpgradesPurchased >= maxUpgrades}
                         className={`
                           nb-bg-cyan nb-border-xl nb-shadow-lg
-                          p-6 relative
+                          p-2 relative
                           ${(gameState.gold >= energyUpgradePrice && energyUpgradesPurchased < maxUpgrades) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
                           transition-all
                         `}
                       >
-                        <Zap className="w-12 h-12 text-black mx-auto mb-3" />
-                        <div className="text-black font-black text-xl mb-2 uppercase">+1 Energy</div>
-                        <div className="text-gray-800 text-xs mb-3 font-bold">({energyUpgradesPurchased}/{maxUpgrades})</div>
+                        <Zap className="w-8 h-8 text-black mx-auto mb-1" />
+                        <div className="text-black font-black text-sm mb-1 uppercase">+1 ⚡</div>
+                        <div className="text-gray-800 text-xs mb-2 font-bold">({energyUpgradesPurchased}/{maxUpgrades})</div>
                         {energyUpgradesPurchased >= maxUpgrades ? (
-                          <NBBadge color="white" className="px-3 py-1 text-sm">
-                            MAXED
+                          <NBBadge color="white" className="px-2 py-0.5 text-xs">
+                            MAX
                           </NBBadge>
                         ) : (
                           <NBBadge
                             color={gameState.gold >= energyUpgradePrice ? 'green' : 'white'}
-                            className="px-3 py-1 text-sm inline-flex items-center gap-1"
+                            className="px-2 py-0.5 text-xs inline-flex items-center gap-1"
                           >
-                            <Coins className="w-4 h-4" />
+                            <Coins className="w-3 h-3" />
                             {energyUpgradePrice}
                           </NBBadge>
                         )}
@@ -820,24 +820,24 @@ export const Shop = () => {
                         disabled={gameState.gold < handSizeUpgradePrice || handSizeUpgradesPurchased >= maxUpgrades}
                         className={`
                           nb-bg-purple nb-border-xl nb-shadow-lg
-                          p-6 relative
+                          p-2 relative
                           ${(gameState.gold >= handSizeUpgradePrice && handSizeUpgradesPurchased < maxUpgrades) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
                           transition-all
                         `}
                       >
-                        <Users className="w-12 h-12 text-black mx-auto mb-3" />
-                        <div className="text-black font-black text-xl mb-2 uppercase">+1 Hand</div>
-                        <div className="text-gray-800 text-xs mb-3 font-bold">({handSizeUpgradesPurchased}/{maxUpgrades})</div>
+                        <Users className="w-8 h-8 text-black mx-auto mb-1" />
+                        <div className="text-black font-black text-sm mb-1 uppercase">+1 Hand</div>
+                        <div className="text-gray-800 text-xs mb-2 font-bold">({handSizeUpgradesPurchased}/{maxUpgrades})</div>
                         {handSizeUpgradesPurchased >= maxUpgrades ? (
-                          <NBBadge color="white" className="px-3 py-1 text-sm">
-                            MAXED
+                          <NBBadge color="white" className="px-2 py-0.5 text-xs">
+                            MAX
                           </NBBadge>
                         ) : (
                           <NBBadge
                             color={gameState.gold >= handSizeUpgradePrice ? 'green' : 'white'}
-                            className="px-3 py-1 text-sm inline-flex items-center gap-1"
+                            className="px-2 py-0.5 text-xs inline-flex items-center gap-1"
                           >
-                            <Coins className="w-4 h-4" />
+                            <Coins className="w-3 h-3" />
                             {handSizeUpgradePrice}
                           </NBBadge>
                         )}
@@ -846,17 +846,17 @@ export const Shop = () => {
                   </div>
 
                   {/* BOSS ABILITIES Section */}
-                  <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
-                    <div className="flex flex-col items-center gap-3 mb-6">
-                      <NBHeading level={2} className="text-center">
+                  <div className="nb-bg-white nb-border-xl nb-shadow-xl p-3">
+                    <div className="flex flex-col items-center gap-2 mb-3">
+                      <NBHeading level={2} className="text-center text-lg">
                         BOSS ABILITIES
                       </NBHeading>
-                      <NBBadge color="orange" className="text-sm px-4 py-2">
-                        UNLOCK BY DEFEATING BOSSES
+                      <NBBadge color="orange" className="text-xs px-3 py-1">
+                        DEFEAT BOSSES TO UNLOCK
                       </NBBadge>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-2">
                       {/* Draw Card Ability */}
                       <div className={`
                         nb-bg-green nb-border-xl nb-shadow-lg
