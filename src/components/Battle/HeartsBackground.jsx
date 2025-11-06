@@ -80,7 +80,7 @@ export const HeartsBackground = () => {
       viewBox="-600 -400 1200 800"
       preserveAspectRatio="xMidYMid slice"
       className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ zIndex: 1, opacity: 1 }}
+      style={{ zIndex: 1, opacity: 1, backgroundColor: 'rgba(255, 0, 0, 0.1)' }}
     >
       <defs>
         <symbol id="heart" viewBox="-69 -16 138 138">
@@ -89,6 +89,18 @@ export const HeartsBackground = () => {
                    C-110,50 -50,-30 0,12z"/>
         </symbol>
       </defs>
+      {/* Test static heart - should be visible immediately */}
+      <use
+        href="#heart"
+        x="-69"
+        y="-69"
+        width="138"
+        height="138"
+        fill="#ff00ff"
+        stroke="#ffffff"
+        strokeWidth="3"
+        transform="scale(10)"
+      />
     </svg>
   );
 };
