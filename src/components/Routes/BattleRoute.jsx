@@ -1065,6 +1065,12 @@ export const BattleRoute = () => {
 
     console.log(`💰 Victory! Awarded ${goldReward} gold and ✨ ${xpReward} XP`);
 
+    // Store last battle rewards for display on reward screen
+    dispatch({
+      type: 'SET_LAST_BATTLE_REWARDS',
+      rewards: { gold: goldReward, exp: xpReward }
+    });
+
     // Update game state
     dispatch({ type: 'UPDATE_HEALTH', health: playerHealth });
     dispatch({ type: 'ADD_GOLD', amount: goldReward });

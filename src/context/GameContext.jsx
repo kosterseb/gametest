@@ -637,6 +637,12 @@ const gameReducer = (state, action) => {
         pendingItemRewards: []
       };
 
+    case 'SET_LAST_BATTLE_REWARDS':
+      return {
+        ...state,
+        lastBattleRewards: action.rewards
+      };
+
     case 'ADD_PENDING_ITEM':
       return {
         ...state,

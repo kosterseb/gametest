@@ -5,27 +5,75 @@ import { getCardRewardOptions } from '../../data/cards';
 import { ITEM_RARITY_CONFIG } from '../../data/items';
 import { PageTransition } from './PageTransition';
 import { Card } from '../Cards/Card';
-import { Trophy, Package, AlertCircle, Check, X } from 'lucide-react';
+import { Trophy, Package, AlertCircle, Check, X, Coins, Star } from 'lucide-react';
 import { NBButton, NBHeading, NBBadge } from './NeoBrutalUI';
+import { HeartsBackground } from '../Battle/HeartsBackground';
+
+// Count-up animation component
+const CountUp = ({ end, duration = 2000, prefix = '', suffix = '' }) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let startTime = null;
+    const startValue = 0;
+
+    const animate = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = timestamp - startTime;
+      const percentage = Math.min(progress / duration, 1);
+
+      // Easing function for smooth animation
+      const easeOutQuad = percentage * (2 - percentage);
+      const currentCount = Math.floor(startValue + (end - startValue) * easeOutQuad);
+
+      setCount(currentCount);
+
+      if (percentage < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setCount(end);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [end, duration]);
+
+  return <span>{prefix}{count.toLocaleString()}{suffix}</span>;
+};
 
 export const UnifiedRewardScreen = () => {
   const { gameState, dispatch } = useGame();
   const { navigate } = useRouter();
-  
+
+  // Animation state
+  const [showRewards, setShowRewards] = useState(false);
+
   // Card rewards
   const [cardOptions, setCardOptions] = useState([]);
   const [selectedCard, setSelectedCard] = useState(null);
   const [hasChosenCard, setHasChosenCard] = useState(false);
-  
+
   // Item rewards
   const [itemRewards, setItemRewards] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [claimedItems, setClaimedItems] = useState([]);
   const [showBagFullWarning, setShowBagFullWarning] = useState(false);
   const [isBossItemReward, setIsBossItemReward] = useState(false);
-  
+
   const hasCardRewards = gameState.shouldShowCardReward;
   const hasItemRewards = gameState.shouldShowItemReward && (gameState.pendingItemRewards?.length || 0) > 0;
+
+  // Get last battle rewards
+  const lastBattleGold = gameState.lastBattleRewards?.gold || 0;
+  const lastBattleExp = gameState.lastBattleRewards?.exp || 0;
+
+  // Trigger entrance animation
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowRewards(true);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Initialize rewards
   useEffect(() => {
@@ -142,8 +190,38 @@ export const UnifiedRewardScreen = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen nb-bg-purple flex items-center justify-center p-8">
-        <div className="max-w-6xl mx-auto w-full">
+      <div className="min-h-screen relative flex items-center justify-center p-8 overflow-hidden">
+        {/* Animated Hearts Background */}
+        <HeartsBackground />
+
+        <div className={`max-w-6xl mx-auto w-full relative z-10 transition-all duration-700 ${showRewards ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          {/* Gold & Experience Display */}
+          <div className={`grid grid-cols-2 gap-6 mb-8 transition-all duration-500 delay-200 ${showRewards ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+            {/* Gold Reward */}
+            <div className="nb-bg-yellow nb-border-xl nb-shadow-xl p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/30 blur-3xl rounded-full animate-pulse"></div>
+              <div className="relative z-10 text-center">
+                <Coins className="w-16 h-16 text-black mx-auto mb-3 drop-shadow-lg" />
+                <div className="text-black font-black text-sm uppercase mb-2">Gold Earned</div>
+                <div className="text-6xl font-black text-black drop-shadow-lg">
+                  {showRewards && <CountUp end={lastBattleGold} duration={2000} />}
+                </div>
+              </div>
+            </div>
+
+            {/* Experience Reward */}
+            <div className="nb-bg-purple nb-border-xl nb-shadow-xl p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-400/30 blur-3xl rounded-full animate-pulse"></div>
+              <div className="relative z-10 text-center">
+                <Star className="w-16 h-16 text-black mx-auto mb-3 drop-shadow-lg" />
+                <div className="text-black font-black text-sm uppercase mb-2">Experience</div>
+                <div className="text-6xl font-black text-black drop-shadow-lg">
+                  {showRewards && <CountUp end={lastBattleExp} duration={2000} suffix=" XP" />}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="nb-bg-white nb-border-xl nb-shadow-xl p-8">
             {/* Header */}
             <div className="text-center mb-8">
