@@ -3,6 +3,7 @@ import { Heart, Zap, Skull, Swords } from 'lucide-react';
 import { StatusDisplay } from './StatusDisplay';
 import { PlayerAvatar } from './PlayerAvatar';
 import { EnemyAvatar } from './EnemyAvatar';
+import { BattleTimer } from './BattleTimer';
 import { NBProgressBar, NBBadge } from '../UI/NeoBrutalUI';
 
 export const BattleField = ({
@@ -21,6 +22,8 @@ export const BattleField = ({
   playerName = 'Player',
   enemyEnergy = 0,
   maxEnemyEnergy = 10,
+  playerTime = 120,
+  enemyTime = 120,
   onAttackAnimationChange = () => {},
   onCombatStateChange = () => {}
 }) => {
@@ -337,6 +340,15 @@ export const BattleField = ({
 
         {/* VS Indicator */}
         <div className="flex flex-col items-center justify-center gap-4">
+          {/* Battle Timer */}
+          <BattleTimer
+            playerTime={playerTime}
+            enemyTime={enemyTime}
+            isEnemyTurn={isEnemyTurn}
+            playerName={playerName}
+            enemyName={enemy.name || 'Enemy'}
+          />
+
           <Swords className={`w-12 h-12 ${isEnemyTurn ? 'text-red-600 animate-pulse' : 'text-gray-700'}`} />
           <NBBadge
             color={isEnemyTurn ? 'red' : 'green'}

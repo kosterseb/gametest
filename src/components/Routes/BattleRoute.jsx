@@ -236,6 +236,50 @@ export const BattleRoute = () => {
   // ✅ Track consumable belt expansion
   const [consumablesBeltExpanded, setConsumablesBeltExpanded] = useState(false);
 
+  // ⏱️ Chess-style battle timer (2 minutes per player)
+  const [playerTime, setPlayerTime] = useState(120); // 2 minutes in seconds
+  const [enemyTime, setEnemyTime] = useState(120);
+
+  // ⏱️ Timer countdown - only counts down for active player
+  useEffect(() => {
+    // Don't count down if battle is over, turn order not decided, or during animations
+    if (isBattleOver || !turnOrderDecided || isAttackAnimationPlaying || showCoinFlip || showDiceRoll) {
+      return;
+    }
+
+    const timerInterval = setInterval(() => {
+      if (isEnemyTurn) {
+        setEnemyTime(prev => {
+          if (prev <= 0) {
+            // Enemy time ran out - force end their turn
+            console.log('⏰ Enemy time ran out!');
+            setBattleLog(prevLog => [...prevLog, '⏰ Enemy ran out of time!']);
+            clearInterval(timerInterval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      } else {
+        setPlayerTime(prev => {
+          if (prev <= 0) {
+            // Player time ran out - force end turn
+            console.log('⏰ Player time ran out! Force ending turn...');
+            setBattleLog(prevLog => [...prevLog, '⏰ Time ran out! Turn ended.']);
+            clearInterval(timerInterval);
+            // Trigger end turn after a brief delay
+            setTimeout(() => {
+              handleEndTurn();
+            }, 500);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }
+    }, 1000); // Count down every second
+
+    return () => clearInterval(timerInterval);
+  }, [isEnemyTurn, isBattleOver, turnOrderDecided, isAttackAnimationPlaying, showCoinFlip, showDiceRoll]);
+
   // If no enemy, redirect to map
   useEffect(() => {
     if (!currentEnemy) {
@@ -1105,6 +1149,8 @@ export const BattleRoute = () => {
               playerName={gameState.profile?.profileName || 'Player'}
               enemyEnergy={enemyEnergy}
               maxEnemyEnergy={maxEnemyEnergy}
+              playerTime={playerTime}
+              enemyTime={enemyTime}
               onAttackAnimationChange={setIsAttackAnimationPlaying}
               onCombatStateChange={setCombatStates}
             />
