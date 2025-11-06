@@ -8,11 +8,13 @@ import { MapNode } from './MapNode';
 import { ActDivider } from './ActDivider';
 import { Heart, Coins, ArrowDown, CheckCircle } from 'lucide-react';
 import { NBButton, NBHeading, NBBadge, NBProgressBar } from '../UI/NeoBrutalUI';
+import { BattleRecapPopup } from '../UI/BattleRecapPopup';
 
 export const ProgressionMapView = () => {
   const { gameState, dispatch } = useGame();
   const { navigate } = useRouter();
   const [selectedNode, setSelectedNode] = useState(null);
+  const [showRecap, setShowRecap] = useState(false);
 
   useEffect(() => {
     if (gameState.progressionMap.length === 0) {
@@ -21,9 +23,21 @@ export const ProgressionMapView = () => {
     }
   }, [gameState.progressionMap.length, dispatch]);
 
+  // Show battle recap when returning from battle
+  useEffect(() => {
+    if (gameState.showBattleRecap && gameState.lastBattleRewards) {
+      setShowRecap(true);
+    }
+  }, [gameState.showBattleRecap, gameState.lastBattleRewards]);
+
   const handleNodeSelect = (node) => {
     setSelectedNode(node);
     dispatch({ type: 'SELECT_NODE', nodeId: node.id });
+  };
+
+  const handleRecapContinue = () => {
+    setShowRecap(false);
+    dispatch({ type: 'CLEAR_BATTLE_RECAP' });
   };
 
   const handleConfirmSelection = () => {
@@ -297,8 +311,24 @@ export const ProgressionMapView = () => {
             })}
           </div>
 
-          
+
         </div>
+
+        {/* Battle Recap Popup */}
+        {showRecap && gameState.lastBattleRewards && gameState.battleStartStats && (
+          <BattleRecapPopup
+            goldBefore={gameState.battleStartStats.gold}
+            goldAfter={gameState.gold}
+            expBefore={gameState.battleStartStats.experience}
+            expAfter={gameState.profile?.experience || 0}
+            levelBefore={gameState.battleStartStats.level}
+            levelAfter={gameState.profile?.level || 1}
+            hpBefore={gameState.battleStartStats.health}
+            hpAfter={gameState.playerHealth}
+            maxHp={gameState.maxPlayerHealth}
+            onContinue={handleRecapContinue}
+          />
+        )}
       </div>
     </PageTransition>
   );

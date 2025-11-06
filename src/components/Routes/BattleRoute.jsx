@@ -165,6 +165,9 @@ export const BattleRoute = () => {
   // ✅ Ref to store performEnemyTurn to avoid circular dependencies
   const performEnemyTurnRef = useRef();
 
+  // ✅ Store battle start stats once
+  const battleStartStatsStored = useRef(false);
+
   // ✅ Initialize battle state correctly (BEFORE any early returns!)
   const [playerHealth, setPlayerHealth] = useState(gameState.playerHealth || 100);
   const [maxPlayerHealth] = useState(gameState.maxPlayerHealth || 100);
@@ -177,6 +180,22 @@ export const BattleRoute = () => {
       lastSyncedHealth.current = gameState.playerHealth || 100;
     }
   }, [gameState.playerHealth]);
+
+  // ✅ Store battle start stats ONCE when battle begins
+  useEffect(() => {
+    if (!battleStartStatsStored.current && gameState.profile) {
+      dispatch({
+        type: 'STORE_BATTLE_START_STATS',
+        stats: {
+          gold: gameState.gold,
+          experience: gameState.profile.experience || 0,
+          level: gameState.profile.level || 1,
+          health: gameState.playerHealth || 100
+        }
+      });
+      battleStartStatsStored.current = true;
+    }
+  }, [gameState.profile, gameState.gold, gameState.playerHealth, dispatch]);
 
   const [playerEnergy, setPlayerEnergy] = useState(gameState.maxEnergy || 10);
   const [maxEnergy] = useState(gameState.maxEnergy || 10);

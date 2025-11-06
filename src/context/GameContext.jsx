@@ -643,6 +643,25 @@ const gameReducer = (state, action) => {
         lastBattleRewards: action.rewards
       };
 
+    case 'STORE_BATTLE_START_STATS':
+      return {
+        ...state,
+        battleStartStats: action.stats
+      };
+
+    case 'SHOW_BATTLE_RECAP':
+      return {
+        ...state,
+        showBattleRecap: true
+      };
+
+    case 'CLEAR_BATTLE_RECAP':
+      return {
+        ...state,
+        showBattleRecap: false,
+        battleStartStats: null
+      };
+
     case 'ADD_PENDING_ITEM':
       return {
         ...state,

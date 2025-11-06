@@ -171,7 +171,10 @@ export const UnifiedRewardScreen = () => {
     if (hasItemRewards) {
       dispatch({ type: 'CLEAR_ITEM_REWARD' });
     }
-    
+
+    // Set flag to show battle recap on map
+    dispatch({ type: 'SHOW_BATTLE_RECAP' });
+
     navigate('/map');
   };
 
