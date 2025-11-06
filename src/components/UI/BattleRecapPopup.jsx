@@ -19,6 +19,14 @@ export const BattleRecapPopup = ({
   const [currentExp, setCurrentExp] = useState(expBefore);
   const [showContinue, setShowContinue] = useState(false);
 
+  // Prevent scrolling when popup is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   const goldGained = goldAfter - goldBefore;
   const expGained = expAfter - expBefore;
   const hpChange = hpAfter - hpBefore;
@@ -105,7 +113,10 @@ export const BattleRecapPopup = ({
   const expProgress = leveledUp ? 100 : ((currentExp % expPerLevel) / expPerLevel) * 100;
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+    >
       <div className="nb-bg-white nb-border-xl nb-shadow-xl p-8 max-w-2xl w-full mx-4 animate-fadeIn">
         <NBHeading level={1} className="text-black text-center mb-8">
           BATTLE COMPLETE!

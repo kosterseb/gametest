@@ -70,7 +70,7 @@ export const HeartsBackground = () => {
       id="hearts"
       viewBox="-600 -400 1200 800"
       preserveAspectRatio="xMidYMid slice"
-      className="fixed inset-0 w-full h-full"
+      className="absolute inset-0 w-full h-full"
       style={{ zIndex: 0 }}
     >
       <defs>
