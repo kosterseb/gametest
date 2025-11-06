@@ -114,7 +114,7 @@ export const VictoryScreen = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen relative p-8 flex items-center justify-center overflow-hidden">
+      <div className="min-h-screen nb-bg-purple relative p-8 flex items-center justify-center overflow-hidden">
         {/* Animated Hearts Background */}
         <HeartsBackground />
 

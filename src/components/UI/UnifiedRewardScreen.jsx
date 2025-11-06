@@ -193,7 +193,7 @@ export const UnifiedRewardScreen = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen relative flex items-center justify-center p-8 overflow-hidden">
+      <div className="min-h-screen nb-bg-purple relative flex items-center justify-center p-8 overflow-hidden">
         {/* Animated Hearts Background */}
         <HeartsBackground />
 
