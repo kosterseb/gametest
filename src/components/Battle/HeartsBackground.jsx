@@ -22,9 +22,10 @@ export const HeartsBackground = () => {
       use.setAttributeNS(SVG_XLINK, 'xlink:href', '#heart');
       use.setAttributeNS(null, 'transform', `scale(${use.n})`);
       use.setAttributeNS(null, 'fill', colors[n % colors.length]);
-      use.setAttributeNS(null, 'fill-opacity', '0.8');
+      use.setAttributeNS(null, 'fill-opacity', '0.3');
       use.setAttributeNS(null, 'stroke', '#ffffff');
-      use.setAttributeNS(null, 'stroke-width', '3');
+      use.setAttributeNS(null, 'stroke-width', '2');
+      use.setAttributeNS(null, 'stroke-opacity', '0.4');
       use.setAttributeNS(null, 'x', -69);
       use.setAttributeNS(null, 'y', -69);
       use.setAttributeNS(null, 'width', 138);
