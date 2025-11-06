@@ -244,20 +244,27 @@ export const BattleRoute = () => {
   // 🎭 Turn banner state
   const [showTurnBanner, setShowTurnBanner] = useState(false);
   const prevIsEnemyTurnRef = useRef(isEnemyTurn);
+  const bannerCooldownRef = useRef(false); // Prevent banner from showing multiple times
 
   // 🎭 Show turn banner when turn changes
   useEffect(() => {
-    // Only show banner after turn order is decided and when turn actually changes
-    if (turnOrderDecided && prevIsEnemyTurnRef.current !== isEnemyTurn) {
+    // Only show banner after turn order is decided, when turn actually changes, and not on cooldown
+    if (turnOrderDecided && prevIsEnemyTurnRef.current !== isEnemyTurn && !bannerCooldownRef.current) {
       prevIsEnemyTurnRef.current = isEnemyTurn;
+      bannerCooldownRef.current = true; // Set cooldown
       setShowTurnBanner(true);
+
+      // Release cooldown after banner completes (2 seconds)
+      setTimeout(() => {
+        bannerCooldownRef.current = false;
+      }, 2500);
     }
   }, [isEnemyTurn, turnOrderDecided]);
 
   // ⏱️ Timer countdown - only counts down for active player
   useEffect(() => {
-    // Don't count down if battle is over, turn order not decided, or during animations
-    if (isBattleOver || !turnOrderDecided || isAttackAnimationPlaying || showCoinFlip || showDiceRoll) {
+    // Don't count down if battle is over, turn order not decided, or during animations/banner
+    if (isBattleOver || !turnOrderDecided || isAttackAnimationPlaying || showCoinFlip || showDiceRoll || showTurnBanner) {
       return;
     }
 
@@ -265,10 +272,16 @@ export const BattleRoute = () => {
       if (isEnemyTurn) {
         setEnemyTime(prev => {
           if (prev <= 0) {
-            // Enemy time ran out - force end their turn
-            console.log('⏰ Enemy time ran out!');
-            setBattleLog(prevLog => [...prevLog, '⏰ Enemy ran out of time!']);
+            // Enemy time ran out - PLAYER WINS!
+            console.log('⏰ Enemy time ran out! Player wins!');
+            setBattleLog(prevLog => [...prevLog, '⏰ Enemy ran out of time! Victory!']);
             clearInterval(timerInterval);
+
+            // Trigger victory
+            setIsBattleOver(true);
+            setEnemyHealth(0);
+            handleVictory();
+
             return 0;
           }
           return prev - 1;
@@ -276,14 +289,16 @@ export const BattleRoute = () => {
       } else {
         setPlayerTime(prev => {
           if (prev <= 0) {
-            // Player time ran out - force end turn
-            console.log('⏰ Player time ran out! Force ending turn...');
-            setBattleLog(prevLog => [...prevLog, '⏰ Time ran out! Turn ended.']);
+            // Player time ran out - PLAYER LOSES!
+            console.log('⏰ Player time ran out! Defeat!');
+            setBattleLog(prevLog => [...prevLog, '⏰ Time ran out! You lose!']);
             clearInterval(timerInterval);
-            // Trigger end turn after a brief delay
-            setTimeout(() => {
-              handleEndTurn();
-            }, 500);
+
+            // Trigger defeat
+            setIsBattleOver(true);
+            setPlayerHealth(0);
+            handleDefeat();
+
             return 0;
           }
           return prev - 1;
@@ -292,7 +307,7 @@ export const BattleRoute = () => {
     }, 1000); // Count down every second
 
     return () => clearInterval(timerInterval);
-  }, [isEnemyTurn, isBattleOver, turnOrderDecided, isAttackAnimationPlaying, showCoinFlip, showDiceRoll]);
+  }, [isEnemyTurn, isBattleOver, turnOrderDecided, isAttackAnimationPlaying, showCoinFlip, showDiceRoll, showTurnBanner]);
 
   // If no enemy, redirect to map
   useEffect(() => {
