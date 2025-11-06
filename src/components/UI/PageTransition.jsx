@@ -14,7 +14,6 @@ export const PageTransition = ({ children, className = "" }) => {
       className={`transition-all duration-300 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
       } ${className}`}
-      style={{ position: 'relative', zIndex: 100 }}
     >
       {children}
     </div>
