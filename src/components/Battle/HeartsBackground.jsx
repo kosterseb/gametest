@@ -72,7 +72,7 @@ export const HeartsBackground = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 w-screen h-screen" style={{ zIndex: 99999, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+    <div className="fixed inset-0 w-screen h-screen" style={{ zIndex: 1, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
       <svg
         ref={svgRef}
         id="hearts"
@@ -85,13 +85,6 @@ export const HeartsBackground = () => {
             <path d="M50,90 C20,70 10,50 10,35 C10,25 15,15 25,15 C35,15 45,25 50,35 C55,25 65,15 75,15 C85,15 90,25 90,35 C90,50 80,70 50,90 Z" />
           </symbol>
         </defs>
-        {/* Direct test - big yellow circle that MUST be visible */}
-        <circle cx="0" cy="0" r="200" fill="yellow" stroke="red" strokeWidth="10" />
-        <text x="0" y="20" fontSize="80" fill="white" stroke="black" strokeWidth="4" textAnchor="middle" dominantBaseline="middle">HEARTS TEST</text>
-
-        {/* Test static hearts using the symbol - try xlinkHref for React */}
-        <use xlinkHref="#heart" x="-200" y="-200" width="100" height="100" fill="#ff1493" stroke="white" strokeWidth="3" transform="scale(3)" />
-        <use xlinkHref="#heart" x="100" y="-200" width="100" height="100" fill="#00ffff" stroke="white" strokeWidth="3" transform="scale(3)" />
       </svg>
     </div>
   );
