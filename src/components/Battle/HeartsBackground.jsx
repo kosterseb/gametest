@@ -84,6 +84,9 @@ export const HeartsBackground = () => {
                      C-110,50 -50,-30 0,12z"/>
           </symbol>
         </defs>
+        {/* Direct test - big yellow circle that MUST be visible */}
+        <circle cx="0" cy="0" r="200" fill="yellow" stroke="red" strokeWidth="10" />
+        <text x="0" y="20" fontSize="80" fill="white" stroke="black" strokeWidth="4" textAnchor="middle" dominantBaseline="middle">HEARTS TEST</text>
       </svg>
     </div>
   );
