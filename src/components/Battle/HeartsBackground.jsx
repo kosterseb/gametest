@@ -6,13 +6,18 @@ export const HeartsBackground = () => {
   const animationFrameRef = useRef(null);
 
   useEffect(() => {
-    const colors = ["#e03776", "#8f3e98", "#4687bf", "#3bab6f", "#f9c25e", "#f47274"];
+    // Brighter colors that contrast well with purple background
+    const colors = ["#ff1493", "#00ffff", "#00ff00", "#ffff00", "#ff6347", "#ff69b4"];
     const SVG_NS = 'http://www.w3.org/2000/svg';
     const SVG_XLINK = "http://www.w3.org/1999/xlink";
 
     const svg = svgRef.current;
-    if (!svg) return;
+    if (!svg) {
+      console.log('HeartsBackground: SVG ref not found');
+      return;
+    }
 
+    console.log('HeartsBackground: Initializing hearts animation');
     heartsRyRef.current = [];
 
     function useTheHeart(n) {
@@ -21,6 +26,8 @@ export const HeartsBackground = () => {
       use.setAttributeNS(SVG_XLINK, 'xlink:href', '#heart');
       use.setAttributeNS(null, 'transform', `scale(${use.n})`);
       use.setAttributeNS(null, 'fill', colors[n % colors.length]);
+      use.setAttributeNS(null, 'stroke', '#ffffff');
+      use.setAttributeNS(null, 'stroke-width', '2');
       use.setAttributeNS(null, 'x', -69);
       use.setAttributeNS(null, 'y', -69);
       use.setAttributeNS(null, 'width', 138);
@@ -34,6 +41,7 @@ export const HeartsBackground = () => {
     for (let n = 18; n >= 0; n--) {
       useTheHeart(n);
     }
+    console.log(`HeartsBackground: Created ${heartsRyRef.current.length} hearts`);
 
     // Animation loop
     function Frame() {
@@ -51,6 +59,7 @@ export const HeartsBackground = () => {
     }
 
     Frame();
+    console.log('HeartsBackground: Animation started');
 
     // Cleanup
     return () => {
@@ -71,7 +80,7 @@ export const HeartsBackground = () => {
       viewBox="-600 -400 1200 800"
       preserveAspectRatio="xMidYMid slice"
       className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ zIndex: 1, opacity: 0.6 }}
+      style={{ zIndex: 1, opacity: 1 }}
     >
       <defs>
         <symbol id="heart" viewBox="-69 -16 138 138">
