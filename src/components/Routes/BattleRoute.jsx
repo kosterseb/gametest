@@ -264,11 +264,11 @@ export const BattleRoute = () => {
     }
   }, [isEnemyTurn, turnOrderDecided]);
 
-  // 🎭 Handle banner completion and 3-second delay
+  // 🎭 Handle banner completion and 1-second delay
   const handleBannerComplete = useCallback(() => {
     setShowTurnBanner(false);
 
-    // Wait 3 seconds before allowing turn actions
+    // Wait 1 second before allowing turn actions
     setTimeout(() => {
       setIsTurnStarting(false);
 
@@ -279,7 +279,7 @@ export const BattleRoute = () => {
           performEnemyTurnRef.current?.();
         }, 100);
       }
-    }, 3000);
+    }, 1000);
   }, [isEnemyTurn]);
 
   // ⏱️ Timer countdown - only counts down for active player
@@ -733,12 +733,23 @@ export const BattleRoute = () => {
     if (winner === 'enemy') {
       setBattleLog(prev => [...prev, '🪙 Enemy won the coin flip and attacks first!']);
       setIsEnemyTurn(true);
-      // Mark that enemy turn is pending (will be triggered after banner + 3s delay)
+      // Mark that enemy turn is pending (will be triggered after banner + 1s delay)
       pendingEnemyTurnRef.current = true;
     } else {
       setBattleLog(prev => [...prev, '🪙 You won the coin flip! Your turn to attack!']);
       setIsEnemyTurn(false);
     }
+
+    // Show banner for first turn (for both player and enemy)
+    setTimeout(() => {
+      setShowTurnBanner(true);
+      setIsTurnStarting(true);
+      bannerCooldownRef.current = true;
+
+      setTimeout(() => {
+        bannerCooldownRef.current = false;
+      }, 2500);
+    }, 500);
   }, []);
 
   // ✅ Item usage

@@ -10,20 +10,20 @@ export const TurnBanner = ({ isEnemyTurn, show, onComplete }) => {
     // Reset to entering
     setAnimationStage('entering');
 
-    // Enter animation: swoosh in from left/right
+    // Enter animation: swoosh in from left/right (400ms CSS transition)
     const enterTimer = setTimeout(() => {
       setAnimationStage('display');
-    }, 100);
+    }, 400);
 
-    // Display for 1.2 seconds
+    // Display for 1 second
     const displayTimer = setTimeout(() => {
       setAnimationStage('exiting');
-    }, 1300);
+    }, 1400);
 
-    // Exit animation
+    // Exit animation completes after 500ms CSS transition
     const exitTimer = setTimeout(() => {
       onComplete();
-    }, 2000);
+    }, 1900);
 
     return () => {
       clearTimeout(enterTimer);
@@ -38,12 +38,12 @@ export const TurnBanner = ({ isEnemyTurn, show, onComplete }) => {
     if (isEnemyTurn) {
       // Enemy turn: swoosh from right
       if (animationStage === 'entering') return 'translateX(100%)';
-      if (animationStage === 'exiting') return 'translateX(-150%)';
+      if (animationStage === 'exiting') return 'translateX(-200%)';
       return 'translateX(0)';
     } else {
       // Player turn: swoosh from left
       if (animationStage === 'entering') return 'translateX(-100%)';
-      if (animationStage === 'exiting') return 'translateX(150%)';
+      if (animationStage === 'exiting') return 'translateX(200%)';
       return 'translateX(0)';
     }
   };
@@ -73,7 +73,7 @@ export const TurnBanner = ({ isEnemyTurn, show, onComplete }) => {
           transform: `${getSwooshTransform()} ${getRotation()}`,
           transition: animationStage === 'entering'
             ? 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'
-            : 'transform 0.3s cubic-bezier(0.4, 0, 1, 1)'
+            : 'transform 0.5s cubic-bezier(0.4, 0, 1, 1)'
         }}
       >
         <div
