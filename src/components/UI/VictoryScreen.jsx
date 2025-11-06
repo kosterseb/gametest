@@ -326,5 +326,6 @@ export const VictoryScreen = () => {
         </div>
       </div>
     </PageTransition>
+    </>
   );
 };
