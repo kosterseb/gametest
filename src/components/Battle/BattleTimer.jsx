@@ -23,7 +23,7 @@ export const BattleTimer = ({ playerTime, enemyTime, isEnemyTurn, playerName = '
   };
 
   return (
-    <div className="flex flex-col items-center gap-2 mb-4 -mt-16">
+    <div className="flex flex-col items-center gap-2 mb-4 -mt-24">
       {/* Character Names with Timers */}
       <div className="flex items-center justify-center gap-12 w-full">
         {/* Player Time */}

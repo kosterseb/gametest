@@ -243,8 +243,10 @@ export const BattleRoute = () => {
 
   // 🎭 Turn banner state
   const [showTurnBanner, setShowTurnBanner] = useState(false);
+  const [isTurnStarting, setIsTurnStarting] = useState(false); // 3-second delay after banner
   const prevIsEnemyTurnRef = useRef(isEnemyTurn);
   const bannerCooldownRef = useRef(false); // Prevent banner from showing multiple times
+  const pendingEnemyTurnRef = useRef(false); // Track if enemy turn should start after delay
 
   // 🎭 Show turn banner when turn changes
   useEffect(() => {
@@ -253,6 +255,7 @@ export const BattleRoute = () => {
       prevIsEnemyTurnRef.current = isEnemyTurn;
       bannerCooldownRef.current = true; // Set cooldown
       setShowTurnBanner(true);
+      setIsTurnStarting(true); // Start the 3-second delay
 
       // Release cooldown after banner completes (2 seconds)
       setTimeout(() => {
@@ -261,10 +264,28 @@ export const BattleRoute = () => {
     }
   }, [isEnemyTurn, turnOrderDecided]);
 
+  // 🎭 Handle banner completion and 3-second delay
+  const handleBannerComplete = useCallback(() => {
+    setShowTurnBanner(false);
+
+    // Wait 3 seconds before allowing turn actions
+    setTimeout(() => {
+      setIsTurnStarting(false);
+
+      // If it's enemy turn, trigger their actions now
+      if (isEnemyTurn && pendingEnemyTurnRef.current) {
+        pendingEnemyTurnRef.current = false;
+        setTimeout(() => {
+          performEnemyTurnRef.current?.();
+        }, 100);
+      }
+    }, 3000);
+  }, [isEnemyTurn]);
+
   // ⏱️ Timer countdown - only counts down for active player
   useEffect(() => {
-    // Don't count down if battle is over, turn order not decided, or during animations/banner
-    if (isBattleOver || !turnOrderDecided || isAttackAnimationPlaying || showCoinFlip || showDiceRoll || showTurnBanner) {
+    // Don't count down if battle is over, turn order not decided, or during animations/banner/turn starting
+    if (isBattleOver || !turnOrderDecided || isAttackAnimationPlaying || showCoinFlip || showDiceRoll || showTurnBanner || isTurnStarting) {
       return;
     }
 
@@ -307,7 +328,7 @@ export const BattleRoute = () => {
     }, 1000); // Count down every second
 
     return () => clearInterval(timerInterval);
-  }, [isEnemyTurn, isBattleOver, turnOrderDecided, isAttackAnimationPlaying, showCoinFlip, showDiceRoll, showTurnBanner]);
+  }, [isEnemyTurn, isBattleOver, turnOrderDecided, isAttackAnimationPlaying, showCoinFlip, showDiceRoll, showTurnBanner, isTurnStarting]);
 
   // If no enemy, redirect to map
   useEffect(() => {
@@ -712,12 +733,8 @@ export const BattleRoute = () => {
     if (winner === 'enemy') {
       setBattleLog(prev => [...prev, '🪙 Enemy won the coin flip and attacks first!']);
       setIsEnemyTurn(true);
-      // Trigger enemy turn after a delay
-      setTimeout(() => {
-        if (performEnemyTurnRef.current) {
-          performEnemyTurnRef.current();
-        }
-      }, 1000);
+      // Mark that enemy turn is pending (will be triggered after banner + 3s delay)
+      pendingEnemyTurnRef.current = true;
     } else {
       setBattleLog(prev => [...prev, '🪙 You won the coin flip! Your turn to attack!']);
       setIsEnemyTurn(false);
@@ -756,7 +773,7 @@ export const BattleRoute = () => {
 
   // ✅ Handle end turn
   const handleEndTurn = useCallback(() => {
-    if (isEnemyTurn) return;
+    if (isEnemyTurn || isTurnStarting) return;
 
     console.log('🔄 Ending turn...');
     setBattleLog(prev => [...prev, '--- Turn Ended ---']);
@@ -785,11 +802,10 @@ export const BattleRoute = () => {
     // Delay enemy turn to let status effects fully process
     setTrackedTimeout(() => {
       setIsEnemyTurn(true);
-      setTrackedTimeout(() => {
-        performEnemyTurnRef.current?.();
-      }, 800);
+      // Mark that enemy turn is pending (will be triggered after banner + 3s delay)
+      pendingEnemyTurnRef.current = true;
     }, 400);
-  }, [isEnemyTurn, playerStatuses, enemyStatuses, hand, setTrackedTimeout]);
+  }, [isEnemyTurn, isTurnStarting, playerStatuses, enemyStatuses, hand, setTrackedTimeout]);
 
   const performEnemyTurn = useCallback(() => {
     if (shouldSkipTurn(enemyStatuses)) {
@@ -1202,7 +1218,7 @@ export const BattleRoute = () => {
                         key={index}
                         item={item}
                         onUse={handleUseItem}
-                        disabled={isEnemyTurn || isAttackAnimationPlaying}
+                        disabled={isEnemyTurn || isAttackAnimationPlaying || isTurnStarting}
                         isUsed={usedConsumables.includes(item.instanceId)}
                       />
                     ))}
@@ -1217,16 +1233,16 @@ export const BattleRoute = () => {
             {/* End Turn Button - Floating on Right Side */}
             <NBButton
               onClick={handleEndTurn}
-              disabled={isEnemyTurn || isAttackAnimationPlaying}
-              variant={isEnemyTurn || isAttackAnimationPlaying ? 'white' : 'danger'}
+              disabled={isEnemyTurn || isAttackAnimationPlaying || isTurnStarting}
+              variant={isEnemyTurn || isAttackAnimationPlaying || isTurnStarting ? 'white' : 'danger'}
               size="lg"
               className={`
                 absolute top-4 right-4 z-50
                 px-8 py-4 text-xl
-                ${isEnemyTurn || isAttackAnimationPlaying ? 'opacity-50 cursor-not-allowed' : ''}
+                ${isEnemyTurn || isAttackAnimationPlaying || isTurnStarting ? 'opacity-50 cursor-not-allowed' : ''}
               `}
             >
-              {isEnemyTurn ? 'ENEMY TURN...' : 'END TURN'}
+              {isEnemyTurn ? 'ENEMY TURN...' : isTurnStarting ? 'STARTING...' : 'END TURN'}
             </NBButton>
 
             <div className="flex justify-between items-center mb-2">
@@ -1252,8 +1268,8 @@ export const BattleRoute = () => {
                         setBattleLog(prev => [...prev, '⚠️ Not enough energy to draw!']);
                       }
                     }}
-                    disabled={isEnemyTurn || isBattleOver || playerEnergy < 3 || hasUsedDrawAbility || isAttackAnimationPlaying}
-                    variant={playerEnergy >= 3 && !isEnemyTurn && !isBattleOver && !hasUsedDrawAbility && !isAttackAnimationPlaying ? 'success' : 'white'}
+                    disabled={isEnemyTurn || isBattleOver || playerEnergy < 3 || hasUsedDrawAbility || isAttackAnimationPlaying || isTurnStarting}
+                    variant={playerEnergy >= 3 && !isEnemyTurn && !isBattleOver && !hasUsedDrawAbility && !isAttackAnimationPlaying && !isTurnStarting ? 'success' : 'white'}
                     size="sm"
                     className="flex items-center gap-1"
                   >
@@ -1277,8 +1293,8 @@ export const BattleRoute = () => {
                         setBattleLog(prev => [...prev, '⚠️ No cards to discard!']);
                       }
                     }}
-                    disabled={isEnemyTurn || isBattleOver || hand.length === 0 || hasUsedDiscardAbility || isAttackAnimationPlaying}
-                    variant={hand.length > 0 && !isEnemyTurn && !isBattleOver && !hasUsedDiscardAbility && !isAttackAnimationPlaying ? 'orange' : 'white'}
+                    disabled={isEnemyTurn || isBattleOver || hand.length === 0 || hasUsedDiscardAbility || isAttackAnimationPlaying || isTurnStarting}
+                    variant={hand.length > 0 && !isEnemyTurn && !isBattleOver && !hasUsedDiscardAbility && !isAttackAnimationPlaying && !isTurnStarting ? 'orange' : 'white'}
                     size="sm"
                     className="flex items-center gap-1"
                   >
@@ -1291,8 +1307,8 @@ export const BattleRoute = () => {
 
             <CardHand
               hand={hand}
-              onCardClick={(card) => !isEnemyTurn && !isBattleOver && !isAttackAnimationPlaying && handleCardPlay(card)}
-              disabled={isEnemyTurn || isBattleOver || isAttackAnimationPlaying}
+              onCardClick={(card) => !isEnemyTurn && !isBattleOver && !isAttackAnimationPlaying && !isTurnStarting && handleCardPlay(card)}
+              disabled={isEnemyTurn || isBattleOver || isAttackAnimationPlaying || isTurnStarting}
               playerEnergy={playerEnergy}
               playerStatuses={playerStatuses}
               compact={false}
@@ -1315,7 +1331,7 @@ export const BattleRoute = () => {
       <TurnBanner
         isEnemyTurn={isEnemyTurn}
         show={showTurnBanner}
-        onComplete={() => setShowTurnBanner(false)}
+        onComplete={handleBannerComplete}
       />
 
       {/* Dice Roll Overlay */}
