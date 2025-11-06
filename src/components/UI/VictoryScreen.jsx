@@ -4,29 +4,80 @@ import { useRouter } from '../../hooks/useRouter';
 import { PageTransition } from './PageTransition';
 import { Trophy, Crown, Star, TrendingUp, Target, Coins, Zap, Heart, Swords } from 'lucide-react';
 import { NBButton, NBHeading, NBBadge, NBCard } from './NeoBrutalUI';
+import { HeartsBackground } from '../Battle/HeartsBackground';
+
+// Count-up animation component
+const CountUp = ({ end, duration = 2000, prefix = '', suffix = '', onComplete }) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let startTime = null;
+    const startValue = 0;
+
+    const animate = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = timestamp - startTime;
+      const percentage = Math.min(progress / duration, 1);
+
+      // Easing function for smooth animation
+      const easeOutQuad = percentage * (2 - percentage);
+      const currentCount = Math.floor(startValue + (end - startValue) * easeOutQuad);
+
+      setCount(currentCount);
+
+      if (percentage < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setCount(end);
+        if (onComplete) onComplete();
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [end, duration, onComplete]);
+
+  return <span>{prefix}{count.toLocaleString()}{suffix}</span>;
+};
 
 export const VictoryScreen = () => {
   const { gameState, dispatch } = useGame();
   const { navigate } = useRouter();
   const [runEnded, setRunEnded] = useState(false);
   const [levelUps, setLevelUps] = useState(0);
+  const [showRewards, setShowRewards] = useState(false);
+  const [totalGold, setTotalGold] = useState(0);
+  const [totalExp, setTotalExp] = useState(0);
 
   useEffect(() => {
     if (!runEnded && gameState.profile) {
+      // Capture rewards before ending run
+      const currentRunStats = gameState.profile.currentRun?.currentRunStats || {};
+      setTotalGold(currentRunStats.goldEarned || 0);
+
+      // Calculate total exp from the run (approximation based on enemies killed and bosses)
+      const enemiesKilled = currentRunStats.enemiesKilled || 0;
+      const estimatedExp = enemiesKilled * 15; // Rough estimate
+      setTotalExp(estimatedExp);
+
       // Save the current level before ending run
       const levelBefore = gameState.profile.level;
-      
+
       // End the run (this merges stats and resets current run)
       dispatch({ type: 'END_RUN', victory: true });
-      
+
       // Calculate level ups that happened during this run
       const levelAfter = gameState.profile.level;
       setLevelUps(levelAfter - levelBefore);
-      
+
       // Save the profile
       dispatch({ type: 'SAVE_PROFILE' });
-      
+
       setRunEnded(true);
+
+      // Trigger entrance animation after a short delay
+      setTimeout(() => {
+        setShowRewards(true);
+      }, 500);
     }
   }, [runEnded, gameState.profile, dispatch]);
 
@@ -63,20 +114,51 @@ export const VictoryScreen = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen nb-bg-yellow p-8 flex items-center justify-center">
-        <div className="max-w-4xl w-full">
+      <div className="min-h-screen relative p-8 flex items-center justify-center overflow-hidden">
+        {/* Animated Hearts Background */}
+        <HeartsBackground />
+
+        {/* Content with entrance animation */}
+        <div className={`max-w-4xl w-full relative z-10 transition-all duration-700 ${showRewards ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           {/* Victory Banner */}
           <div className="text-center mb-8">
             <div className="nb-bg-white nb-border-xl nb-shadow-xl p-8 mb-6 inline-block animate-bounce">
               <Trophy className="w-32 h-32 text-black mx-auto" />
             </div>
-            <NBHeading level={1} className="text-black mb-4">
+            <NBHeading level={1} className="text-black mb-4 drop-shadow-lg" style={{ textShadow: '4px 4px 0 rgba(0,0,0,0.3)' }}>
               VICTORY!
             </NBHeading>
             <div className="nb-bg-white nb-border-lg nb-shadow-lg px-6 py-3 inline-block">
               <p className="text-black font-black text-xl uppercase">
                 You've conquered all 25 floors!
               </p>
+            </div>
+          </div>
+
+          {/* Rewards Display - Animated Count-up */}
+          <div className={`grid grid-cols-2 gap-6 mb-8 transition-all duration-500 delay-300 ${showRewards ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+            {/* Gold Reward */}
+            <div className="nb-bg-yellow nb-border-xl nb-shadow-xl p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/30 blur-3xl rounded-full animate-pulse"></div>
+              <div className="relative z-10 text-center">
+                <Coins className="w-16 h-16 text-black mx-auto mb-3 drop-shadow-lg" />
+                <div className="text-black font-black text-sm uppercase mb-2">Gold Earned</div>
+                <div className="text-6xl font-black text-black drop-shadow-lg">
+                  {showRewards && <CountUp end={totalGold} duration={2000} />}
+                </div>
+              </div>
+            </div>
+
+            {/* Experience Reward */}
+            <div className="nb-bg-purple nb-border-xl nb-shadow-xl p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-400/30 blur-3xl rounded-full animate-pulse"></div>
+              <div className="relative z-10 text-center">
+                <Star className="w-16 h-16 text-black mx-auto mb-3 drop-shadow-lg" />
+                <div className="text-black font-black text-sm uppercase mb-2">Experience</div>
+                <div className="text-6xl font-black text-black drop-shadow-lg">
+                  {showRewards && <CountUp end={totalExp} duration={2000} suffix=" XP" />}
+                </div>
+              </div>
             </div>
           </div>
 
