@@ -193,9 +193,11 @@ export const UnifiedRewardScreen = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen nb-bg-purple relative flex items-center justify-center p-8 overflow-hidden">
+      <div className="min-h-screen nb-bg-purple relative flex items-center justify-center p-8">
         {/* Animated Hearts Background */}
-        <HeartsBackground />
+        <div className="absolute inset-0 overflow-hidden">
+          <HeartsBackground />
+        </div>
 
         <div className={`max-w-6xl mx-auto w-full relative z-10 transition-all duration-700 ${showRewards ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           {/* Gold & Experience Display */}

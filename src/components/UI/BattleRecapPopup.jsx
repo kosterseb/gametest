@@ -122,7 +122,7 @@ export const BattleRecapPopup = ({
   const expProgress = leveledUp ? 100 : ((currentExp % expPerLevel) / expPerLevel) * 100;
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[10000] flex items-start justify-center bg-black/50 backdrop-blur-sm pt-[calc(50vh-300px)]">
       <div className="nb-bg-white nb-border-xl nb-shadow-xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto animate-fadeIn">
         <NBHeading level={1} className="text-black text-center mb-8">
           BATTLE COMPLETE!

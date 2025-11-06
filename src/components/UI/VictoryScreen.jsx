@@ -114,9 +114,11 @@ export const VictoryScreen = () => {
 
   return (
     <PageTransition>
-      <div className="h-screen nb-bg-purple relative p-8 flex items-center justify-center overflow-hidden">
+      <div className="h-screen nb-bg-purple relative p-8 flex items-center justify-center">
         {/* Animated Hearts Background */}
-        <HeartsBackground />
+        <div className="absolute inset-0 overflow-hidden">
+          <HeartsBackground />
+        </div>
 
         {/* Content with entrance animation */}
         <div className={`max-w-4xl w-full relative z-10 transition-all duration-700 ${showRewards ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
