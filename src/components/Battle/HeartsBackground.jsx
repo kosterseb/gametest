@@ -12,12 +12,8 @@ export const HeartsBackground = () => {
     const SVG_XLINK = "http://www.w3.org/1999/xlink";
 
     const svg = svgRef.current;
-    if (!svg) {
-      console.log('HeartsBackground: SVG ref not found');
-      return;
-    }
+    if (!svg) return;
 
-    console.log('HeartsBackground: Initializing hearts animation');
     heartsRyRef.current = [];
 
     function useTheHeart(n) {
@@ -41,7 +37,6 @@ export const HeartsBackground = () => {
     for (let n = 18; n >= 0; n--) {
       useTheHeart(n);
     }
-    console.log(`HeartsBackground: Created ${heartsRyRef.current.length} hearts`);
 
     // Animation loop
     function Frame() {
@@ -59,7 +54,6 @@ export const HeartsBackground = () => {
     }
 
     Frame();
-    console.log('HeartsBackground: Animation started');
 
     // Cleanup
     return () => {
@@ -79,8 +73,8 @@ export const HeartsBackground = () => {
       id="hearts"
       viewBox="-600 -400 1200 800"
       preserveAspectRatio="xMidYMid slice"
-      className="fixed inset-0 w-screen h-screen"
-      style={{ zIndex: 99999, opacity: 1, backgroundColor: 'lime' }}
+      className="fixed inset-0 w-screen h-screen pointer-events-none"
+      style={{ zIndex: 5, opacity: 0.6 }}
     >
       <defs>
         <symbol id="heart" viewBox="-69 -16 138 138">
@@ -89,10 +83,6 @@ export const HeartsBackground = () => {
                    C-110,50 -50,-30 0,12z"/>
         </symbol>
       </defs>
-      {/* Simple test elements that MUST be visible */}
-      <circle cx="0" cy="0" r="100" fill="yellow" stroke="black" strokeWidth="5" />
-      <rect x="-200" y="-200" width="400" height="400" fill="rgba(255, 0, 255, 0.5)" stroke="white" strokeWidth="10" />
-      <text x="0" y="0" fontSize="48" fill="white" stroke="black" strokeWidth="2" textAnchor="middle">TEST</text>
     </svg>
   );
 };
