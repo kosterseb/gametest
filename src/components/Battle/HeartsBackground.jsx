@@ -78,19 +78,17 @@ export const HeartsBackground = () => {
         className="absolute inset-0 w-full h-full pointer-events-none"
       >
         <defs>
-          <symbol id="heart" viewBox="-69 -16 138 138">
-            <path d="M0,12
-                     C 50,-30 110,50  0,120
-                     C-110,50 -50,-30 0,12z"/>
+          <symbol id="heart" viewBox="0 0 100 100">
+            <path d="M50,90 C20,70 10,50 10,35 C10,25 15,15 25,15 C35,15 45,25 50,35 C55,25 65,15 75,15 C85,15 90,25 90,35 C90,50 80,70 50,90 Z" />
           </symbol>
         </defs>
         {/* Direct test - big yellow circle that MUST be visible */}
         <circle cx="0" cy="0" r="200" fill="yellow" stroke="red" strokeWidth="10" />
         <text x="0" y="20" fontSize="80" fill="white" stroke="black" strokeWidth="4" textAnchor="middle" dominantBaseline="middle">HEARTS TEST</text>
 
-        {/* Test static hearts using the symbol */}
-        <use href="#heart" x="-69" y="-69" width="138" height="138" fill="#ff1493" stroke="white" strokeWidth="3" transform="scale(5)" />
-        <use href="#heart" x="-69" y="-69" width="138" height="138" fill="#00ffff" stroke="white" strokeWidth="3" transform="scale(10) translate(50, -50)" />
+        {/* Test static hearts using the symbol - try xlinkHref for React */}
+        <use xlinkHref="#heart" x="-200" y="-200" width="100" height="100" fill="#ff1493" stroke="white" strokeWidth="3" transform="scale(3)" />
+        <use xlinkHref="#heart" x="100" y="-200" width="100" height="100" fill="#00ffff" stroke="white" strokeWidth="3" transform="scale(3)" />
       </svg>
     </div>
   );
