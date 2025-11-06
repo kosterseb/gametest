@@ -69,7 +69,7 @@ export const HeartsBackground = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 w-screen h-screen" style={{ zIndex: 1, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+    <div className="fixed inset-0 w-screen h-screen" style={{ zIndex: 99999, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
       <svg
         ref={svgRef}
         id="hearts"
