@@ -604,27 +604,63 @@ export const Shop = () => {
                       🎴 CARD PACKS
                     </NBHeading>
 
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-4 gap-3">
                       {/* Bronze Pack */}
                       <button
                         onClick={() => handleBuyPack('bronze')}
                         disabled={gameState.gold < packPrices.bronze}
                         className={`
-                          nb-bg-orange nb-border-xl nb-shadow-lg p-3
-                          ${gameState.gold >= packPrices.bronze ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                          transition-all
+                          relative group
+                          ${gameState.gold >= packPrices.bronze ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                          transition-all duration-300
+                          ${gameState.gold >= packPrices.bronze ? 'hover:scale-105 hover:-translate-y-1' : ''}
                         `}
                       >
-                        <div className="text-4xl mb-2">🥉</div>
-                        <div className="text-black font-black text-lg mb-1">BRONZE</div>
-                        <div className="text-gray-800 text-xs mb-2 font-bold">3 Common</div>
-                        <NBBadge
-                          color={gameState.gold >= packPrices.bronze ? 'yellow' : 'white'}
-                          className="px-3 py-1 text-sm inline-flex items-center gap-1"
+                        {/* Pack Container - Vertical Rectangle like real booster */}
+                        <div className="relative nb-border-xl nb-shadow-xl overflow-hidden"
+                          style={{
+                            background: 'linear-gradient(135deg, #f97316 0%, #ea580c 50%, #c2410c 100%)',
+                            aspectRatio: '2/3'
+                          }}
                         >
-                          <Coins className="w-4 h-4" />
-                          {packPrices.bronze}
-                        </NBBadge>
+                          {/* Shine Effect */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent opacity-60"></div>
+                          <div className="absolute top-0 right-0 w-16 h-16 bg-white/30 blur-2xl rounded-full"></div>
+
+                          {/* Pack Content */}
+                          <div className="relative h-full flex flex-col items-center justify-between p-3">
+                            {/* Top Section - Icon */}
+                            <div className="text-5xl drop-shadow-lg">🥉</div>
+
+                            {/* Middle Section - Pack Name */}
+                            <div className="text-center">
+                              <div className="text-white font-black text-xl uppercase tracking-wide drop-shadow-lg mb-1"
+                                style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
+                              >
+                                BRONZE
+                              </div>
+                              <div className="text-white text-xs font-bold bg-black/30 px-2 py-1 rounded">
+                                3 CARDS
+                              </div>
+                            </div>
+
+                            {/* Bottom Section - Price */}
+                            <div className="w-full">
+                              <div className={`
+                                ${gameState.gold >= packPrices.bronze ? 'nb-bg-yellow' : 'nb-bg-white'}
+                                nb-border nb-shadow px-2 py-1 text-center
+                              `}>
+                                <div className="flex items-center justify-center gap-1">
+                                  <Coins className="w-4 h-4" />
+                                  <span className="font-black text-sm">{packPrices.bronze}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Foil Pattern Overlay */}
+                          <div className="absolute inset-0 opacity-20 bg-gradient-to-br from-transparent via-white/50 to-transparent animate-pulse"></div>
+                        </div>
                       </button>
 
                       {/* Silver Pack */}
@@ -632,21 +668,55 @@ export const Shop = () => {
                         onClick={() => handleBuyPack('silver')}
                         disabled={gameState.gold < packPrices.silver}
                         className={`
-                          nb-bg-cyan nb-border-xl nb-shadow-lg p-3
-                          ${gameState.gold >= packPrices.silver ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                          transition-all
+                          relative group
+                          ${gameState.gold >= packPrices.silver ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                          transition-all duration-300
+                          ${gameState.gold >= packPrices.silver ? 'hover:scale-105 hover:-translate-y-1' : ''}
                         `}
                       >
-                        <div className="text-4xl mb-2">🥈</div>
-                        <div className="text-black font-black text-lg mb-1">SILVER</div>
-                        <div className="text-gray-800 text-xs mb-2 font-bold">2 Com + 1 Rare</div>
-                        <NBBadge
-                          color={gameState.gold >= packPrices.silver ? 'yellow' : 'white'}
-                          className="px-3 py-1 text-sm inline-flex items-center gap-1"
+                        {/* Pack Container */}
+                        <div className="relative nb-border-xl nb-shadow-xl overflow-hidden"
+                          style={{
+                            background: 'linear-gradient(135deg, #e0e0e0 0%, #b8b8b8 50%, #909090 100%)',
+                            aspectRatio: '2/3'
+                          }}
                         >
-                          <Coins className="w-4 h-4" />
-                          {packPrices.silver}
-                        </NBBadge>
+                          {/* Metallic Shine Effect */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-black/20"></div>
+                          <div className="absolute top-0 left-0 w-20 h-20 bg-white/40 blur-2xl rounded-full"></div>
+                          <div className="absolute bottom-0 right-0 w-16 h-16 bg-black/20 blur-xl rounded-full"></div>
+
+                          {/* Pack Content */}
+                          <div className="relative h-full flex flex-col items-center justify-between p-3">
+                            <div className="text-5xl drop-shadow-lg">🥈</div>
+
+                            <div className="text-center">
+                              <div className="text-black font-black text-xl uppercase tracking-wide drop-shadow-lg mb-1"
+                                style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.5)' }}
+                              >
+                                SILVER
+                              </div>
+                              <div className="text-black text-xs font-bold bg-white/40 px-2 py-1 rounded">
+                                3 CARDS
+                              </div>
+                            </div>
+
+                            <div className="w-full">
+                              <div className={`
+                                ${gameState.gold >= packPrices.silver ? 'nb-bg-yellow' : 'nb-bg-white'}
+                                nb-border nb-shadow px-2 py-1 text-center
+                              `}>
+                                <div className="flex items-center justify-center gap-1">
+                                  <Coins className="w-4 h-4" />
+                                  <span className="font-black text-sm">{packPrices.silver}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Metallic Pattern */}
+                          <div className="absolute inset-0 opacity-30 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-pulse"></div>
+                        </div>
                       </button>
 
                       {/* Gold Pack */}
@@ -654,21 +724,57 @@ export const Shop = () => {
                         onClick={() => handleBuyPack('gold')}
                         disabled={gameState.gold < packPrices.gold}
                         className={`
-                          nb-bg-yellow nb-border-xl nb-shadow-lg p-3
-                          ${gameState.gold >= packPrices.gold ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                          transition-all
+                          relative group
+                          ${gameState.gold >= packPrices.gold ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                          transition-all duration-300
+                          ${gameState.gold >= packPrices.gold ? 'hover:scale-105 hover:-translate-y-1' : ''}
                         `}
                       >
-                        <div className="text-4xl mb-2">🥇</div>
-                        <div className="text-black font-black text-lg mb-1">GOLD</div>
-                        <div className="text-gray-800 text-xs mb-2 font-bold">1 Com + 2 Rare</div>
-                        <NBBadge
-                          color={gameState.gold >= packPrices.gold ? 'green' : 'white'}
-                          className="px-3 py-1 text-sm inline-flex items-center gap-1"
+                        {/* Pack Container */}
+                        <div className="relative nb-border-xl nb-shadow-xl overflow-hidden"
+                          style={{
+                            background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+                            aspectRatio: '2/3'
+                          }}
                         >
-                          <Coins className="w-4 h-4" />
-                          {packPrices.gold}
-                        </NBBadge>
+                          {/* Golden Shine */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-yellow-200/60 via-transparent to-amber-900/20"></div>
+                          <div className="absolute top-1/4 right-0 w-24 h-24 bg-yellow-200/40 blur-3xl rounded-full"></div>
+                          <div className="absolute bottom-1/4 left-0 w-20 h-20 bg-amber-600/30 blur-2xl rounded-full"></div>
+
+                          {/* Pack Content */}
+                          <div className="relative h-full flex flex-col items-center justify-between p-3">
+                            <div className="text-5xl drop-shadow-lg">🥇</div>
+
+                            <div className="text-center">
+                              <div className="text-black font-black text-xl uppercase tracking-wide drop-shadow-lg mb-1"
+                                style={{ textShadow: '2px 2px 4px rgba(255,215,0,0.5)' }}
+                              >
+                                GOLD
+                              </div>
+                              <div className="text-black text-xs font-bold bg-yellow-900/30 px-2 py-1 rounded text-white">
+                                3 CARDS
+                              </div>
+                            </div>
+
+                            <div className="w-full">
+                              <div className={`
+                                ${gameState.gold >= packPrices.gold ? 'nb-bg-green' : 'nb-bg-white'}
+                                nb-border nb-shadow px-2 py-1 text-center
+                              `}>
+                                <div className="flex items-center justify-center gap-1">
+                                  <Coins className="w-4 h-4" />
+                                  <span className="font-black text-sm">{packPrices.gold}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Gold Sparkle Effect */}
+                          <div className="absolute inset-0 opacity-40 bg-gradient-to-tl from-yellow-300/50 via-transparent to-yellow-400/50 animate-pulse"
+                            style={{ animationDuration: '2s' }}
+                          ></div>
+                        </div>
                       </button>
 
                       {/* Diamond Pack */}
@@ -676,21 +782,61 @@ export const Shop = () => {
                         onClick={() => handleBuyPack('diamond')}
                         disabled={gameState.gold < packPrices.diamond}
                         className={`
-                          nb-bg-purple nb-border-xl nb-shadow-lg p-3
-                          ${gameState.gold >= packPrices.diamond ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                          transition-all
+                          relative group
+                          ${gameState.gold >= packPrices.diamond ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                          transition-all duration-300
+                          ${gameState.gold >= packPrices.diamond ? 'hover:scale-105 hover:-translate-y-1' : ''}
                         `}
                       >
-                        <div className="text-4xl mb-2">💎</div>
-                        <div className="text-black font-black text-lg mb-1">DIAMOND</div>
-                        <div className="text-gray-800 text-xs mb-2 font-bold">3 Rare/Epic</div>
-                        <NBBadge
-                          color={gameState.gold >= packPrices.diamond ? 'green' : 'white'}
-                          className="px-3 py-1 text-sm inline-flex items-center gap-1"
+                        {/* Pack Container */}
+                        <div className="relative nb-border-xl nb-shadow-xl overflow-hidden"
+                          style={{
+                            background: 'linear-gradient(135deg, #a855f7 0%, #9333ea 30%, #7e22ce 60%, #6b21a8 100%)',
+                            aspectRatio: '2/3'
+                          }}
                         >
-                          <Coins className="w-4 h-4" />
-                          {packPrices.diamond}
-                        </NBBadge>
+                          {/* Rainbow Holographic Effect */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-pink-300/40 via-purple-300/40 to-blue-300/40 opacity-60"></div>
+                          <div className="absolute top-0 right-0 w-20 h-20 bg-pink-400/40 blur-2xl rounded-full"></div>
+                          <div className="absolute bottom-0 left-0 w-16 h-16 bg-blue-400/40 blur-xl rounded-full"></div>
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-white/20 blur-3xl rounded-full"></div>
+
+                          {/* Pack Content */}
+                          <div className="relative h-full flex flex-col items-center justify-between p-3">
+                            <div className="text-5xl drop-shadow-lg animate-pulse">💎</div>
+
+                            <div className="text-center">
+                              <div className="text-white font-black text-xl uppercase tracking-wide drop-shadow-lg mb-1"
+                                style={{ textShadow: '2px 2px 6px rgba(168,85,247,0.8), 0 0 10px rgba(236,72,153,0.5)' }}
+                              >
+                                DIAMOND
+                              </div>
+                              <div className="text-white text-xs font-bold bg-purple-900/40 px-2 py-1 rounded">
+                                3 CARDS
+                              </div>
+                            </div>
+
+                            <div className="w-full">
+                              <div className={`
+                                ${gameState.gold >= packPrices.diamond ? 'nb-bg-green' : 'nb-bg-white'}
+                                nb-border nb-shadow px-2 py-1 text-center
+                              `}>
+                                <div className="flex items-center justify-center gap-1">
+                                  <Coins className="w-4 h-4" />
+                                  <span className="font-black text-sm">{packPrices.diamond}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Holographic Rainbow Shimmer */}
+                          <div className="absolute inset-0 opacity-50"
+                            style={{
+                              background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%)',
+                              animation: 'shimmer 3s infinite'
+                            }}
+                          ></div>
+                        </div>
                       </button>
                     </div>
                   </div>

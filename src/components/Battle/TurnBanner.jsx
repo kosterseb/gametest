@@ -38,12 +38,12 @@ export const TurnBanner = ({ isEnemyTurn, show, onComplete }) => {
     if (isEnemyTurn) {
       // Enemy turn: swoosh from right
       if (animationStage === 'entering') return 'translateX(100%)';
-      if (animationStage === 'exiting') return 'translateX(-100%)';
+      if (animationStage === 'exiting') return 'translateX(-150%)';
       return 'translateX(0)';
     } else {
       // Player turn: swoosh from left
       if (animationStage === 'entering') return 'translateX(-100%)';
-      if (animationStage === 'exiting') return 'translateX(100%)';
+      if (animationStage === 'exiting') return 'translateX(150%)';
       return 'translateX(0)';
     }
   };
