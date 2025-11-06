@@ -6,8 +6,8 @@ export const HeartsBackground = () => {
   const animationFrameRef = useRef(null);
 
   useEffect(() => {
-    // Brighter colors that contrast well with purple background
-    const colors = ["#ff1493", "#00ffff", "#00ff00", "#ffff00", "#ff6347", "#ff69b4"];
+    // Original solid colors
+    const colors = ["#e03776", "#8f3e98", "#4687bf", "#3bab6f", "#f9c25e", "#f47274"];
     const SVG_NS = 'http://www.w3.org/2000/svg';
     const SVG_XLINK = "http://www.w3.org/1999/xlink";
 
@@ -22,10 +22,10 @@ export const HeartsBackground = () => {
       use.setAttributeNS(SVG_XLINK, 'xlink:href', '#heart');
       use.setAttributeNS(null, 'transform', `scale(${use.n})`);
       use.setAttributeNS(null, 'fill', colors[n % colors.length]);
-      use.setAttributeNS(null, 'fill-opacity', '0.3');
+      use.setAttributeNS(null, 'fill-opacity', '0.5');
       use.setAttributeNS(null, 'stroke', '#ffffff');
       use.setAttributeNS(null, 'stroke-width', '2');
-      use.setAttributeNS(null, 'stroke-opacity', '0.4');
+      use.setAttributeNS(null, 'stroke-opacity', '0.6');
       use.setAttributeNS(null, 'x', -69);
       use.setAttributeNS(null, 'y', -69);
       use.setAttributeNS(null, 'width', 138);
