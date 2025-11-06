@@ -68,14 +68,20 @@ export const CoinFlip = ({ onFlipComplete, playerName = "YOU", enemyName = "ENEM
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 backdrop-blur-sm">
-      <div className="bg-gradient-to-br from-indigo-900 to-purple-900 p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 border-4 border-amber-400">
-        <h2 className="text-3xl font-bold text-center text-white mb-2 flex items-center justify-center gap-3">
-          <Coins className="w-10 h-10 text-amber-400 animate-pulse" />
-          Who Strikes First?
-        </h2>
-        <p className="text-center text-amber-200 mb-6 text-sm">
-          Flip the coin to decide turn order!
-        </p>
+      <div className="bg-gradient-to-br from-indigo-400 to-purple-400 p-8 nb-border-xl nb-shadow-xl max-w-md w-full mx-4">
+        <div className="text-center mb-6">
+          <div className="nb-bg-orange nb-border-lg nb-shadow px-6 py-3 inline-block mb-3">
+            <h2 className="text-3xl font-black text-black flex items-center gap-3 uppercase">
+              <Coins className="w-10 h-10 text-black animate-pulse" />
+              Who Strikes First?
+            </h2>
+          </div>
+          <div className="nb-bg-white nb-border nb-shadow px-4 py-2 inline-block">
+            <p className="text-black font-bold text-sm uppercase">
+              Flip the coin to decide turn order!
+            </p>
+          </div>
+        </div>
 
         {/* Coin Display */}
         <div className="flex justify-center mb-8">
@@ -83,11 +89,11 @@ export const CoinFlip = ({ onFlipComplete, playerName = "YOU", enemyName = "ENEM
             className={`
               w-48 h-48 rounded-full
               bg-gradient-to-br ${getCoinGradient()}
-              shadow-2xl border-8 border-amber-300
+              nb-shadow-xl border-8 border-black
               flex items-center justify-center
               transition-all duration-200
               ${isFlipping ? 'animate-spin' : (result && !isFlipping ? 'animate-bounce' : '')}
-              ${result && !isFlipping ? 'ring-8 ring-amber-200' : ''}
+              ${result && !isFlipping ? 'ring-8 ring-yellow-400' : ''}
               relative
             `}
             style={{
@@ -103,7 +109,7 @@ export const CoinFlip = ({ onFlipComplete, playerName = "YOU", enemyName = "ENEM
               {result ? (
                 getCoinFace()
               ) : (
-                <Coins className="w-24 h-24 text-amber-900 opacity-50" />
+                <Coins className="w-24 h-24 text-black opacity-50" />
               )}
             </div>
           </div>
@@ -113,17 +119,22 @@ export const CoinFlip = ({ onFlipComplete, playerName = "YOU", enemyName = "ENEM
         {result && !isFlipping && (
           <div className="text-center mb-6 animate-fade-in">
             <div className={`
-              text-5xl font-bold mb-3
-              ${result === 'heads' ? 'text-cyan-300' : 'text-rose-300'}
+              ${result === 'heads' ? 'nb-bg-cyan' : 'nb-bg-red'}
+              nb-border-xl nb-shadow-xl
+              px-6 py-4 inline-block mb-4
             `}>
-              {result === 'heads' ? '👤 HEADS' : '👹 TAILS'}
+              <div className="text-5xl font-black text-black">
+                {result === 'heads' ? '👤 HEADS' : '👹 TAILS'}
+              </div>
             </div>
-            <div className="bg-amber-500 bg-opacity-20 border-2 border-amber-400 rounded-lg p-4">
-              <div className="text-white text-xl font-bold mb-1">
+            <div className="nb-bg-orange nb-border-lg nb-shadow p-4">
+              <div className="text-black text-xl font-black uppercase mb-2">
                 {getWinner()} goes first!
               </div>
-              <div className="text-amber-200 text-sm">
-                {result === 'heads' ? 'Player advantage!' : 'Enemy strikes first!'}
+              <div className="nb-bg-white nb-border nb-shadow px-3 py-1 inline-block">
+                <div className="text-black font-bold text-sm uppercase">
+                  {result === 'heads' ? 'Player advantage!' : 'Enemy strikes first!'}
+                </div>
               </div>
             </div>
           </div>
@@ -133,21 +144,25 @@ export const CoinFlip = ({ onFlipComplete, playerName = "YOU", enemyName = "ENEM
         {!hasFlipped && (
           <button
             onClick={handleFlip}
-            className="w-full bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-gray-900 font-bold text-xl py-4 rounded-xl shadow-lg transform hover:scale-105 transition-all border-2 border-amber-300"
+            className="w-full nb-bg-yellow nb-border-xl nb-shadow-xl nb-hover-lg nb-active text-black font-black text-xl py-4 uppercase transition-all"
           >
             🪙 Flip the Coin! 🪙
           </button>
         )}
 
         {hasFlipped && isFlipping && (
-          <div className="text-center text-amber-300 text-lg font-bold animate-pulse">
-            Flipping...
+          <div className="nb-bg-orange nb-border-lg nb-shadow p-3 text-center">
+            <div className="text-black font-black text-lg uppercase animate-pulse">
+              Flipping...
+            </div>
           </div>
         )}
 
         {hasFlipped && !isFlipping && (
-          <div className="text-center text-white text-sm animate-pulse">
-            Preparing battle...
+          <div className="nb-bg-white nb-border-lg nb-shadow p-3 text-center">
+            <div className="text-black font-black text-sm uppercase animate-pulse">
+              Preparing battle...
+            </div>
           </div>
         )}
       </div>
