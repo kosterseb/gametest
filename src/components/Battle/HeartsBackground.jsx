@@ -87,6 +87,10 @@ export const HeartsBackground = () => {
         {/* Direct test - big yellow circle that MUST be visible */}
         <circle cx="0" cy="0" r="200" fill="yellow" stroke="red" strokeWidth="10" />
         <text x="0" y="20" fontSize="80" fill="white" stroke="black" strokeWidth="4" textAnchor="middle" dominantBaseline="middle">HEARTS TEST</text>
+
+        {/* Test static hearts using the symbol */}
+        <use href="#heart" x="-69" y="-69" width="138" height="138" fill="#ff1493" stroke="white" strokeWidth="3" transform="scale(5)" />
+        <use href="#heart" x="-69" y="-69" width="138" height="138" fill="#00ffff" stroke="white" strokeWidth="3" transform="scale(10) translate(50, -50)" />
       </svg>
     </div>
   );
