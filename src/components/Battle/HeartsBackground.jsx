@@ -61,10 +61,13 @@ export const HeartsBackground = () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      // Clear hearts
-      while (svg.firstChild) {
-        svg.removeChild(svg.firstChild);
-      }
+      // Clear only the dynamically created hearts, not all children
+      heartsRyRef.current.forEach(heart => {
+        if (heart.parentNode === svg) {
+          svg.removeChild(heart);
+        }
+      });
+      heartsRyRef.current = [];
     };
   }, []);
 
