@@ -73,7 +73,11 @@ export const HeartsBackground = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 w-screen h-screen" style={{ zIndex: 1, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+    <div className="fixed inset-0 w-screen h-screen pointer-events-none" style={{ zIndex: 1 }}>
+      {/* Background gradient */}
+      <div className="absolute inset-0 w-full h-full" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}></div>
+
+      {/* SVG Hearts on top of gradient */}
       <svg
         ref={svgRef}
         id="hearts"
