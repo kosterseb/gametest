@@ -1164,7 +1164,7 @@ export const BattleRoute = () => {
             {(gameState.hasDrawAbility || gameState.hasDiscardAbility) && (
               <div className="mb-2 flex gap-2">
                 {gameState.hasDrawAbility && (
-                  <button
+                  <NBButton
                     onClick={() => {
                       if (hasUsedDrawAbility) {
                         setBattleLog(prev => [...prev, '⚠️ Already used Draw Card this turn!']);
@@ -1178,20 +1178,17 @@ export const BattleRoute = () => {
                       }
                     }}
                     disabled={isEnemyTurn || isBattleOver || playerEnergy < 3 || hasUsedDrawAbility || isAttackAnimationPlaying}
-                    className={`
-                      px-3 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1 transition-all
-                      ${playerEnergy >= 3 && !isEnemyTurn && !isBattleOver && !hasUsedDrawAbility && !isAttackAnimationPlaying
-                        ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
-                        : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'}
-                    `}
+                    variant={playerEnergy >= 3 && !isEnemyTurn && !isBattleOver && !hasUsedDrawAbility && !isAttackAnimationPlaying ? 'success' : 'white'}
+                    size="sm"
+                    className="flex items-center gap-1"
                   >
                     <span className="text-sm">🎴</span>
-                    Draw (3⚡) {hasUsedDrawAbility && '✓'}
-                  </button>
+                    DRAW (3⚡) {hasUsedDrawAbility && '✓'}
+                  </NBButton>
                 )}
 
                 {gameState.hasDiscardAbility && (
-                  <button
+                  <NBButton
                     onClick={() => {
                       if (hasUsedDiscardAbility) {
                         setBattleLog(prev => [...prev, '⚠️ Already used Discard this turn!']);
@@ -1206,16 +1203,13 @@ export const BattleRoute = () => {
                       }
                     }}
                     disabled={isEnemyTurn || isBattleOver || hand.length === 0 || hasUsedDiscardAbility || isAttackAnimationPlaying}
-                    className={`
-                      px-3 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1 transition-all
-                      ${hand.length > 0 && !isEnemyTurn && !isBattleOver && !hasUsedDiscardAbility && !isAttackAnimationPlaying
-                        ? 'bg-orange-600 hover:bg-orange-700 text-white cursor-pointer'
-                        : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'}
-                    `}
+                    variant={hand.length > 0 && !isEnemyTurn && !isBattleOver && !hasUsedDiscardAbility && !isAttackAnimationPlaying ? 'orange' : 'white'}
+                    size="sm"
+                    className="flex items-center gap-1"
                   >
                     <span className="text-sm">🗑️</span>
-                    Discard {hasUsedDiscardAbility && '✓'}
-                  </button>
+                    DISCARD {hasUsedDiscardAbility && '✓'}
+                  </NBButton>
                 )}
               </div>
             )}

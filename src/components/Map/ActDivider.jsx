@@ -55,28 +55,28 @@ export const ActDivider = ({ actNumber }) => {
     <div className="my-8 relative">
       {/* Divider Line */}
       <div className="absolute inset-0 flex items-center">
-        <div className="w-full border-t-4 border-white opacity-30"></div>
+        <div className="w-full border-t-8 border-black"></div>
       </div>
 
       {/* Act Badge */}
       <div className="relative flex justify-center">
         <div className={`
           bg-gradient-to-r ${actInfo.color}
-          px-8 py-4 rounded-full
-          border-4 border-white
-          shadow-2xl
-          transform hover:scale-105 transition-all duration-300
+          px-8 py-4
+          nb-border-xl nb-shadow-xl
+          nb-hover-lg
+          transition-all duration-300
         `}>
           <div className="flex items-center gap-3">
             {/* Icon */}
-            <div className="text-white">
+            <div className="text-black">
               {actInfo.icon}
             </div>
 
             {/* Text */}
-            <div className="text-white">
-              <div className="text-sm font-semibold opacity-90">ACT {actNumber}</div>
-              <div className="text-xl font-bold">{actInfo.name}</div>
+            <div className="text-black">
+              <div className="text-sm font-black uppercase">ACT {actNumber}</div>
+              <div className="text-2xl font-black uppercase">{actInfo.name}</div>
             </div>
 
             {/* Emoji */}
