@@ -22,8 +22,9 @@ export const HeartsBackground = () => {
       use.setAttributeNS(SVG_XLINK, 'xlink:href', '#heart');
       use.setAttributeNS(null, 'transform', `scale(${use.n})`);
       use.setAttributeNS(null, 'fill', colors[n % colors.length]);
+      use.setAttributeNS(null, 'fill-opacity', '0.8');
       use.setAttributeNS(null, 'stroke', '#ffffff');
-      use.setAttributeNS(null, 'stroke-width', '2');
+      use.setAttributeNS(null, 'stroke-width', '3');
       use.setAttributeNS(null, 'x', -69);
       use.setAttributeNS(null, 'y', -69);
       use.setAttributeNS(null, 'width', 138);
@@ -68,21 +69,22 @@ export const HeartsBackground = () => {
   }, []);
 
   return (
-    <svg
-      ref={svgRef}
-      id="hearts"
-      viewBox="-600 -400 1200 800"
-      preserveAspectRatio="xMidYMid slice"
-      className="fixed inset-0 w-screen h-screen pointer-events-none"
-      style={{ zIndex: 5, backgroundColor: '#A78BFA' }}
-    >
-      <defs>
-        <symbol id="heart" viewBox="-69 -16 138 138">
-          <path d="M0,12
-                   C 50,-30 110,50  0,120
-                   C-110,50 -50,-30 0,12z"/>
-        </symbol>
-      </defs>
-    </svg>
+    <div className="fixed inset-0 w-screen h-screen" style={{ zIndex: 1, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+      <svg
+        ref={svgRef}
+        id="hearts"
+        viewBox="-600 -400 1200 800"
+        preserveAspectRatio="xMidYMid slice"
+        className="absolute inset-0 w-full h-full pointer-events-none"
+      >
+        <defs>
+          <symbol id="heart" viewBox="-69 -16 138 138">
+            <path d="M0,12
+                     C 50,-30 110,50  0,120
+                     C-110,50 -50,-30 0,12z"/>
+          </symbol>
+        </defs>
+      </svg>
+    </div>
   );
 };
