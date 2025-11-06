@@ -118,9 +118,9 @@ export const VictoryScreen = () => {
       <HeartsBackground />
 
       <PageTransition>
-        <div className="h-screen p-8 flex items-center justify-center" style={{ position: 'relative', zIndex: 10 }}>
+        <div className="h-screen p-8 flex items-center justify-center" style={{ position: 'relative', zIndex: 1000 }}>
           {/* Content with entrance animation */}
-          <div className={`max-w-4xl w-full transition-all duration-700 ${showRewards ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ position: 'relative', zIndex: 10 }}>
+          <div className={`max-w-4xl w-full transition-all duration-700 ${showRewards ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           {/* Victory Banner */}
           <div className="text-center mb-8">
             <div className="nb-bg-white nb-border-xl nb-shadow-xl p-8 mb-6 inline-block animate-bounce">
