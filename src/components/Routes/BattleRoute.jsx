@@ -15,6 +15,7 @@ import { PageTransition } from '../UI/PageTransition';
 import { ItemButton } from '../Cards/ItemButton';
 import { DiceRoll } from '../Battle/DiceRoll';
 import { CoinFlip } from '../Battle/CoinFlip';
+import { TurnBanner } from '../Battle/TurnBanner';
 import { TorusTunnelBackground } from '../Battle/TorusTunnelBackground';
 import { CardHand } from '../Cards/CardHand';
 import { CardPlayParticles } from '../Effects/CardPlayParticles';
@@ -239,6 +240,19 @@ export const BattleRoute = () => {
   // ⏱️ Chess-style battle timer (2 minutes per player)
   const [playerTime, setPlayerTime] = useState(120); // 2 minutes in seconds
   const [enemyTime, setEnemyTime] = useState(120);
+
+  // 🎭 Turn banner state
+  const [showTurnBanner, setShowTurnBanner] = useState(false);
+  const prevIsEnemyTurnRef = useRef(isEnemyTurn);
+
+  // 🎭 Show turn banner when turn changes
+  useEffect(() => {
+    // Only show banner after turn order is decided and when turn actually changes
+    if (turnOrderDecided && prevIsEnemyTurnRef.current !== isEnemyTurn) {
+      prevIsEnemyTurnRef.current = isEnemyTurn;
+      setShowTurnBanner(true);
+    }
+  }, [isEnemyTurn, turnOrderDecided]);
 
   // ⏱️ Timer countdown - only counts down for active player
   useEffect(() => {
@@ -1281,6 +1295,13 @@ export const BattleRoute = () => {
           enemyName={currentEnemy?.name || "ENEMY"}
         />
       )}
+
+      {/* Turn Banner */}
+      <TurnBanner
+        isEnemyTurn={isEnemyTurn}
+        show={showTurnBanner}
+        onComplete={() => setShowTurnBanner(false)}
+      />
 
       {/* Dice Roll Overlay */}
       {showDiceRoll && (
