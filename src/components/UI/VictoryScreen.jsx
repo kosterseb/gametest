@@ -317,6 +317,7 @@ export const VictoryScreen = () => {
                 Congratulations, Champion!
               </p>
             </div>
+          </div>
         </div>
       </div>
     </>
