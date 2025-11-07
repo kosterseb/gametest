@@ -188,28 +188,66 @@ const FloorLabel = ({ position, floorNumber }) => {
   );
 };
 
-// Parallax Camera Controller
-const ParallaxCamera = () => {
-  const { camera } = useThree();
+// Drag/Pan Camera Controller with Parallax
+const DragPanCamera = () => {
+  const { camera, gl } = useThree();
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [cameraOffset, setCameraOffset] = useState({ x: 0, y: 0 });
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
 
-  // Track mouse for subtle parallax
+  // Track mouse for subtle parallax when NOT dragging
   React.useEffect(() => {
     const handleMouseMove = (e) => {
       // Normalize mouse position to -1 to 1
-      setMouse({
-        x: (e.clientX / window.innerWidth) * 2 - 1,
-        y: -(e.clientY / window.innerHeight) * 2 + 1
-      });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+      const normalizedX = (e.clientX / window.innerWidth) * 2 - 1;
+      const normalizedY = -(e.clientY / window.innerHeight) * 2 + 1;
 
-  // Apply subtle parallax movement to camera
+      setMouse({ x: normalizedX, y: normalizedY });
+
+      // Handle dragging
+      if (isDragging) {
+        const deltaX = e.clientX - dragStart.x;
+        const deltaY = e.clientY - dragStart.y;
+
+        // Convert screen space to world space movement
+        setCameraOffset({
+          x: cameraOffset.x - deltaX * 0.01,
+          y: cameraOffset.y + deltaY * 0.01
+        });
+
+        setDragStart({ x: e.clientX, y: e.clientY });
+      }
+    };
+
+    const handleMouseDown = (e) => {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX, y: e.clientY });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragStart, cameraOffset]);
+
+  // Apply camera movement
   useFrame(() => {
-    camera.position.x = mouse.x * 1;
-    camera.position.y = 2 + mouse.y * 0.5;
+    // Parallax effect (subtle) when not dragging
+    const parallaxX = isDragging ? 0 : mouse.x * 0.5;
+    const parallaxY = isDragging ? 0 : mouse.y * 0.3;
+
+    camera.position.x = cameraOffset.x + parallaxX;
+    camera.position.y = 2 + cameraOffset.y + parallaxY;
   });
 
   return null;
@@ -288,8 +326,8 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
       {/* Fixed isometric camera */}
       <PerspectiveCamera makeDefault position={[0, 2, 12]} fov={45} rotation={[-0.15, 0, 0]} />
 
-      {/* Parallax effect on mouse movement */}
-      <ParallaxCamera />
+      {/* Drag/Pan controls with parallax effect */}
+      <DragPanCamera />
 
       {/* Connection Lines */}
       {connections.map((conn, idx) => (

@@ -316,9 +316,88 @@ export const BranchingTreeMapView = () => {
           {/* 2D View - Branching Tree Display */}
           {!is3DView && (
             <div className="relative">
+              {/* SVG Connection Lines Overlay */}
+              <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
+                {selectedBiomeData.floors.map((floor) =>
+                  floor.nodes.map((node) => {
+                    if (!node.childrenIds || node.childrenIds.length === 0) return null;
+
+                    return node.childrenIds.map((childId) => {
+                      // Find the child node
+                      const childNode = selectedBiomeData.floors
+                        .flatMap(f => f.nodes)
+                        .find(n => n.id === childId);
+
+                      if (!childNode) return null;
+
+                      // Calculate approximate positions
+                      const parentFloorIdx = selectedBiomeData.floors.findIndex(f =>
+                        f.nodes.some(n => n.id === node.id)
+                      );
+                      const childFloorIdx = selectedBiomeData.floors.findIndex(f =>
+                        f.nodes.some(n => n.id === childId)
+                      );
+
+                      const parentNodeIdx = selectedBiomeData.floors[parentFloorIdx].nodes.findIndex(n => n.id === node.id);
+                      const childNodeIdx = selectedBiomeData.floors[childFloorIdx].nodes.findIndex(n => n.id === childId);
+
+                      const parentFloorNodes = selectedBiomeData.floors[parentFloorIdx].nodes.length;
+                      const childFloorNodes = selectedBiomeData.floors[childFloorIdx].nodes.length;
+
+                      // Approximate center positions
+                      const parentX = 50 + (parentNodeIdx - (parentFloorNodes - 1) / 2) * 15;
+                      const parentY = parentFloorIdx * 180 + 150;
+                      const childX = 50 + (childNodeIdx - (childFloorNodes - 1) / 2) * 15;
+                      const childY = childFloorIdx * 180 + 100;
+
+                      const isActive = gameState.availableNodeIds.includes(childId) ||
+                                     gameState.completedNodeIds.includes(node.id);
+
+                      return (
+                        <line
+                          key={`${node.id}-${childId}`}
+                          x1={`${parentX}%`}
+                          y1={parentY}
+                          x2={`${childX}%`}
+                          y2={childY}
+                          stroke="#000000"
+                          strokeWidth={isActive ? 4 : 2}
+                          opacity={isActive ? 1 : 0.3}
+                        />
+                      );
+                    });
+                  })
+                )}
+
+                {/* Lines to boss */}
+                {selectedBiomeData.floors[selectedBiomeData.floors.length - 1]?.nodes.map((node) => {
+                  const lastFloorIdx = selectedBiomeData.floors.length - 1;
+                  const nodeIdx = selectedBiomeData.floors[lastFloorIdx].nodes.findIndex(n => n.id === node.id);
+                  const floorNodes = selectedBiomeData.floors[lastFloorIdx].nodes.length;
+
+                  const startX = 50 + (nodeIdx - (floorNodes - 1) / 2) * 15;
+                  const startY = lastFloorIdx * 180 + 150;
+                  const endX = 50;
+                  const endY = (lastFloorIdx + 1) * 180 + 100;
+
+                  return (
+                    <line
+                      key={`${node.id}-boss`}
+                      x1={`${startX}%`}
+                      y1={startY}
+                      x2={`${endX}%`}
+                      y2={endY}
+                      stroke="#000000"
+                      strokeWidth={2}
+                      opacity={0.3}
+                    />
+                  );
+                })}
+              </svg>
+
               {/* Display tree floor by floor */}
               {selectedBiomeData.floors.map((floor, floorIdx) => (
-              <div key={floor.floor} className="mb-12">
+              <div key={floor.floor} className="mb-12 relative" style={{ zIndex: 1 }}>
                 {/* Floor Badge */}
                 <div className="flex justify-center mb-6">
                   <NBBadge
@@ -346,23 +425,11 @@ export const BranchingTreeMapView = () => {
                     </div>
                   ))}
                 </div>
-
-                {/* Connection Arrow */}
-                {floorIdx < selectedBiomeData.floors.length - 1 && (
-                  <div className="flex justify-center mt-6">
-                    <ArrowDown className="w-10 h-10 text-black" />
-                  </div>
-                )}
               </div>
             ))}
 
-            {/* Arrow to boss */}
-            <div className="flex justify-center my-8">
-              <ArrowDown className="w-12 h-12 text-black animate-bounce" />
-            </div>
-
             {/* Boss Floor */}
-            <div className="mb-8">
+            <div className="mb-8 mt-12 relative" style={{ zIndex: 1 }}>
               <div className="flex justify-center mb-6">
                 <NBBadge
                   color="purple"
