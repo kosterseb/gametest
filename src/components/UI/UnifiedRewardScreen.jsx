@@ -7,7 +7,6 @@ import { PageTransition } from './PageTransition';
 import { Card } from '../Cards/Card';
 import { Trophy, Package, AlertCircle, Check, X, Coins, Star } from 'lucide-react';
 import { NBButton, NBHeading, NBBadge } from './NeoBrutalUI';
-import { HeartsBackground } from '../Battle/HeartsBackground';
 
 // Count-up animation component
 const CountUp = ({ end, duration = 2000, prefix = '', suffix = '' }) => {
@@ -192,12 +191,8 @@ export const UnifiedRewardScreen = () => {
   };
 
   return (
-    <>
-      {/* Animated Hearts Background - Outside PageTransition to avoid stacking context issues */}
-      <HeartsBackground />
-
-      <PageTransition>
-        <div className="min-h-screen nb-bg-purple relative flex items-center justify-center p-8">
+    <PageTransition>
+      <div className="min-h-screen nb-bg-purple p-8 flex items-center justify-center">
           <div className={`max-w-6xl mx-auto w-full relative z-10 transition-all duration-700 ${showRewards ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           {/* Gold & Experience Display */}
           <div className={`grid grid-cols-2 gap-6 mb-8 transition-all duration-500 delay-200 ${showRewards ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
@@ -455,6 +450,5 @@ export const UnifiedRewardScreen = () => {
         </div>
       </div>
     </PageTransition>
-    </>
   );
 };
