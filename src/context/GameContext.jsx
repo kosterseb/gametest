@@ -57,6 +57,14 @@ const initialGameState = {
   selectedNodeId: null,
   jokerBonus: null,
 
+  // BRANCHING PATH SYSTEM
+  useBranchingPaths: true, // Toggle to enable new branching system
+  branchingMap: [], // New map structure: array of act objects
+  selectedPath: null, // 'combat', 'fortune', or 'mystery'
+  currentFloorInPath: 0, // 0-3 (position within chosen path)
+  completedFloors: [], // Array of floor numbers (for branching system)
+  pathLocked: false, // True once player selects a path for current act
+
   gold: 0,
 
   // Boss/Elite tracking
@@ -295,7 +303,13 @@ const gameReducer = (state, action) => {
             consumables: [null, null],
             passive: null
           }
-        }
+        },
+        // Reset branching path system
+        branchingMap: [],
+        selectedPath: null,
+        currentFloorInPath: 0,
+        completedFloors: [],
+        pathLocked: false
       };
 
     case 'SET_USED_REVIVE':
@@ -419,6 +433,180 @@ const gameReducer = (state, action) => {
         currentAct: nextAct,
         progressionMap: updatedMap,
         selectedNodeId: null
+      };
+
+    // ========== BRANCHING PATH SYSTEM ACTIONS ==========
+    case 'INITIALIZE_BRANCHING_MAP':
+      return {
+        ...state,
+        branchingMap: action.map,
+        currentAct: 1,
+        currentFloor: 1,
+        currentFloorInPath: 0,
+        selectedPath: null,
+        completedFloors: [],
+        pathLocked: false
+      };
+
+    case 'SELECT_PATH':
+      // Player selects a path at the start of an act
+      if (state.pathLocked) {
+        console.warn('Path already selected for this act');
+        return state;
+      }
+
+      const selectedActData = state.branchingMap[state.currentAct - 1];
+      if (!selectedActData) {
+        console.error('Act data not found');
+        return state;
+      }
+
+      const selectedPathData = selectedActData.paths.find(p => p.theme === action.pathTheme);
+      if (!selectedPathData) {
+        console.error('Path not found:', action.pathTheme);
+        return state;
+      }
+
+      // Make first floor of selected path available
+      const mapWithSelectedPath = state.branchingMap.map((act, idx) => {
+        if (idx === state.currentAct - 1) {
+          return {
+            ...act,
+            paths: act.paths.map(path => {
+              if (path.theme === action.pathTheme) {
+                return {
+                  ...path,
+                  floors: path.floors.map((floor, floorIdx) => {
+                    if (floorIdx === 0) {
+                      return {
+                        ...floor,
+                        node: { ...floor.node, available: true }
+                      };
+                    }
+                    return floor;
+                  })
+                };
+              }
+              return path;
+            })
+          };
+        }
+        return act;
+      });
+
+      return {
+        ...state,
+        selectedPath: action.pathTheme,
+        pathLocked: true,
+        branchingMap: mapWithSelectedPath,
+        currentFloorInPath: 0
+      };
+
+    case 'COMPLETE_FLOOR_IN_PATH':
+      // Complete current floor and make next floor available
+      const currentActIndex = state.currentAct - 1;
+      const currentActObj = state.branchingMap[currentActIndex];
+
+      if (!currentActObj || !state.selectedPath) {
+        console.error('Invalid state for completing floor');
+        return state;
+      }
+
+      const currentPathObj = currentActObj.paths.find(p => p.theme === state.selectedPath);
+      if (!currentPathObj) {
+        console.error('Current path not found');
+        return state;
+      }
+
+      const nextFloorInPath = state.currentFloorInPath + 1;
+      const currentFloorObj = currentPathObj.floors[state.currentFloorInPath];
+      const completedAbsoluteFloor = currentFloorObj.floor;
+
+      // If this was the last floor in path (floor 4), unlock boss
+      const isLastFloorInPath = nextFloorInPath >= 4;
+
+      const mapAfterCompletion = state.branchingMap.map((act, actIdx) => {
+        if (actIdx === currentActIndex) {
+          const updatedPaths = act.paths.map(path => {
+            if (path.theme === state.selectedPath) {
+              return {
+                ...path,
+                floors: path.floors.map((floor, floorIdx) => {
+                  // Mark current floor as completed
+                  if (floorIdx === state.currentFloorInPath) {
+                    return {
+                      ...floor,
+                      node: { ...floor.node, completed: true, available: false }
+                    };
+                  }
+                  // Make next floor available
+                  if (floorIdx === nextFloorInPath && !isLastFloorInPath) {
+                    return {
+                      ...floor,
+                      node: { ...floor.node, available: true }
+                    };
+                  }
+                  return floor;
+                })
+              };
+            }
+            return path;
+          });
+
+          // If last floor in path, make boss available
+          let updatedBossFloor = act.bossFloor;
+          if (isLastFloorInPath) {
+            updatedBossFloor = {
+              ...act.bossFloor,
+              node: { ...act.bossFloor.node, available: true }
+            };
+          }
+
+          return {
+            ...act,
+            paths: updatedPaths,
+            bossFloor: updatedBossFloor
+          };
+        }
+        return act;
+      });
+
+      return {
+        ...state,
+        branchingMap: mapAfterCompletion,
+        currentFloorInPath: isLastFloorInPath ? 4 : nextFloorInPath,
+        currentFloor: completedAbsoluteFloor + 1,
+        completedFloors: [...state.completedFloors, completedAbsoluteFloor]
+      };
+
+    case 'COMPLETE_BOSS_FLOOR':
+      // Complete boss and move to next act
+      const completedAct = state.currentAct;
+      const nextActNumber = completedAct + 1;
+
+      // Mark boss as completed
+      const mapAfterBoss = state.branchingMap.map((act, actIdx) => {
+        if (actIdx === completedAct - 1) {
+          return {
+            ...act,
+            bossFloor: {
+              ...act.bossFloor,
+              node: { ...act.bossFloor.node, completed: true, available: false }
+            }
+          };
+        }
+        return act;
+      });
+
+      return {
+        ...state,
+        branchingMap: mapAfterBoss,
+        currentAct: nextActNumber,
+        currentFloor: completedAct * 5 + 1,
+        currentFloorInPath: 0,
+        selectedPath: null,
+        pathLocked: false,
+        completedFloors: [...state.completedFloors, completedAct * 5]
       };
 
     case 'SET_ENEMY_FOR_BATTLE':
