@@ -411,7 +411,7 @@ const gameReducer = (state, action) => {
         selectedCardTypes: state.selectedCardTypes.filter(name => name !== action.cardName)
       };
 
-    case 'COMPLETE_NODE':
+    case 'COMPLETE_NODE': {
       const completedNodes = [...state.completedNodes, action.nodeId];
       const nextFloor = state.currentFloor + 1;
       const nextAct = Math.ceil(nextFloor / 5);
@@ -434,6 +434,7 @@ const gameReducer = (state, action) => {
         progressionMap: updatedMap,
         selectedNodeId: null
       };
+    }
 
     // ========== BRANCHING TREE SYSTEM ACTIONS ==========
     case 'INITIALIZE_BRANCHING_MAP':
@@ -600,7 +601,7 @@ const gameReducer = (state, action) => {
         availableNodeIds: newAvailableNodeIds
       };
 
-    case 'COMPLETE_BOSS_FLOOR':
+    case 'COMPLETE_BOSS_FLOOR': {
       // Complete boss and move to next act
       const completedActNum = state.currentAct;
       const nextAct = completedActNum + 1;
@@ -628,6 +629,7 @@ const gameReducer = (state, action) => {
         biomeLocked: false,
         availableNodeIds: []
       };
+    }
 
     case 'SET_ENEMY_FOR_BATTLE':
       const enemyData = action.enemyData;
