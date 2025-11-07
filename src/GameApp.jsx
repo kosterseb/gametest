@@ -11,7 +11,7 @@ import { VictoryScreen } from './components/UI/VictoryScreen';
 import { DefeatScreen } from './components/UI/DefeatScreen';
 import { Shop } from './components/UI/Shop';
 import { ProgressionMapView } from './components/Map/ProgressionMapView';
-import { BranchingMapView } from './components/Map/BranchingMapView';
+import { BranchingTreeMapView } from './components/Map/BranchingTreeMapView';
 import { JokerNode } from './components/UI/JokerNode';
 import { UnifiedRewardScreen } from './components/UI/UnifiedRewardScreen'; // ✅ FIXED
 import { BossReward } from './components/UI/BossReward'; // ✅ FIXED
@@ -39,7 +39,7 @@ const GameApp = () => {
       case '/battle':
         return <BattleRoute />;
       case '/map':
-        return gameState.useBranchingPaths ? <BranchingMapView /> : <ProgressionMapView />;
+        return gameState.useBranchingPaths ? <BranchingTreeMapView /> : <ProgressionMapView />;
       case '/shop':
         return <Shop />;
       case '/joker':
