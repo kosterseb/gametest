@@ -146,7 +146,14 @@ export const BranchingTreeMapView = () => {
   const { navigate } = useRouter();
   const [showRecap, setShowRecap] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
-  const [is3DView, setIs3DView] = useState(true); // Start with 3D view by default
+  const [selectedNodeScreenPos, setSelectedNodeScreenPos] = useState(null);
+
+  // Use state from GameContext instead of local state
+  const is3DView = gameState.prefer3DView;
+
+  const handleSelectedNodeScreenPosition = (pos) => {
+    setSelectedNodeScreenPos(pos);
+  };
 
   // Initialize branching map
   useEffect(() => {
@@ -175,6 +182,7 @@ export const BranchingTreeMapView = () => {
   const handleNodeSelect = (node) => {
     if (!node.available || node.completed) return;
     setSelectedNode(node);
+    setSelectedNodeScreenPos(null); // Reset screen position when selecting new node
   };
 
   const handleConfirmSelection = () => {
@@ -211,6 +219,7 @@ export const BranchingTreeMapView = () => {
 
   const handleCancelSelection = () => {
     setSelectedNode(null);
+    setSelectedNodeScreenPos(null);
   };
 
   if (gameState.branchingMap.length === 0) {
@@ -249,10 +258,9 @@ export const BranchingTreeMapView = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen nb-bg-purple p-8 overflow-y-auto">
-        <div className="max-w-6xl mx-auto">
-          {/* Header - Player Stats */}
-          <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6 mb-8 sticky top-0 z-40">
+      <div className="h-screen nb-bg-purple flex flex-col overflow-hidden">
+        {/* Header - Player Stats - Fixed on top */}
+        <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6 z-40 flex-shrink-0">
             <div className="flex justify-between items-center mb-4">
               <div>
                 <NBHeading level={1} className="mb-2">
@@ -272,7 +280,7 @@ export const BranchingTreeMapView = () => {
               <div className="flex gap-3 items-center">
                 {/* 3D Toggle Button */}
                 <NBButton
-                  onClick={() => setIs3DView(!is3DView)}
+                  onClick={() => dispatch({ type: 'TOGGLE_3D_VIEW' })}
                   variant={is3DView ? "success" : "white"}
                   size="sm"
                   className="px-4 py-2"
@@ -297,25 +305,27 @@ export const BranchingTreeMapView = () => {
                 </div>
               </div>
             </div>
+        </div>
+
+        {/* 3D View - Fills remaining screen space */}
+        {is3DView && (
+          <div className="flex-1 relative">
+            <ThreeDMapView
+              selectedBiomeData={selectedBiomeData}
+              currentActData={currentActData}
+              selectedNode={selectedNode}
+              onNodeSelect={handleNodeSelect}
+              availableNodeIds={gameState.availableNodeIds}
+              completedNodeIds={gameState.completedNodeIds}
+              onSelectedNodeScreenPosition={handleSelectedNodeScreenPosition}
+            />
           </div>
+        )}
 
-          {/* 3D View */}
-          {is3DView && (
-            <div className="relative" style={{ height: 'calc(100vh - 200px)' }}>
-              <ThreeDMapView
-                selectedBiomeData={selectedBiomeData}
-                currentActData={currentActData}
-                selectedNode={selectedNode}
-                onNodeSelect={handleNodeSelect}
-                availableNodeIds={gameState.availableNodeIds}
-                completedNodeIds={gameState.completedNodeIds}
-              />
-            </div>
-          )}
-
-          {/* 2D View - Branching Tree Display */}
-          {!is3DView && (
-            <div className="relative">
+        {/* 2D View - Branching Tree Display with scrolling */}
+        {!is3DView && (
+          <div className="flex-1 overflow-y-auto px-8">
+            <div className="relative max-w-6xl mx-auto">
               {/* SVG Connection Lines Overlay */}
               <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
                 {selectedBiomeData.floors.map((floor) =>
@@ -452,12 +462,25 @@ export const BranchingTreeMapView = () => {
                 />
               </div>
             </div>
+            </div>
           </div>
-          )}
+        )}
 
-          {/* Confirmation Panel - Show in both 2D and 3D */}
+        {/* Confirmation Panel - Show in both 2D and 3D */}
           {selectedNode && !selectedNode.completed && (
-            <div className="mt-8 animate-fadeIn fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+            <div
+              className="animate-fadeIn fixed z-50"
+              style={is3DView && selectedNodeScreenPos ? {
+                left: `${selectedNodeScreenPos.x + 20}px`,
+                top: `${selectedNodeScreenPos.y}px`,
+                transform: 'translateY(-50%)'
+              } : {
+                bottom: '2rem',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                marginTop: '2rem'
+              }}
+            >
               <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
                 <div className="text-center">
                   <NBHeading level={2} className="mb-6">
@@ -506,7 +529,6 @@ export const BranchingTreeMapView = () => {
               </div>
             </div>
           )}
-        </div>
 
         {/* Battle Recap Popup */}
         {showRecap && gameState.lastBattleRewards && gameState.battleStartStats && (

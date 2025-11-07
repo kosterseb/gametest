@@ -535,20 +535,16 @@ const generateBranchingTree = (act, biomeKey, biomeId) => {
     const previousFloor = floors[floorNum - 2];
     const newNodes = [];
 
-    // For each node in previous floor, create 2-3 branches
-    previousFloor.nodes.forEach((parentNode, parentIndex) => {
-      const branchCount = Math.floor(Math.random() * 2) + 2; // 2-3 branches
-
-      for (let branch = 0; branch < branchCount; branch++) {
-        // Calculate horizontal position for visual layout
-        const baseX = parentIndex * branchCount + branch - 1;
-
+    // Floor 4 special handling: create exactly 3 nodes total
+    if (floorNum === 4) {
+      // Create exactly 3 nodes for floor 4
+      for (let i = 0; i < 3; i++) {
         const childNode = {
           id: `${biomeId}_node_${nodeIdCounter++}`,
           type: selectNodeTypeForPath(biomeKey, floorNum - 1, act),
           floor: absoluteFloor,
-          position: { x: baseX, y: floorNum - 1 },
-          parentIds: [parentNode.id],
+          position: { x: i - 1, y: floorNum - 1 }, // Position -1, 0, 1 (left, center, right)
+          parentIds: [],
           childrenIds: [],
           available: false,
           completed: false
@@ -561,9 +557,46 @@ const generateBranchingTree = (act, biomeKey, biomeId) => {
         }
 
         newNodes.push(childNode);
-        parentNode.childrenIds.push(childNode.id);
       }
-    });
+
+      // Connect all nodes from floor 3 to all nodes in floor 4
+      previousFloor.nodes.forEach((parentNode) => {
+        newNodes.forEach((childNode) => {
+          childNode.parentIds.push(parentNode.id);
+          parentNode.childrenIds.push(childNode.id);
+        });
+      });
+    } else {
+      // For floors 2-3, create 2-3 branches per parent node
+      previousFloor.nodes.forEach((parentNode, parentIndex) => {
+        const branchCount = Math.floor(Math.random() * 2) + 2; // 2-3 branches
+
+        for (let branch = 0; branch < branchCount; branch++) {
+          // Calculate horizontal position for visual layout
+          const baseX = parentIndex * branchCount + branch - 1;
+
+          const childNode = {
+            id: `${biomeId}_node_${nodeIdCounter++}`,
+            type: selectNodeTypeForPath(biomeKey, floorNum - 1, act),
+            floor: absoluteFloor,
+            position: { x: baseX, y: floorNum - 1 },
+            parentIds: [parentNode.id],
+            childrenIds: [],
+            available: false,
+            completed: false
+          };
+
+          if (childNode.type === 'enemy' || childNode.type === 'elite') {
+            const enemyPool = childNode.type === 'elite' ? eliteEnemies : basicEnemies;
+            const randomEnemy = enemyPool[Math.floor(Math.random() * enemyPool.length)];
+            childNode.enemyData = { ...randomEnemy, act };
+          }
+
+          newNodes.push(childNode);
+          parentNode.childrenIds.push(childNode.id);
+        }
+      });
+    }
 
     // Add convergence (merge some paths) - 30% chance per floor
     if (floorNum < 4 && newNodes.length > 3 && Math.random() < 0.3) {

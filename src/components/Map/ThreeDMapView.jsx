@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useState } from 'react';
+import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { PerspectiveCamera, Line, Billboard, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -93,9 +93,9 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick 
         <lineBasicMaterial color="#000000" linewidth={4} />
       </lineSegments>
 
-      {/* Selection indicator - chunky ring */}
+      {/* Selection indicator - chunky ring (rotated to face viewer) */}
       {isSelected && (
-        <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, -0.8, 0]}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.8, 0]}>
           <ringGeometry args={[0.8, 1.0, 8]} />
           <meshBasicMaterial color="#000000" side={THREE.DoubleSide} />
         </mesh>
@@ -253,8 +253,31 @@ const DragPanCamera = () => {
   return null;
 };
 
+// Screen Position Tracker - Converts 3D position to 2D screen coordinates
+const ScreenPositionTracker = ({ position, onPositionUpdate }) => {
+  const { camera, size } = useThree();
+
+  useFrame(() => {
+    if (!position || !onPositionUpdate) return;
+
+    // Create a vector from the 3D position
+    const vector = new THREE.Vector3(...position);
+
+    // Project to screen space
+    vector.project(camera);
+
+    // Convert to pixel coordinates
+    const x = (vector.x * 0.5 + 0.5) * size.width;
+    const y = (vector.y * -0.5 + 0.5) * size.height;
+
+    onPositionUpdate({ x, y });
+  });
+
+  return null;
+};
+
 // Main 3D Scene
-const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelect, availableNodeIds, completedNodeIds }) => {
+const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelect, availableNodeIds, completedNodeIds, onSelectedNodeScreenPosition }) => {
   // Calculate node positions in 2.5D space with parallax depth
   const nodePositions = useMemo(() => {
     const positions = new Map();
@@ -387,6 +410,14 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
           floorNumber={currentActData.bossFloor.floor}
         />
       )}
+
+      {/* Track selected node screen position */}
+      {selectedNode && (
+        <ScreenPositionTracker
+          position={nodePositions.get(selectedNode.id)}
+          onPositionUpdate={onSelectedNodeScreenPosition}
+        />
+      )}
     </>
   );
 };
@@ -398,10 +429,11 @@ export const ThreeDMapView = ({
   selectedNode,
   onNodeSelect,
   availableNodeIds,
-  completedNodeIds
+  completedNodeIds,
+  onSelectedNodeScreenPosition
 }) => {
   return (
-    <div className="w-full h-screen">
+    <div className="w-full h-full">
       <Canvas
         gl={{ antialias: true }}
         dpr={[1, 2]}
@@ -416,6 +448,7 @@ export const ThreeDMapView = ({
           onNodeSelect={onNodeSelect}
           availableNodeIds={availableNodeIds}
           completedNodeIds={completedNodeIds}
+          onSelectedNodeScreenPosition={onSelectedNodeScreenPosition}
         />
       </Canvas>
     </div>

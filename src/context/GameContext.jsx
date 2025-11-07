@@ -113,6 +113,7 @@ const initialGameState = {
   maxPassiveSlots: 1,
   activeItemEffects: {},
   showPreBattleLoadout: true,
+  prefer3DView: true, // User preference for 3D map view
 
   // Inventory upgrades purchased
   bagUpgradesPurchased: 0,
@@ -151,7 +152,8 @@ const gameReducer = (state, action) => {
           inventory: loadedProfile.currentRun.inventory,
           completedNodes: loadedProfile.currentRun.completedNodes,
           progressionMap: loadedProfile.currentRun.progressionMap,
-          showPreBattleLoadout: loadedProfile.settings.showPreBattleLoadout
+          showPreBattleLoadout: loadedProfile.settings.showPreBattleLoadout,
+          prefer3DView: loadedProfile.settings.prefer3DView !== undefined ? loadedProfile.settings.prefer3DView : true
         } : {})
       };
 
@@ -178,7 +180,8 @@ const gameReducer = (state, action) => {
           },
           settings: {
             ...state.profile.settings,
-            showPreBattleLoadout: state.showPreBattleLoadout
+            showPreBattleLoadout: state.showPreBattleLoadout,
+            prefer3DView: state.prefer3DView
           }
         };
 
@@ -1203,6 +1206,12 @@ const gameReducer = (state, action) => {
       return {
         ...state,
         showPreBattleLoadout: !state.showPreBattleLoadout
+      };
+
+    case 'TOGGLE_3D_VIEW':
+      return {
+        ...state,
+        prefer3DView: !state.prefer3DView
       };
 
     case 'OPEN_MENU':
