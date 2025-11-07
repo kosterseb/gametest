@@ -113,13 +113,15 @@ export const VictoryScreen = () => {
 
   return (
     <>
-      {/* Animated Hearts Background */}
-      <HeartsBackground />
+      {/* Victory Content Container */}
+      <div className="h-screen relative overflow-hidden">
+        {/* Hearts Background - INSIDE container */}
+        <HeartsBackground />
 
-      {/* Victory Content - No PageTransition to avoid stacking context issues */}
-      <div className="h-screen p-8 flex items-center justify-center pointer-events-auto" style={{ position: 'relative', zIndex: 10, backgroundColor: 'transparent' }}>
-        {/* Content with entrance animation */}
-        <div className={`max-w-4xl w-full transition-all duration-700 ${showRewards ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        {/* Victory Content - positioned above hearts */}
+        <div className="absolute inset-0 p-8 flex items-center justify-center pointer-events-auto" style={{ zIndex: 10 }}>
+          {/* Content with entrance animation */}
+          <div className={`max-w-4xl w-full transition-all duration-700 ${showRewards ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           {/* Victory Banner */}
           <div className="text-center mb-8">
             <div className="nb-bg-white nb-border-xl nb-shadow-xl p-8 mb-6 inline-block animate-bounce">
@@ -322,6 +324,7 @@ export const VictoryScreen = () => {
               </p>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </>

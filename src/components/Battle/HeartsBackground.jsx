@@ -73,9 +73,9 @@ export const HeartsBackground = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 w-screen h-screen pointer-events-none" style={{ zIndex: 1 }}>
-      {/* Background gradient - restored */}
-      <div className="absolute inset-0 w-full h-full" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', zIndex: -1 }}></div>
+    <div className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
+      {/* Background gradient */}
+      <div className="absolute inset-0 w-full h-full" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}></div>
 
       {/* SVG Hearts on top of gradient */}
       <svg
@@ -84,7 +84,6 @@ export const HeartsBackground = () => {
         viewBox="-600 -400 1200 800"
         preserveAspectRatio="xMidYMid slice"
         className="absolute inset-0 w-full h-full pointer-events-none"
-        style={{ zIndex: 1 }}
       >
         <defs>
           <symbol id="heart" viewBox="0 0 100 100">
