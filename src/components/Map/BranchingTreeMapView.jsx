@@ -5,8 +5,9 @@ import { generateBranchingMap } from '../../utils/mapGenerator';
 import { PageTransition } from '../UI/PageTransition';
 import { MapNode } from './MapNode';
 import { NBButton, NBHeading, NBBadge } from '../UI/NeoBrutalUI';
-import { Heart, Coins, ArrowDown, CheckCircle } from 'lucide-react';
+import { Heart, Coins, ArrowDown, CheckCircle, Maximize, Minimize } from 'lucide-react';
 import { BattleRecapPopup } from '../UI/BattleRecapPopup';
+import { ThreeDMapView } from './ThreeDMapView';
 
 // Biome Selection Screen
 const BiomeSelectionScreen = ({ actData, onSelectBiome }) => {
@@ -145,6 +146,7 @@ export const BranchingTreeMapView = () => {
   const { navigate } = useRouter();
   const [showRecap, setShowRecap] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
+  const [is3DView, setIs3DView] = useState(true); // Start with 3D view by default
 
   // Initialize branching map
   useEffect(() => {
@@ -266,8 +268,19 @@ export const BranchingTreeMapView = () => {
                 </div>
               </div>
 
-              {/* Player Stats */}
-              <div className="flex gap-3">
+              {/* Player Stats and Controls */}
+              <div className="flex gap-3 items-center">
+                {/* 3D Toggle Button */}
+                <NBButton
+                  onClick={() => setIs3DView(!is3DView)}
+                  variant={is3DView ? "success" : "white"}
+                  size="sm"
+                  className="px-4 py-2"
+                >
+                  {is3DView ? <Minimize className="w-4 h-4 mr-2" /> : <Maximize className="w-4 h-4 mr-2" />}
+                  {is3DView ? '2D' : '3D'}
+                </NBButton>
+
                 <div className="nb-bg-red nb-border-lg nb-shadow px-4 py-2">
                   <div className="flex items-center gap-2">
                     <Heart className="w-5 h-5 text-black" />
@@ -286,10 +299,25 @@ export const BranchingTreeMapView = () => {
             </div>
           </div>
 
-          {/* Branching Tree Display */}
-          <div className="relative">
-            {/* Display tree floor by floor */}
-            {selectedBiomeData.floors.map((floor, floorIdx) => (
+          {/* 3D View */}
+          {is3DView && (
+            <div className="relative" style={{ height: 'calc(100vh - 200px)' }}>
+              <ThreeDMapView
+                selectedBiomeData={selectedBiomeData}
+                currentActData={currentActData}
+                selectedNode={selectedNode}
+                onNodeSelect={handleNodeSelect}
+                availableNodeIds={gameState.availableNodeIds}
+                completedNodeIds={gameState.completedNodeIds}
+              />
+            </div>
+          )}
+
+          {/* 2D View - Branching Tree Display */}
+          {!is3DView && (
+            <div className="relative">
+              {/* Display tree floor by floor */}
+              {selectedBiomeData.floors.map((floor, floorIdx) => (
               <div key={floor.floor} className="mb-12">
                 {/* Floor Badge */}
                 <div className="flex justify-center mb-6">
@@ -357,59 +385,60 @@ export const BranchingTreeMapView = () => {
                 />
               </div>
             </div>
+          </div>
+          )}
 
-            {/* Confirmation Panel */}
-            {selectedNode && !selectedNode.completed && (
-              <div className="mt-8 animate-fadeIn">
-                <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
-                  <div className="text-center">
-                    <NBHeading level={2} className="mb-6">
-                      {selectedNode.type === 'boss' ? 'FIGHT BOSS' :
-                        selectedNode.type === 'elite' ? 'FIGHT ELITE' :
-                          selectedNode.type === 'enemy' ? 'ENTER BATTLE' :
-                            selectedNode.type === 'shop' ? 'VISIT SHOP' : 'ENTER MYSTERY NODE'}?
-                    </NBHeading>
+          {/* Confirmation Panel - Show in both 2D and 3D */}
+          {selectedNode && !selectedNode.completed && (
+            <div className="mt-8 animate-fadeIn fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+              <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
+                <div className="text-center">
+                  <NBHeading level={2} className="mb-6">
+                    {selectedNode.type === 'boss' ? 'FIGHT BOSS' :
+                      selectedNode.type === 'elite' ? 'FIGHT ELITE' :
+                        selectedNode.type === 'enemy' ? 'ENTER BATTLE' :
+                          selectedNode.type === 'shop' ? 'VISIT SHOP' : 'ENTER MYSTERY NODE'}?
+                  </NBHeading>
 
-                    {/* Enemy Quick Info */}
-                    {(selectedNode.type === 'enemy' || selectedNode.type === 'elite' || selectedNode.type === 'boss') && selectedNode.enemyData && (
-                      <div className="mb-6 nb-bg-cyan nb-border-xl nb-shadow-lg p-4 inline-block">
-                        <div className="flex items-center gap-4">
-                          <div className="text-5xl">{selectedNode.enemyData.emoji}</div>
-                          <div className="text-left">
-                            <div className="font-black text-xl text-black uppercase">{selectedNode.enemyData.name}</div>
-                            <div className="text-sm text-gray-800 font-bold">
-                              HP: {selectedNode.enemyData.health} • Gold: {selectedNode.enemyData.goldReward[0]}-{selectedNode.enemyData.goldReward[1]}
-                            </div>
+                  {/* Enemy Quick Info */}
+                  {(selectedNode.type === 'enemy' || selectedNode.type === 'elite' || selectedNode.type === 'boss') && selectedNode.enemyData && (
+                    <div className="mb-6 nb-bg-cyan nb-border-xl nb-shadow-lg p-4 inline-block">
+                      <div className="flex items-center gap-4">
+                        <div className="text-5xl">{selectedNode.enemyData.emoji}</div>
+                        <div className="text-left">
+                          <div className="font-black text-xl text-black uppercase">{selectedNode.enemyData.name}</div>
+                          <div className="text-sm text-gray-800 font-bold">
+                            HP: {selectedNode.enemyData.health} • Gold: {selectedNode.enemyData.goldReward[0]}-{selectedNode.enemyData.goldReward[1]}
                           </div>
                         </div>
                       </div>
-                    )}
-
-                    <div className="flex justify-center gap-4">
-                      <NBButton
-                        onClick={handleConfirmSelection}
-                        variant={selectedNode.type === 'boss' ? 'danger' :
-                          selectedNode.type === 'elite' ? 'orange' : 'success'}
-                        size="lg"
-                        className="px-8 py-4 text-xl"
-                      >
-                        CONFIRM
-                      </NBButton>
-
-                      <NBButton
-                        onClick={handleCancelSelection}
-                        variant="white"
-                        size="lg"
-                        className="px-8 py-4 text-xl"
-                      >
-                        CANCEL
-                      </NBButton>
                     </div>
+                  )}
+
+                  <div className="flex justify-center gap-4">
+                    <NBButton
+                      onClick={handleConfirmSelection}
+                      variant={selectedNode.type === 'boss' ? 'danger' :
+                        selectedNode.type === 'elite' ? 'orange' : 'success'}
+                      size="lg"
+                      className="px-8 py-4 text-xl"
+                    >
+                      CONFIRM
+                    </NBButton>
+
+                    <NBButton
+                      onClick={handleCancelSelection}
+                      variant="white"
+                      size="lg"
+                      className="px-8 py-4 text-xl"
+                    >
+                      CANCEL
+                    </NBButton>
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Battle Recap Popup */}
