@@ -1,8 +1,8 @@
 import { basicEnemies, eliteEnemies, bossEnemies, finalBoss } from '../data/enemies';
 
-// Biome theme configurations (will be expanded to 15 biomes - 3 per act)
+// Biome theme configurations - 15 TOTAL BIOMES (3 per act)
 const BIOME_THEMES = {
-  // ACT 1 BIOMES (Easy)
+  // ========== ACT 1 BIOMES (Easy/Tutorial) ==========
   swamp: {
     names: ['Poisonmire', 'Toxicrest', 'Venomhaven', 'Murkmire', 'Rotfen'],
     suffix: ['Depths', 'Marshlands', 'Basin', 'Wetlands', 'Bog'],
@@ -15,10 +15,14 @@ const BIOME_THEMES = {
       goldMultiplier: 1.0
     },
     nodeDistribution: {
-      enemy: 0.55,
-      elite: 0.10,
-      shop: 0.20,
-      joker: 0.15
+      enemy: 0.45,
+      elite: 0.08,
+      shop: 0.18,
+      event: 0.15,
+      mystery: 0.05,
+      god: 0.01,
+      rest: 0.08,
+      joker: 0.00 // Deprecated in favor of event nodes
     }
   },
   forest: {
@@ -33,10 +37,14 @@ const BIOME_THEMES = {
       goldMultiplier: 1.0
     },
     nodeDistribution: {
-      enemy: 0.50,
-      elite: 0.10,
-      shop: 0.25,
-      joker: 0.15
+      enemy: 0.40,
+      elite: 0.08,
+      shop: 0.20,
+      event: 0.18,
+      mystery: 0.05,
+      god: 0.01,
+      rest: 0.08,
+      joker: 0.00
     }
   },
   caves: {
@@ -51,14 +59,18 @@ const BIOME_THEMES = {
       itemDropBonus: 1.1
     },
     nodeDistribution: {
-      enemy: 0.45,
-      elite: 0.15,
-      shop: 0.20,
-      joker: 0.20
+      enemy: 0.35,
+      elite: 0.12,
+      shop: 0.18,
+      event: 0.15,
+      mystery: 0.08,
+      god: 0.02,
+      rest: 0.10,
+      joker: 0.00
     }
   },
 
-  // ACT 2 BIOMES (Medium) - Placeholder for now
+  // ========== ACT 2 BIOMES (Medium) ==========
   volcano: {
     names: ['Emberfall', 'Magmapeak', 'Ashcrown', 'Cindermont', 'Blazerock'],
     suffix: ['Caldera', 'Peaks', 'Summit', 'Crater', 'Ridge'],
@@ -71,10 +83,14 @@ const BIOME_THEMES = {
       goldMultiplier: 1.1
     },
     nodeDistribution: {
-      enemy: 0.60,
-      elite: 0.20,
-      shop: 0.10,
-      joker: 0.10
+      enemy: 0.50,
+      elite: 0.15,
+      shop: 0.12,
+      event: 0.12,
+      mystery: 0.04,
+      god: 0.01,
+      rest: 0.06,
+      joker: 0.00
     }
   },
   frost: {
@@ -89,10 +105,14 @@ const BIOME_THEMES = {
       goldMultiplier: 1.1
     },
     nodeDistribution: {
-      enemy: 0.55,
-      elite: 0.20,
-      shop: 0.15,
-      joker: 0.10
+      enemy: 0.48,
+      elite: 0.15,
+      shop: 0.14,
+      event: 0.12,
+      mystery: 0.04,
+      god: 0.01,
+      rest: 0.06,
+      joker: 0.00
     }
   },
   desert: {
@@ -107,51 +127,304 @@ const BIOME_THEMES = {
       goldMultiplier: 1.05
     },
     nodeDistribution: {
-      enemy: 0.50,
-      elite: 0.20,
-      shop: 0.20,
-      joker: 0.10
+      enemy: 0.45,
+      elite: 0.15,
+      shop: 0.15,
+      event: 0.14,
+      mystery: 0.04,
+      god: 0.01,
+      rest: 0.06,
+      joker: 0.00
     }
   },
 
-  // PLACEHOLDERS for Acts 3, 4, 5 (will design these with the user later)
-  // We'll add 9 more biomes during the biome design phase
+  // ========== ACT 3 BIOMES (Advanced) ==========
+  ocean: {
+    names: ['Deepcurrent', 'Tidecrest', 'Abyssreach', 'Coralspire', 'Wavecrash'],
+    suffix: ['Depths', 'Reef', 'Trench', 'Abyss', 'Current'],
+    icon: '🌊',
+    color: 'blue',
+    description: 'Underwater ruins filled with ancient horrors',
+    theme: 'water',
+    modifiers: {
+      waterDamage: 1.25,
+      goldMultiplier: 1.15
+    },
+    nodeDistribution: {
+      enemy: 0.45,
+      elite: 0.18,
+      shop: 0.10,
+      event: 0.14,
+      mystery: 0.06,
+      god: 0.02,
+      rest: 0.05,
+      joker: 0.00
+    }
+  },
+  sky: {
+    names: ['Cloudpeak', 'Stormcrest', 'Windspire', 'Skyreach', 'Thundervale'],
+    suffix: ['Citadel', 'Spire', 'Heights', 'Summit', 'Peaks'],
+    icon: '☁️',
+    color: 'cyan',
+    description: 'Floating islands among the clouds',
+    theme: 'air',
+    modifiers: {
+      lightningDamage: 1.3,
+      goldMultiplier: 1.15
+    },
+    nodeDistribution: {
+      enemy: 0.42,
+      elite: 0.18,
+      shop: 0.12,
+      event: 0.15,
+      mystery: 0.06,
+      god: 0.02,
+      rest: 0.05,
+      joker: 0.00
+    }
+  },
+  shadow: {
+    names: ['Darkveil', 'Shadowmire', 'Voidcrest', 'Duskrealm', 'Nightfall'],
+    suffix: ['Depths', 'Realm', 'Domain', 'Void', 'Expanse'],
+    icon: '🌑',
+    color: 'purple',
+    description: 'A realm of corruption and darkness',
+    theme: 'shadow',
+    modifiers: {
+      corruptionDamage: 1.3,
+      goldMultiplier: 1.2
+    },
+    nodeDistribution: {
+      enemy: 0.48,
+      elite: 0.20,
+      shop: 0.08,
+      event: 0.12,
+      mystery: 0.07,
+      god: 0.02,
+      rest: 0.03,
+      joker: 0.00
+    }
+  },
+
+  // ========== ACT 4 BIOMES (Hard) ==========
+  crystal: {
+    names: ['Prismpeak', 'Gemcrest', 'Crystalspire', 'Arcanefall', 'Shardreach'],
+    suffix: ['Caverns', 'Mines', 'Sanctum', 'Grotto', 'Nexus'],
+    icon: '💎',
+    color: 'purple',
+    description: 'Crystal caverns humming with arcane energy',
+    theme: 'arcane',
+    modifiers: {
+      magicDamage: 1.35,
+      goldMultiplier: 1.25
+    },
+    nodeDistribution: {
+      enemy: 0.42,
+      elite: 0.22,
+      shop: 0.10,
+      event: 0.12,
+      mystery: 0.08,
+      god: 0.02,
+      rest: 0.04,
+      joker: 0.00
+    }
+  },
+  graveyard: {
+    names: ['Bonecrest', 'Tombvale', 'Deadreach', 'Soulfen', 'Crypthollow'],
+    suffix: ['Cemetery', 'Graveyard', 'Crypts', 'Tombs', 'Barrows'],
+    icon: '⚰️',
+    color: 'gray',
+    description: 'A cursed graveyard where the dead walk',
+    theme: 'undead',
+    modifiers: {
+      curseDamage: 1.3,
+      goldMultiplier: 1.2
+    },
+    nodeDistribution: {
+      enemy: 0.50,
+      elite: 0.22,
+      shop: 0.08,
+      event: 0.10,
+      mystery: 0.06,
+      god: 0.01,
+      rest: 0.03,
+      joker: 0.00
+    }
+  },
+  clockwork: {
+    names: ['Gearcrest', 'Cogspire', 'Steamvale', 'Clockreach', 'Ironforge'],
+    suffix: ['Factory', 'Foundry', 'Workshop', 'Forge', 'Complex'],
+    icon: '⚙️',
+    color: 'orange',
+    description: 'A mechanical realm of gears and steam',
+    theme: 'mechanical',
+    modifiers: {
+      mechanicalDamage: 1.3,
+      goldMultiplier: 1.3
+    },
+    nodeDistribution: {
+      enemy: 0.45,
+      elite: 0.22,
+      shop: 0.12,
+      event: 0.10,
+      mystery: 0.06,
+      god: 0.02,
+      rest: 0.03,
+      joker: 0.00
+    }
+  },
+
+  // ========== ACT 5 BIOMES (Endgame/Cosmic) ==========
+  tiret: {
+    names: ['Celestia', 'Divinecrest', 'Holyspire', 'Lightreach', 'Heavengate'],
+    suffix: ['Haven', 'Sanctum', 'Paradise', 'Realm', 'Gates'],
+    icon: '☀️',
+    color: 'yellow',
+    description: 'The divine realm of Tiret, where angels dwell',
+    theme: 'holy',
+    modifiers: {
+      holyDamage: 1.4,
+      goldMultiplier: 1.5
+    },
+    nodeDistribution: {
+      enemy: 0.40,
+      elite: 0.25,
+      shop: 0.08,
+      event: 0.10,
+      mystery: 0.10,
+      god: 0.05,
+      rest: 0.02,
+      joker: 0.00
+    }
+  },
+  lumio: {
+    names: ['Infernopeak', 'Hellcrest', 'Doomspire', 'Blazereach', 'Brimstone'],
+    suffix: ['Abyss', 'Inferno', 'Pits', 'Depths', 'Hell'],
+    icon: '🔥',
+    color: 'red',
+    description: 'The hellish realm of Lumio, domain of demons',
+    theme: 'demonic',
+    modifiers: {
+      demonicDamage: 1.4,
+      goldMultiplier: 1.5
+    },
+    nodeDistribution: {
+      enemy: 0.50,
+      elite: 0.25,
+      shop: 0.05,
+      event: 0.08,
+      mystery: 0.08,
+      god: 0.02,
+      rest: 0.02,
+      joker: 0.00
+    }
+  },
+  celta: {
+    names: ['Voidreach', 'Nullcrest', 'Nothingspire', 'Limbofall', 'Emptyvale'],
+    suffix: ['Void', 'Limbo', 'Nothingness', 'Between', 'Expanse'],
+    icon: '⚫',
+    color: 'gray',
+    description: 'The realm of Celta, the eternal nothingness',
+    theme: 'void',
+    modifiers: {
+      voidDamage: 1.5,
+      goldMultiplier: 1.5
+    },
+    nodeDistribution: {
+      enemy: 0.45,
+      elite: 0.25,
+      shop: 0.06,
+      event: 0.12,
+      mystery: 0.08,
+      god: 0.03,
+      rest: 0.01,
+      joker: 0.00
+    }
+  }
 };
 
 // Generate node based on type
 const generateNode = (nodeType, act, nodeId) => {
+  const baseNode = {
+    id: nodeId,
+    type: nodeType,
+    completed: false,
+    available: false
+  };
+
   if (nodeType === 'enemy') {
     const randomEnemy = basicEnemies[Math.floor(Math.random() * basicEnemies.length)];
     return {
-      id: nodeId,
-      type: 'enemy',
-      enemyData: { ...randomEnemy, act },
-      completed: false,
-      available: false
-    };
-  } else if (nodeType === 'elite') {
-    const randomElite = eliteEnemies[Math.floor(Math.random() * eliteEnemies.length)];
-    return {
-      id: nodeId,
-      type: 'elite',
-      enemyData: { ...randomElite, act },
-      completed: false,
-      available: false
-    };
-  } else {
-    return {
-      id: nodeId,
-      type: nodeType,
-      completed: false,
-      available: false
+      ...baseNode,
+      enemyData: { ...randomEnemy, act }
     };
   }
+
+  if (nodeType === 'elite') {
+    const randomElite = eliteEnemies[Math.floor(Math.random() * eliteEnemies.length)];
+    return {
+      ...baseNode,
+      enemyData: { ...randomElite, act }
+    };
+  }
+
+  if (nodeType === 'event') {
+    const randomEvent = MINI_GAME_EVENTS[Math.floor(Math.random() * MINI_GAME_EVENTS.length)];
+    return {
+      ...baseNode,
+      eventData: {
+        eventId: randomEvent.id,
+        name: randomEvent.name,
+        description: randomEvent.description
+      }
+    };
+  }
+
+  if (nodeType === 'mystery') {
+    return {
+      ...baseNode,
+      mysteryData: {
+        description: 'A mysterious encounter awaits...',
+        rarity: 'rare'
+      }
+    };
+  }
+
+  if (nodeType === 'god') {
+    return {
+      ...baseNode,
+      godData: {
+        description: 'A divine blessing awaits!',
+        rarity: 'legendary',
+        rewards: {
+          goldBonus: 100,
+          cardReward: true,
+          itemReward: true,
+          upgradeBonus: 2
+        }
+      }
+    };
+  }
+
+  if (nodeType === 'rest') {
+    return {
+      ...baseNode,
+      restData: {
+        description: 'A safe place to rest and save your progress',
+        healAmount: 0.5, // 50% heal
+        savesCheckpoint: true
+      }
+    };
+  }
+
+  // Shop, joker, and other types
+  return baseNode;
 };
 
-// Select node type based on path theme and position
-const selectNodeTypeForPath = (theme, positionInPath, act) => {
-  const themeConfig = PATH_THEMES[theme];
-  const distribution = themeConfig.nodeDistribution;
+// Select node type based on biome theme and position
+const selectNodeTypeForPath = (biomeKey, positionInPath, act) => {
+  const biomeConfig = BIOME_THEMES[biomeKey];
+  const distribution = biomeConfig.nodeDistribution;
 
   // Act 1: No elites
   if (act === 1 && distribution.elite > 0) {
@@ -191,14 +464,39 @@ const generateBiomeName = (biomeKey) => {
   return `${randomName} ${randomSuffix}`;
 };
 
-// Get biome keys for a specific act
+// Mini-game event definitions (20+ types - empty stubs for now)
+const MINI_GAME_EVENTS = [
+  { id: 'rock_paper_scissors', name: 'Rock Paper Scissors', description: 'Best 2 out of 3' },
+  { id: 'typing_speed', name: 'Speed Typing', description: 'Type 5 words in 10 seconds' },
+  { id: 'tic_tac_toe', name: 'Tic Tac Toe', description: 'Beat the AI' },
+  { id: 'sudoku', name: 'Sudoku Puzzle', description: 'Complete the puzzle' },
+  { id: 'memory_match', name: 'Memory Match', description: 'Match pairs in time' },
+  { id: 'simon_says', name: 'Pattern Memory', description: 'Repeat the pattern' },
+  { id: 'math_quiz', name: 'Math Challenge', description: 'Solve 3 problems quickly' },
+  { id: 'word_scramble', name: 'Word Unscramble', description: 'Unscramble the word' },
+  { id: 'reaction_time', name: 'Reaction Test', description: 'Click when you see green' },
+  { id: 'coin_flip', name: 'Coin Flip Gamble', description: 'Call heads or tails' },
+  { id: 'dice_roll', name: 'Dice Challenge', description: 'Roll higher than the dealer' },
+  { id: 'color_match', name: 'Color Matcher', description: 'Match the color' },
+  { id: 'sequence_builder', name: 'Sequence Builder', description: 'Complete the sequence' },
+  { id: 'riddle', name: 'Riddle Challenge', description: 'Solve the riddle' },
+  { id: 'trivia', name: 'Trivia Question', description: 'Answer correctly' },
+  { id: 'minesweeper', name: 'Minesweeper', description: 'Find safe spots' },
+  { id: 'blackjack', name: 'Blackjack', description: 'Beat the dealer' },
+  { id: 'number_guess', name: 'Number Guess', name: 'Guess the number 1-100' },
+  { id: 'rapid_click', name: 'Rapid Clicker', description: 'Click 20 times in 5 seconds' },
+  { id: 'maze_mini', name: 'Mini Maze', description: 'Find the exit' },
+  { id: 'spot_difference', name: 'Spot the Difference', description: 'Find 3 differences' },
+  { id: 'card_higher_lower', name: 'Higher or Lower', description: 'Guess the next card' },
+];
+
+// Get biome keys for a specific act (15 total biomes, 3 per act)
 const getBiomesForAct = (act) => {
   if (act === 1) return ['swamp', 'forest', 'caves'];
   if (act === 2) return ['volcano', 'frost', 'desert'];
-  // Placeholder for acts 3, 4, 5 - will add more biomes later
-  if (act === 3) return ['swamp', 'volcano', 'forest']; // Reusing for now
-  if (act === 4) return ['frost', 'desert', 'caves']; // Reusing for now
-  if (act === 5) return ['swamp', 'volcano', 'frost']; // Reusing for now
+  if (act === 3) return ['ocean', 'sky', 'shadow'];
+  if (act === 4) return ['crystal', 'graveyard', 'clockwork'];
+  if (act === 5) return ['tiret', 'lumio', 'celta'];
   return ['swamp', 'forest', 'caves'];
 };
 
