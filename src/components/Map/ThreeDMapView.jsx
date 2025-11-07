@@ -1,9 +1,9 @@
 import React, { useRef, useMemo, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Line, Billboard, Text, Sparkles } from '@react-three/drei';
+import { OrbitControls, PerspectiveCamera, Line, Billboard, Text } from '@react-three/drei';
 import * as THREE from 'three';
 
-// Node type to color mapping
+// Node type to color mapping - Neo-Brutal bright colors
 const NODE_COLORS = {
   enemy: '#ef4444',      // red
   elite: '#f97316',      // orange
@@ -16,111 +16,128 @@ const NODE_COLORS = {
   rest: '#06b6d4'        // cyan
 };
 
-// 3D Node Component
+// Edge component for thick black outlines
+const Edges = ({ geometry }) => {
+  return (
+    <lineSegments>
+      <edgesGeometry args={[geometry]} />
+      <lineBasicMaterial color="#000000" linewidth={3} />
+    </lineSegments>
+  );
+};
+
+// 3D Node Component - Neo-Brutal Style
 const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick }) => {
   const meshRef = useRef();
   const [hovered, setHovered] = useState(false);
+  const geometryRef = useRef();
 
-  // Animate the node
+  // Subtle animations only
   useFrame((state) => {
     if (!meshRef.current) return;
 
-    // Gentle floating animation
-    meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime + position[0]) * 0.1;
-
-    // Rotate if hovered or selected
-    if (hovered || isSelected) {
-      meshRef.current.rotation.y += 0.02;
-    }
-
-    // Pulse animation for available nodes
+    // Very subtle bounce for available nodes only
     if (isAvailable && !isCompleted) {
-      const scale = 1 + Math.sin(state.clock.elapsedTime * 2) * 0.05;
-      meshRef.current.scale.set(scale, scale, scale);
+      const bounce = Math.sin(state.clock.elapsedTime * 2) * 0.05;
+      meshRef.current.position.y = position[1] + bounce;
+    } else {
+      meshRef.current.position.y = position[1];
     }
   });
 
   const color = NODE_COLORS[node.type] || '#ffffff';
-  const opacity = isCompleted ? 0.3 : isAvailable ? 1.0 : 0.5;
+  const opacity = isCompleted ? 0.4 : 1.0;
 
-  // Different geometry based on node type
-  const geometry = useMemo(() => {
+  // Chunky geometric shapes for neo-brutal
+  const { geometry, scale } = useMemo(() => {
     switch (node.type) {
       case 'boss':
-        return <octahedronGeometry args={[0.7, 0]} />;
+        return { geometry: new THREE.BoxGeometry(1, 1, 1), scale: 1.2 };
       case 'elite':
-        return <dodecahedronGeometry args={[0.5, 0]} />;
+        return { geometry: new THREE.BoxGeometry(0.8, 0.8, 0.8), scale: 1 };
       case 'god':
-        return <icosahedronGeometry args={[0.5, 0]} />;
+        return { geometry: new THREE.OctahedronGeometry(0.6), scale: 1 };
       default:
-        return <sphereGeometry args={[0.4, 32, 32]} />;
+        return { geometry: new THREE.BoxGeometry(0.7, 0.7, 0.7), scale: 1 };
     }
   }, [node.type]);
 
   return (
     <group position={position}>
-      {/* Main node mesh */}
+      {/* Main node mesh - Flat shading, no metallic */}
       <mesh
         ref={meshRef}
+        geometry={geometry}
+        scale={isSelected ? scale * 1.2 : scale}
         onClick={() => onClick && onClick(node)}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
-        {geometry}
-        <meshStandardMaterial
+        <meshBasicMaterial
           color={color}
-          transparent
+          transparent={isCompleted}
           opacity={opacity}
-          emissive={color}
-          emissiveIntensity={isSelected ? 0.5 : isAvailable ? 0.3 : 0.1}
-          metalness={0.8}
-          roughness={0.2}
         />
       </mesh>
 
-      {/* Selection ring */}
+      {/* Thick black outline edges */}
+      <lineSegments
+        scale={isSelected ? scale * 1.2 : scale}
+      >
+        <edgesGeometry args={[geometry]} />
+        <lineBasicMaterial color="#000000" linewidth={4} />
+      </lineSegments>
+
+      {/* Selection indicator - chunky ring */}
       {isSelected && (
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.6, 0.7, 32]} />
-          <meshBasicMaterial color="#ffffff" side={THREE.DoubleSide} />
+        <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, -0.8, 0]}>
+          <ringGeometry args={[0.8, 1.0, 8]} />
+          <meshBasicMaterial color="#000000" side={THREE.DoubleSide} />
         </mesh>
       )}
 
-      {/* Completed checkmark */}
+      {/* Completed checkmark - bigger and bolder */}
       {isCompleted && (
         <Billboard>
           <Text
-            position={[0, 0, 0]}
-            fontSize={0.3}
+            position={[0, 0, 0.6]}
+            fontSize={0.5}
             color="#22c55e"
             anchorX="center"
             anchorY="middle"
+            outlineWidth={0.05}
+            outlineColor="#000000"
+            fontWeight="bold"
           >
             ✓
           </Text>
         </Billboard>
       )}
 
-      {/* God node sparkles */}
+      {/* God node indicator */}
       {node.type === 'god' && !isCompleted && (
-        <Sparkles
-          count={20}
-          scale={2}
-          size={2}
-          speed={0.3}
-          color="#fbbf24"
-        />
+        <Billboard position={[0, 1, 0]}>
+          <Text
+            fontSize={0.4}
+            color="#fbbf24"
+            anchorX="center"
+            anchorY="bottom"
+            outlineWidth={0.05}
+            outlineColor="#000000"
+          >
+            ✨
+          </Text>
+        </Billboard>
       )}
 
-      {/* Node label */}
-      <Billboard position={[0, -1, 0]}>
+      {/* Node label - bold text */}
+      <Billboard position={[0, -1.2, 0]}>
         <Text
-          fontSize={0.2}
-          color={isAvailable ? '#ffffff' : '#666666'}
+          fontSize={0.25}
+          color="#000000"
           anchorX="center"
           anchorY="top"
-          outlineWidth={0.02}
-          outlineColor="#000000"
+          fontWeight="black"
         >
           {node.type.toUpperCase()}
         </Text>
@@ -129,53 +146,36 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick 
   );
 };
 
-// Animated Connection Line Component
+// Neo-Brutal Connection Line Component
 const ConnectionLine = ({ start, end, active = false }) => {
-  const lineRef = useRef();
-
-  useFrame((state) => {
-    if (lineRef.current) {
-      // Animate the line material
-      lineRef.current.material.opacity = active
-        ? 0.6 + Math.sin(state.clock.elapsedTime * 2) * 0.2
-        : 0.3;
-    }
-  });
-
+  // Straight thick lines for neo-brutal aesthetic
   const points = useMemo(() => {
-    // Create a curved line between nodes
-    const curve = new THREE.QuadraticBezierCurve3(
+    return [
       new THREE.Vector3(...start),
-      new THREE.Vector3((start[0] + end[0]) / 2, (start[1] + end[1]) / 2 - 0.5, (start[2] + end[2]) / 2),
       new THREE.Vector3(...end)
-    );
-    return curve.getPoints(20);
+    ];
   }, [start, end]);
 
   return (
     <Line
-      ref={lineRef}
       points={points}
-      color={active ? '#ffffff' : '#666666'}
-      lineWidth={active ? 2 : 1}
-      transparent
-      opacity={active ? 0.8 : 0.3}
+      color="#000000"
+      lineWidth={active ? 6 : 3}
+      transparent={false}
     />
   );
 };
 
-// Floor Label Component
-const FloorLabel = ({ position, floorNumber, color }) => {
+// Floor Label Component - Neo-Brutal
+const FloorLabel = ({ position, floorNumber }) => {
   return (
     <Billboard position={position}>
       <Text
-        fontSize={0.4}
-        color={color}
+        fontSize={0.5}
+        color="#000000"
         anchorX="center"
         anchorY="middle"
-        outlineWidth={0.03}
-        outlineColor="#000000"
-        fontWeight="bold"
+        fontWeight="black"
       >
         FLOOR {floorNumber}
       </Text>
@@ -247,23 +247,23 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
 
   return (
     <>
-      {/* Lighting */}
-      <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} intensity={1} />
-      <pointLight position={[-10, -10, -10]} intensity={0.5} />
-      <directionalLight position={[0, 10, 5]} intensity={0.5} />
+      {/* Bright lighting for neo-brutal */}
+      <ambientLight intensity={1.2} />
+      <directionalLight position={[5, 5, 5]} intensity={0.8} />
 
-      {/* Camera */}
-      <PerspectiveCamera makeDefault position={[0, 0, 15]} fov={60} />
+      {/* Camera - isometric-ish angle */}
+      <PerspectiveCamera makeDefault position={[0, 5, 15]} fov={50} />
 
-      {/* Camera Controls */}
+      {/* Camera Controls - limit rotation for cleaner view */}
       <OrbitControls
         enablePan={true}
         enableZoom={true}
         enableRotate={true}
-        maxDistance={30}
-        minDistance={5}
-        target={[0, -5, 0]}
+        maxDistance={25}
+        minDistance={8}
+        maxPolarAngle={Math.PI / 2.2}
+        minPolarAngle={Math.PI / 6}
+        target={[0, -3, 0]}
       />
 
       {/* Connection Lines */}
@@ -314,7 +314,6 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
           key={floor.floor}
           position={[-8, -idx * 3, 0]}
           floorNumber={floor.floor}
-          color={selectedBiomeData.color === 'yellow' ? '#eab308' : '#ffffff'}
         />
       ))}
 
@@ -323,19 +322,8 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
         <FloorLabel
           position={[-8, -(selectedBiomeData.floors.length) * 3, 0]}
           floorNumber={currentActData.bossFloor.floor}
-          color="#dc2626"
         />
       )}
-
-      {/* Background particles */}
-      <Sparkles
-        count={100}
-        scale={[30, 30, 30]}
-        size={1}
-        speed={0.1}
-        opacity={0.2}
-        color="#ffffff"
-      />
     </>
   );
 };
@@ -352,12 +340,11 @@ export const ThreeDMapView = ({
   return (
     <div className="w-full h-screen">
       <Canvas
-        gl={{ antialias: true, alpha: true }}
+        gl={{ antialias: true }}
         dpr={[1, 2]}
-        shadows
       >
-        <color attach="background" args={['#1a1a2e']} />
-        <fog attach="fog" args={['#1a1a2e', 10, 50]} />
+        {/* Bright neo-brutal background */}
+        <color attach="background" args={['#a78bfa']} />
 
         <MapScene
           selectedBiomeData={selectedBiomeData}
