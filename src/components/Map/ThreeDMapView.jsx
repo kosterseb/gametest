@@ -1,6 +1,6 @@
 import React, { useRef, useMemo, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Line, Billboard, Text } from '@react-three/drei';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { PerspectiveCamera, Line, Billboard, Text } from '@react-three/drei';
 import * as THREE from 'three';
 
 // Node type to color mapping - Neo-Brutal bright colors
@@ -49,18 +49,23 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick 
   const opacity = isCompleted ? 0.4 : 1.0;
 
   // Chunky geometric shapes for neo-brutal
-  const { geometry, scale } = useMemo(() => {
+  // Scale based on Z position for depth effect (things further back are slightly smaller)
+  const { geometry, baseScale } = useMemo(() => {
     switch (node.type) {
       case 'boss':
-        return { geometry: new THREE.BoxGeometry(1, 1, 1), scale: 1.2 };
+        return { geometry: new THREE.BoxGeometry(1, 1, 1), baseScale: 1.2 };
       case 'elite':
-        return { geometry: new THREE.BoxGeometry(0.8, 0.8, 0.8), scale: 1 };
+        return { geometry: new THREE.BoxGeometry(0.8, 0.8, 0.8), baseScale: 1 };
       case 'god':
-        return { geometry: new THREE.OctahedronGeometry(0.6), scale: 1 };
+        return { geometry: new THREE.OctahedronGeometry(0.6), baseScale: 1 };
       default:
-        return { geometry: new THREE.BoxGeometry(0.7, 0.7, 0.7), scale: 1 };
+        return { geometry: new THREE.BoxGeometry(0.7, 0.7, 0.7), baseScale: 1 };
     }
   }, [node.type]);
+
+  // Parallax depth scaling - objects further back (negative Z) are slightly smaller
+  const depthScale = 1 + position[2] * 0.05;
+  const scale = baseScale * depthScale;
 
   return (
     <group position={position}>
@@ -183,9 +188,36 @@ const FloorLabel = ({ position, floorNumber }) => {
   );
 };
 
+// Parallax Camera Controller
+const ParallaxCamera = () => {
+  const { camera } = useThree();
+  const [mouse, setMouse] = useState({ x: 0, y: 0 });
+
+  // Track mouse for subtle parallax
+  React.useEffect(() => {
+    const handleMouseMove = (e) => {
+      // Normalize mouse position to -1 to 1
+      setMouse({
+        x: (e.clientX / window.innerWidth) * 2 - 1,
+        y: -(e.clientY / window.innerHeight) * 2 + 1
+      });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Apply subtle parallax movement to camera
+  useFrame(() => {
+    camera.position.x = mouse.x * 1;
+    camera.position.y = 2 + mouse.y * 0.5;
+  });
+
+  return null;
+};
+
 // Main 3D Scene
 const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelect, availableNodeIds, completedNodeIds }) => {
-  // Calculate node positions in 3D space
+  // Calculate node positions in 2.5D space with parallax depth
   const nodePositions = useMemo(() => {
     const positions = new Map();
     const floors = selectedBiomeData.floors;
@@ -199,14 +231,16 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
       floor.nodes.forEach((node, nodeIdx) => {
         const x = startX + nodeIdx * horizontalSpacing;
         const y = -floorIdx * verticalSpacing;
-        const z = 0;
+        // Add Z-depth for parallax effect - floors further down are further back
+        const z = -floorIdx * 0.5;
         positions.set(node.id, [x, y, z]);
       });
     });
 
     // Add boss position
     if (currentActData.bossFloor) {
-      positions.set(currentActData.bossFloor.node.id, [0, -(floors.length) * verticalSpacing, 0]);
+      const floorCount = floors.length;
+      positions.set(currentActData.bossFloor.node.id, [0, -(floorCount) * verticalSpacing, -floorCount * 0.5]);
     }
 
     return positions;
@@ -251,20 +285,11 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
       <ambientLight intensity={1.2} />
       <directionalLight position={[5, 5, 5]} intensity={0.8} />
 
-      {/* Camera - isometric-ish angle */}
-      <PerspectiveCamera makeDefault position={[0, 5, 15]} fov={50} />
+      {/* Fixed isometric camera */}
+      <PerspectiveCamera makeDefault position={[0, 2, 12]} fov={45} rotation={[-0.15, 0, 0]} />
 
-      {/* Camera Controls - limit rotation for cleaner view */}
-      <OrbitControls
-        enablePan={true}
-        enableZoom={true}
-        enableRotate={true}
-        maxDistance={25}
-        minDistance={8}
-        maxPolarAngle={Math.PI / 2.2}
-        minPolarAngle={Math.PI / 6}
-        target={[0, -3, 0]}
-      />
+      {/* Parallax effect on mouse movement */}
+      <ParallaxCamera />
 
       {/* Connection Lines */}
       {connections.map((conn, idx) => (
