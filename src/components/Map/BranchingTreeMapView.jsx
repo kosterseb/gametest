@@ -169,6 +169,21 @@ export const BranchingTreeMapView = () => {
     setHoveredNode(nodeData);
   };
 
+  // Get current act data and selected biome (must be before useEffects that reference them)
+  const currentActData = gameState.branchingMap[gameState.currentAct - 1];
+  const selectedBiomeData = currentActData?.biomeOptions.find(b => b.biomeId === gameState.selectedBiome);
+
+  const currentNodePosition = React.useMemo(() => {
+    if (!selectedBiomeData || !gameState.completedNodeIds || gameState.completedNodeIds.length === 0) {
+      return { x: 0, y: 0 }; // Starting position
+    }
+    // Find the last completed node
+    const lastCompletedId = gameState.completedNodeIds[gameState.completedNodeIds.length - 1];
+    const allNodes = [...selectedBiomeData.floors.flatMap(f => f.nodes), currentActData?.bossFloor?.node].filter(Boolean);
+    const lastNode = allNodes.find(n => n.id === lastCompletedId);
+    return lastNode?.position || { x: 0, y: 0 };
+  }, [gameState.completedNodeIds, selectedBiomeData, currentActData]);
+
   // Initialize branching map
   useEffect(() => {
     if (gameState.branchingMap.length === 0) {
@@ -208,21 +223,6 @@ export const BranchingTreeMapView = () => {
       cameraControls.animateToPosition(avgX, avgY, 800);
     }
   }, [gameState.availableNodeIds.length, is3DView, cameraControls, selectedBiomeData, currentActData]);
-
-  // Get current node position for focus function (must be before early returns)
-  const currentActData = gameState.branchingMap[gameState.currentAct - 1];
-  const selectedBiomeData = currentActData?.biomeOptions.find(b => b.biomeId === gameState.selectedBiome);
-
-  const currentNodePosition = React.useMemo(() => {
-    if (!selectedBiomeData || !gameState.completedNodeIds || gameState.completedNodeIds.length === 0) {
-      return { x: 0, y: 0 }; // Starting position
-    }
-    // Find the last completed node
-    const lastCompletedId = gameState.completedNodeIds[gameState.completedNodeIds.length - 1];
-    const allNodes = [...selectedBiomeData.floors.flatMap(f => f.nodes), currentActData.bossFloor?.node].filter(Boolean);
-    const lastNode = allNodes.find(n => n.id === lastCompletedId);
-    return lastNode?.position || { x: 0, y: 0 };
-  }, [gameState.completedNodeIds, selectedBiomeData, currentActData]);
 
   const handleBiomeSelection = (biomeId) => {
     dispatch({ type: 'SELECT_BIOME', biomeId });
