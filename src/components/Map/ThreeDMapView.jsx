@@ -136,7 +136,7 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick 
       )}
 
       {/* Node label - bold text */}
-      <Billboard position={[0, -1.2, 0]}>
+      <Billboard position={[0, -0.8, 0]}>
         <Text
           fontSize={0.25}
           color="#000000"
