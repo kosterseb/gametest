@@ -335,11 +335,16 @@ const DragPanCamera = ({ onCameraControlsReady }) => {
           setCameraOffset({ x: 0, y: 0 });
           setZoom(0);
         },
+        showOverview: () => {
+          setCameraOffset({ x: 0, y: 0 });  // Center camera
+          setZoom(5);  // Zoom out to see whole map
+        },
         focusOnPosition: (x, y) => {
           setCameraOffset({
             x: Math.max(-8, Math.min(8, -x)),
             y: Math.max(-12, Math.min(8, -y))  // Increased downward limit to 12
           });
+          setZoom(0);  // Reset zoom when focusing on position
         },
         animateToPosition: (x, y, duration = 1000) => {
           const targetX = Math.max(-8, Math.min(8, -x));

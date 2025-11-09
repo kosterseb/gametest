@@ -4,8 +4,8 @@ import { NBButton } from '../UI/NeoBrutalUI';
 
 export const MapNavigationDashboard = ({ isOpen, onClose, cameraControls, currentNodePosition, highlightPaths, onToggleHighlight }) => {
   const handleOverview = () => {
-    if (cameraControls?.resetCamera) {
-      cameraControls.resetCamera();
+    if (cameraControls?.showOverview) {
+      cameraControls.showOverview();
     }
   };
 
@@ -77,7 +77,7 @@ export const MapNavigationDashboard = ({ isOpen, onClose, cameraControls, curren
             <Maximize2 className="w-6 h-6" />
             <div className="text-left">
               <div className="font-black text-lg">OVERVIEW</div>
-              <div className="text-sm opacity-80">Reset camera to show full map</div>
+              <div className="text-sm opacity-80">Zoom out to see entire map</div>
             </div>
           </NBButton>
 

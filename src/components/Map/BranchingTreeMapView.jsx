@@ -200,29 +200,41 @@ export const BranchingTreeMapView = () => {
   }, [gameState.showBattleRecap, gameState.lastBattleRewards]);
 
   // Trigger floor transition animation when new nodes become available
+  const prevAvailableCountRef = React.useRef(gameState.availableNodeIds.length);
+
   useEffect(() => {
+    // Only trigger if the count actually increased (new nodes became available)
     if (!is3DView || !cameraControls?.animateToPosition || !selectedBiomeData) return;
 
-    // Get the newly available nodes
-    const availableNodes = gameState.availableNodeIds
-      .map(id => {
-        const allNodes = [
-          ...selectedBiomeData.floors.flatMap(f => f.nodes),
-          currentActData?.bossFloor?.node
-        ].filter(Boolean);
-        return allNodes.find(n => n.id === id);
-      })
-      .filter(Boolean);
+    const currentCount = gameState.availableNodeIds.length;
+    const prevCount = prevAvailableCountRef.current;
 
-    if (availableNodes.length > 0) {
-      // Calculate average position of available nodes
-      const avgX = availableNodes.reduce((sum, node) => sum + node.position.x, 0) / availableNodes.length;
-      const avgY = availableNodes.reduce((sum, node) => sum + node.position.y, 0) / availableNodes.length;
+    // Only animate if count increased (not on initial load or when count stays same)
+    if (currentCount > prevCount && prevCount > 0) {
+      // Get the newly available nodes
+      const availableNodes = gameState.availableNodeIds
+        .map(id => {
+          const allNodes = [
+            ...selectedBiomeData.floors.flatMap(f => f.nodes),
+            currentActData?.bossFloor?.node
+          ].filter(Boolean);
+          return allNodes.find(n => n.id === id);
+        })
+        .filter(Boolean);
 
-      // Animate camera to focus on available nodes
-      cameraControls.animateToPosition(avgX, avgY, 800);
+      if (availableNodes.length > 0) {
+        // Calculate average position of available nodes
+        const avgX = availableNodes.reduce((sum, node) => sum + node.position.x, 0) / availableNodes.length;
+        const avgY = availableNodes.reduce((sum, node) => sum + node.position.y, 0) / availableNodes.length;
+
+        // Animate camera to focus on available nodes
+        cameraControls.animateToPosition(avgX, avgY, 800);
+      }
     }
-  }, [gameState.availableNodeIds.length, is3DView, cameraControls, selectedBiomeData, currentActData]);
+
+    // Update the ref for next time
+    prevAvailableCountRef.current = currentCount;
+  }, [gameState.availableNodeIds.length, is3DView]);
 
   const handleBiomeSelection = (biomeId) => {
     dispatch({ type: 'SELECT_BIOME', biomeId });
