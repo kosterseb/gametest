@@ -319,7 +319,7 @@ const DragPanCamera = ({ onCameraControlsReady }) => {
         focusOnPosition: (x, y) => {
           setCameraOffset({
             x: Math.max(-8, Math.min(8, -x)),
-            y: Math.max(-5, Math.min(5, -y))
+            y: Math.max(-8, Math.min(8, -y))  // Match increased drag limits
           });
         },
         shake: () => setShake({ active: true, startTime: Date.now() }),
@@ -349,7 +349,7 @@ const DragPanCamera = ({ onCameraControlsReady }) => {
 
         setCameraOffset({
           x: Math.max(-8, Math.min(8, newX)),  // Limit X movement
-          y: Math.max(-5, Math.min(5, newY))   // Limit Y movement
+          y: Math.max(-8, Math.min(8, newY))   // Limit Y movement (increased for floor 4 visibility)
         });
 
         setDragStart({ x: e.clientX, y: e.clientY });
