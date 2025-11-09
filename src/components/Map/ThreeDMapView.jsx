@@ -295,17 +295,18 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
       floor.nodes.forEach((node) => {
         // Center the nodes by subtracting the center offset
         const x = (node.position.x - centerOffset) * horizontalSpacing;
-        const y = -node.position.y * verticalSpacing;
+        // Shift nodes up by adding 1.1 to align with connection points
+        const y = -node.position.y * verticalSpacing + 1.1;
         // Add Z-depth for parallax effect - floors further down are further back
         const z = -node.position.y * 0.5;
         positions.set(node.id, [x, y, z]);
       });
     });
 
-    // Add boss position
+    // Add boss position (with same upward offset)
     if (currentActData.bossFloor) {
       const floorCount = floors.length;
-      positions.set(currentActData.bossFloor.node.id, [0, -floorCount * verticalSpacing, -floorCount * 0.5]);
+      positions.set(currentActData.bossFloor.node.id, [0, -floorCount * verticalSpacing + 1.1, -floorCount * 0.5]);
     }
 
     return positions;
