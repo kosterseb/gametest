@@ -187,7 +187,7 @@ const SelectionRing = ({ position, color }) => {
 };
 
 // 3D Node Component - Neo-Brutal Style
-const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick, highlightMode, onHoverChange }) => {
+const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, isRecentlyCompleted, onClick, highlightMode, onHoverChange }) => {
   const meshRef = useRef();
   const [hovered, setHovered] = useState(false);
   const geometryRef = useRef();
@@ -318,19 +318,19 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick,
         />
       </mesh>
 
-      {/* Thick black outline edges - INCREASED thickness from 4 to 6 */}
-      <lineSegments
-        scale={isSelected ? scale * 1.2 : (hovered ? scale * 1.05 : scale)}
+      {/* Thick black outline - wireframe approach for visibility */}
+      <mesh
+        geometry={geometry}
+        scale={isSelected ? scale * 1.22 : (hovered ? scale * 1.07 : scale * 1.02)}
         raycast={() => null}
       >
-        <edgesGeometry args={[geometry]} />
-        <lineBasicMaterial
+        <meshBasicMaterial
           color="#000000"
-          linewidth={6}
+          wireframe
           transparent={!isAvailable && !isCompleted}
           opacity={!isAvailable && !isCompleted ? 0.3 : 1.0}
         />
-      </lineSegments>
+      </mesh>
 
       {/* Corner geometric details - small triangular corners */}
       {['boss', 'elite', 'god'].includes(node.type) && (
@@ -358,14 +358,14 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick,
         </>
       )}
 
-      {/* Node type icon INSIDE the node */}
+      {/* Node type icon - pops out when selected */}
       <Billboard>
         <Text
-          position={[0, 0, 0.5]}
-          fontSize={0.45}
+          position={[0, 0, isSelected ? 0.9 : (hovered ? 0.65 : 0.5)]}
+          fontSize={isSelected ? 0.55 : (hovered ? 0.5 : 0.45)}
           anchorX="center"
           anchorY="middle"
-          outlineWidth={0.03}
+          outlineWidth={0.04}
           outlineColor="#000000"
         >
           {nodeIcon}
@@ -447,8 +447,8 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick,
         <StarSparkles color={color} />
       )}
 
-      {/* Confetti burst on completed nodes */}
-      {isCompleted && (
+      {/* Confetti burst on recently completed nodes only */}
+      {isRecentlyCompleted && (
         <ConfettiBurst color={color} />
       )}
     </group>
@@ -457,17 +457,18 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick,
 
 // Player Avatar Indicator - Shows where the player is
 const PlayerAvatar = ({ position, avatarSeed }) => {
-  const groupRef = useRef();
+  const avatarRef = useRef();
 
-  // Bobbing animation
+  // Bobbing animation - relative to the avatar's base position
   useFrame((state) => {
-    if (!groupRef.current) return;
+    if (!avatarRef.current) return;
     const bob = Math.sin(state.clock.elapsedTime * 2) * 0.15;
-    groupRef.current.position.y = 1.5 + bob;
+    avatarRef.current.position.y = 1.5 + bob; // Offset relative to parent group
   });
 
   return (
-    <group position={[position[0], position[1], position[2]]} ref={groupRef}>
+    <group position={[position[0], position[1], position[2]]}>
+      <group ref={avatarRef}>
       <Billboard>
         <Html center style={{ pointerEvents: 'none' }}>
           <div className="relative" style={{ width: '60px', height: '60px' }}>
@@ -496,6 +497,7 @@ const PlayerAvatar = ({ position, avatarSeed }) => {
         intensity={1.2}
         distance={2.5}
       />
+      </group>
     </group>
   );
 };
@@ -584,41 +586,6 @@ const ConnectionLine = ({ start, end, active = false, completed = false, highlig
     ];
   }, [start, end]);
 
-  // Diagonal stripe segments for completed paths
-  const stripeSegments = useMemo(() => {
-    if (!completed) return [];
-
-    const startVec = new THREE.Vector3(...start);
-    const endVec = new THREE.Vector3(...end);
-    const direction = new THREE.Vector3().subVectors(endVec, startVec);
-    const length = direction.length();
-    direction.normalize();
-
-    // Perpendicular vector for diagonal stripes
-    const perpendicular = new THREE.Vector3(-direction.y, direction.x, 0).normalize();
-
-    const stripes = [];
-    const stripeSpacing = 0.3;
-    const stripeLength = 0.25;
-    const numStripes = Math.floor(length / stripeSpacing);
-
-    for (let i = 1; i < numStripes; i++) {
-      const t = i * stripeSpacing;
-      const center = new THREE.Vector3().addVectors(
-        startVec,
-        direction.clone().multiplyScalar(t)
-      );
-
-      const offset = perpendicular.clone().multiplyScalar(stripeLength);
-      const p1 = new THREE.Vector3().addVectors(center, offset);
-      const p2 = new THREE.Vector3().subVectors(center, offset);
-
-      stripes.push([p1, p2]);
-    }
-
-    return stripes;
-  }, [start, end, completed]);
-
   // Determine line color: completed = gold, active = black, inactive = gray
   const lineColor = completed ? '#fbbf24' : (active ? '#000000' : '#9ca3af');
   const lineWidth = completed ? 8 : (active ? 6 : 3);
@@ -654,16 +621,6 @@ const ConnectionLine = ({ start, end, active = false, completed = false, highlig
         />
       )}
 
-      {/* DIAGONAL STRIPES on completed paths - neo-brutal pattern */}
-      {completed && stripeSegments.map((stripe, idx) => (
-        <Line
-          key={idx}
-          points={stripe}
-          color="#000000"
-          lineWidth={5}
-        />
-      ))}
-
       {/* Enhanced glow for active paths in highlight mode */}
       {highlightMode && active && !completed && (
         <Line
@@ -678,6 +635,100 @@ const ConnectionLine = ({ start, end, active = false, completed = false, highlig
       {/* Particle trail for completed paths */}
       {completed && <ParticleTrail start={start} end={end} />}
     </>
+  );
+};
+
+// Background Pattern - Neo-brutal geometric patterns in 3D
+const BackgroundPattern = ({ patternType, biomeColor }) => {
+  // Create pattern elements based on type
+  const patternElements = useMemo(() => {
+    const elements = [];
+    const spacing = 2;
+    const range = 10;
+
+    for (let x = -range; x <= range; x += spacing) {
+      for (let y = -range; y <= range; y += spacing) {
+        elements.push({ x, y, id: `${x}-${y}` });
+      }
+    }
+    return elements;
+  }, []);
+
+  const renderPattern = (x, y, id) => {
+    const position = [x, y, -15]; // Far behind the scene
+
+    switch (patternType) {
+      case 'stripes':
+        // Diagonal lines
+        if ((x + y) % 4 === 0) {
+          return (
+            <Line
+              key={id}
+              points={[[x - 0.5, y - 0.5, -15], [x + 0.5, y + 0.5, -15]]}
+              color="#000000"
+              lineWidth={2}
+              transparent
+              opacity={0.15}
+            />
+          );
+        }
+        return null;
+
+      case 'dots':
+        return (
+          <mesh key={id} position={position}>
+            <circleGeometry args={[0.15, 16]} />
+            <meshBasicMaterial color="#000000" transparent opacity={0.15} />
+          </mesh>
+        );
+
+      case 'triangles':
+        if ((x + y) % 4 === 0) {
+          return (
+            <mesh key={id} position={position} rotation={[0, 0, Math.random() * Math.PI]}>
+              <coneGeometry args={[0.3, 0.5, 3]} />
+              <meshBasicMaterial color="#000000" transparent opacity={0.15} />
+            </mesh>
+          );
+        }
+        return null;
+
+      case 'grid':
+        if (x % 4 === 0 || y % 4 === 0) {
+          return (
+            <mesh key={id} position={position}>
+              <boxGeometry args={[0.1, 0.1, 0.1]} />
+              <meshBasicMaterial color="#000000" transparent opacity={0.15} />
+            </mesh>
+          );
+        }
+        return null;
+
+      case 'zigzag':
+        if (y % 2 === 0 && x % 2 === 0) {
+          const offset = (y / 2) % 2 === 0 ? 0.5 : -0.5;
+          return (
+            <Line
+              key={id}
+              points={[[x + offset, y, -15], [x + offset + 0.5, y + 0.5, -15]]}
+              color="#000000"
+              lineWidth={2}
+              transparent
+              opacity={0.15}
+            />
+          );
+        }
+        return null;
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <group>
+      {patternElements.map(({ x, y, id }) => renderPattern(x, y, id))}
+    </group>
   );
 };
 
@@ -1074,7 +1125,8 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
             const startPos = connectionPositions.get(node.id);
             const endPos = connectionPositions.get(childId);
             if (startPos && endPos) {
-              const isActive = availableNodeIds.includes(childId) || completedNodeIds.includes(node.id);
+              // Connection is active only if child is available or if both nodes are completed
+              const isActive = availableNodeIds.includes(childId) || (completedNodeIds.includes(node.id) && completedNodeIds.includes(childId));
               // Connection is completed if both parent and child nodes are completed
               const isCompleted = completedNodeIds.includes(node.id) && completedNodeIds.includes(childId);
               lines.push({
@@ -1135,6 +1187,22 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
         '#a78bfa'
       } />
 
+      {/* Background geometric patterns in 3D */}
+      <BackgroundPattern
+        patternType={
+          selectedBiomeData.color === 'red' ? 'stripes' :
+          selectedBiomeData.color === 'orange' ? 'triangles' :
+          selectedBiomeData.color === 'yellow' ? 'dots' :
+          selectedBiomeData.color === 'green' ? 'zigzag' :
+          selectedBiomeData.color === 'cyan' ? 'grid' :
+          selectedBiomeData.color === 'blue' ? 'zigzag' :
+          selectedBiomeData.color === 'purple' ? 'dots' :
+          selectedBiomeData.color === 'pink' ? 'stripes' :
+          'grid'
+        }
+        biomeColor={selectedBiomeData.color}
+      />
+
       {/* Connection Lines */}
       {connections.map((conn, idx) => (
         <ConnectionLine
@@ -1161,6 +1229,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
               isSelected={selectedNode?.id === node.id}
               isAvailable={availableNodeIds.includes(node.id)}
               isCompleted={completedNodeIds.includes(node.id)}
+              isRecentlyCompleted={completedNodeIds.length > 0 && completedNodeIds[completedNodeIds.length - 1] === node.id}
               onClick={onNodeSelect}
               highlightMode={highlightPaths}
               onHoverChange={setHoveredNodeData}
@@ -1177,6 +1246,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
           isSelected={selectedNode?.id === currentActData.bossFloor.node.id}
           isAvailable={availableNodeIds.includes(currentActData.bossFloor.node.id)}
           isCompleted={completedNodeIds.includes(currentActData.bossFloor.node.id)}
+          isRecentlyCompleted={completedNodeIds.length > 0 && completedNodeIds[completedNodeIds.length - 1] === currentActData.bossFloor.node.id}
           onClick={onNodeSelect}
           highlightMode={highlightPaths}
           onHoverChange={setHoveredNodeData}
