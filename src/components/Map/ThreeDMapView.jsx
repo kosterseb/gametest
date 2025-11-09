@@ -26,6 +26,166 @@ const Edges = ({ geometry }) => {
   );
 };
 
+// Confetti Burst Effect - Triggered on node completion
+const ConfettiBurst = ({ color }) => {
+  const confettiRef = useRef();
+  const confettiPieces = useMemo(() => {
+    const pieces = [];
+    const count = 12;
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2;
+      pieces.push({
+        id: i,
+        angle,
+        speed: 2 + Math.random() * 2,
+        rotationSpeed: 2 + Math.random() * 3,
+        shape: ['box', 'pyramid', 'octahedron'][Math.floor(Math.random() * 3)]
+      });
+    }
+    return pieces;
+  }, []);
+
+  useFrame((state) => {
+    if (!confettiRef.current) return;
+
+    confettiPieces.forEach((piece, i) => {
+      const child = confettiRef.current.children[i];
+      if (!child) return;
+
+      const t = state.clock.elapsedTime;
+      const radius = piece.speed * t * 0.5;
+      const x = Math.cos(piece.angle) * radius;
+      const z = Math.sin(piece.angle) * radius;
+      const y = 1.5 + t * 0.5 - (t * t) * 0.3; // Gravity
+
+      child.position.set(x, y, z);
+      child.rotation.x = t * piece.rotationSpeed;
+      child.rotation.y = t * piece.rotationSpeed * 0.7;
+
+      // Fade out
+      if (child.material) {
+        child.material.opacity = Math.max(0, 1 - t * 0.5);
+      }
+    });
+  });
+
+  const getGeometry = (shape) => {
+    switch (shape) {
+      case 'box': return <boxGeometry args={[0.15, 0.15, 0.15]} />;
+      case 'pyramid': return <coneGeometry args={[0.1, 0.2, 4]} />;
+      case 'octahedron': return <octahedronGeometry args={[0.1]} />;
+      default: return <boxGeometry args={[0.15, 0.15, 0.15]} />;
+    }
+  };
+
+  return (
+    <group ref={confettiRef}>
+      {confettiPieces.map((piece) => (
+        <mesh key={piece.id}>
+          {getGeometry(piece.shape)}
+          <meshBasicMaterial color={color} transparent opacity={1} />
+        </mesh>
+      ))}
+    </group>
+  );
+};
+
+// Star Sparkles - For special nodes (god/joker)
+const StarSparkles = ({ color }) => {
+  const sparklesRef = useRef();
+
+  const sparkles = useMemo(() => {
+    const temp = [];
+    for (let i = 0; i < 6; i++) {
+      temp.push({
+        angle: (i / 6) * Math.PI * 2,
+        offset: Math.random() * Math.PI * 2,
+        speed: 0.5 + Math.random() * 0.5
+      });
+    }
+    return temp;
+  }, []);
+
+  useFrame((state) => {
+    if (!sparklesRef.current) return;
+
+    sparkles.forEach((sparkle, i) => {
+      const child = sparklesRef.current.children[i];
+      if (!child) return;
+
+      const t = state.clock.elapsedTime * sparkle.speed + sparkle.offset;
+      const radius = 0.8 + Math.sin(t * 2) * 0.2;
+      const x = Math.cos(sparkle.angle + t * 0.5) * radius;
+      const z = Math.sin(sparkle.angle + t * 0.5) * radius;
+      const y = Math.sin(t * 3) * 0.3;
+
+      child.position.set(x, y, z);
+      child.rotation.z = t * 2;
+
+      // Pulsing opacity
+      if (child.material) {
+        child.material.opacity = 0.7 + Math.sin(t * 4) * 0.3;
+      }
+    });
+  });
+
+  return (
+    <group ref={sparklesRef}>
+      {sparkles.map((_, i) => (
+        <mesh key={i}>
+          {/* Hard-edged 4-pointed star using diamond/octahedron */}
+          <octahedronGeometry args={[0.12]} />
+          <meshBasicMaterial color={color} transparent opacity={1} />
+        </mesh>
+      ))}
+    </group>
+  );
+};
+
+// Selection Ring - Thick, rotating, dramatic indicator
+const SelectionRing = ({ position, color }) => {
+  const outerRingRef = useRef();
+  const innerRingRef = useRef();
+
+  useFrame((state) => {
+    if (outerRingRef.current) {
+      outerRingRef.current.rotation.z = state.clock.elapsedTime * 2;
+    }
+    if (innerRingRef.current) {
+      innerRingRef.current.rotation.z = -state.clock.elapsedTime * 1.5;
+    }
+  });
+
+  return (
+    <group position={position} rotation={[-Math.PI / 2, 0, 0]}>
+      {/* Outer thick black ring */}
+      <mesh ref={outerRingRef}>
+        <ringGeometry args={[1.0, 1.3, 6]} />
+        <meshBasicMaterial color="#000000" side={THREE.DoubleSide} />
+      </mesh>
+
+      {/* Inner colored ring - slightly offset for depth */}
+      <mesh ref={innerRingRef} position={[0, 0, 0.05]}>
+        <ringGeometry args={[0.85, 1.05, 8]} />
+        <meshBasicMaterial color={color} side={THREE.DoubleSide} transparent opacity={0.8} />
+      </mesh>
+
+      {/* Corner accent triangles on the ring */}
+      {[0, 1, 2, 3, 4, 5].map((i) => {
+        const angle = (i / 6) * Math.PI * 2;
+        const x = Math.cos(angle) * 1.15;
+        const y = Math.sin(angle) * 1.15;
+        return (
+          <mesh key={i} position={[x, y, 0.1]} rotation={[0, 0, angle]}>
+            <coneGeometry args={[0.12, 0.2, 3]} />
+            <meshBasicMaterial color="#000000" />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+};
+
 // 3D Node Component - Neo-Brutal Style
 const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick, highlightMode, onHoverChange }) => {
   const meshRef = useRef();
@@ -39,7 +199,7 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick,
     }
   }, [hovered, node, position, onHoverChange]);
 
-  // Subtle animations only
+  // Pulse, bounce, and DRAMATIC hover animations
   useFrame((state) => {
     if (!meshRef.current) return;
 
@@ -47,12 +207,32 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick,
     const bounceMultiplier = (highlightMode && isAvailable && !isCompleted) ? 2.5 : 1;
     const bounceSpeed = (highlightMode && isAvailable && !isCompleted) ? 3 : 2;
 
-    // Very subtle bounce for available nodes only (local offset only, group already positioned)
+    // DRAMATIC rotation on hover
+    if (hovered && isAvailable && !isCompleted) {
+      const rotationSpeed = 1.5;
+      meshRef.current.rotation.y = state.clock.elapsedTime * rotationSpeed;
+      meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * rotationSpeed) * 0.2;
+    } else {
+      // Gentle idle rotation for available nodes
+      if (isAvailable && !isCompleted) {
+        meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.3;
+      } else {
+        meshRef.current.rotation.y = 0;
+        meshRef.current.rotation.x = 0;
+      }
+    }
+
+    // Bounce animation for available nodes
     if (isAvailable && !isCompleted) {
       const bounce = Math.sin(state.clock.elapsedTime * bounceSpeed) * 0.05 * bounceMultiplier;
       meshRef.current.position.y = bounce;
+
+      // Pulse scale effect - BIGGER on hover
+      const pulseScale = 1 + Math.sin(state.clock.elapsedTime * 2) * 0.08;
+      meshRef.current.scale.setScalar(isSelected ? pulseScale * 1.2 : (hovered ? pulseScale * 1.15 : pulseScale));
     } else {
       meshRef.current.position.y = 0;
+      meshRef.current.scale.setScalar(isSelected ? 1.2 : (hovered ? 1.1 : 1));
     }
   });
 
@@ -79,8 +259,38 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick,
   const depthScale = 1 + position[2] * 0.05;
   const scale = baseScale * depthScale;
 
+  // Node type icons (emoji representations)
+  const nodeIcon = useMemo(() => {
+    switch (node.type) {
+      case 'enemy': return '⚔️';
+      case 'elite': return '🛡️';
+      case 'boss': return '👑';
+      case 'shop': return '🏪';
+      case 'joker': return '🃏';
+      case 'event': return '📜';
+      case 'mystery': return '❓';
+      case 'god': return '✨';
+      case 'rest': return '💤';
+      default: return '◆';
+    }
+  }, [node.type]);
+
   return (
     <group position={position}>
+      {/* Hard drop shadow - offset black mesh behind main node */}
+      <mesh
+        geometry={geometry}
+        position={[0.15, -0.15, -0.05]}
+        scale={isSelected ? scale * 1.2 : (hovered ? scale * 1.05 : scale)}
+        raycast={() => null}
+      >
+        <meshBasicMaterial
+          color="#000000"
+          transparent
+          opacity={0.4}
+        />
+      </mesh>
+
       {/* Main node mesh - Flat shading, no metallic */}
       <mesh
         ref={meshRef}
@@ -108,7 +318,7 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick,
         />
       </mesh>
 
-      {/* Thick black outline edges - raycast disabled to not block hover */}
+      {/* Thick black outline edges - INCREASED thickness from 4 to 6 */}
       <lineSegments
         scale={isSelected ? scale * 1.2 : (hovered ? scale * 1.05 : scale)}
         raycast={() => null}
@@ -116,19 +326,54 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick,
         <edgesGeometry args={[geometry]} />
         <lineBasicMaterial
           color="#000000"
-          linewidth={4}
+          linewidth={6}
           transparent={!isAvailable && !isCompleted}
           opacity={!isAvailable && !isCompleted ? 0.3 : 1.0}
         />
       </lineSegments>
 
-      {/* Selection indicator - chunky ring (rotated to face viewer) */}
-      {isSelected && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.8, 0]}>
-          <ringGeometry args={[0.8, 1.0, 8]} />
-          <meshBasicMaterial color="#000000" side={THREE.DoubleSide} />
-        </mesh>
+      {/* Corner geometric details - small triangular corners */}
+      {['boss', 'elite', 'god'].includes(node.type) && (
+        <>
+          {/* Top-left corner */}
+          <mesh position={[-0.5 * scale, 0.5 * scale, 0.5]} raycast={() => null}>
+            <coneGeometry args={[0.1, 0.15, 3]} />
+            <meshBasicMaterial color="#000000" />
+          </mesh>
+          {/* Top-right corner */}
+          <mesh position={[0.5 * scale, 0.5 * scale, 0.5]} rotation={[0, 0, Math.PI / 2]} raycast={() => null}>
+            <coneGeometry args={[0.1, 0.15, 3]} />
+            <meshBasicMaterial color="#000000" />
+          </mesh>
+          {/* Bottom-left corner */}
+          <mesh position={[-0.5 * scale, -0.5 * scale, 0.5]} rotation={[0, 0, -Math.PI / 2]} raycast={() => null}>
+            <coneGeometry args={[0.1, 0.15, 3]} />
+            <meshBasicMaterial color="#000000" />
+          </mesh>
+          {/* Bottom-right corner */}
+          <mesh position={[0.5 * scale, -0.5 * scale, 0.5]} rotation={[0, 0, Math.PI]} raycast={() => null}>
+            <coneGeometry args={[0.1, 0.15, 3]} />
+            <meshBasicMaterial color="#000000" />
+          </mesh>
+        </>
       )}
+
+      {/* Node type icon INSIDE the node */}
+      <Billboard>
+        <Text
+          position={[0, 0, 0.5]}
+          fontSize={0.45}
+          anchorX="center"
+          anchorY="middle"
+          outlineWidth={0.03}
+          outlineColor="#000000"
+        >
+          {nodeIcon}
+        </Text>
+      </Billboard>
+
+      {/* REDESIGNED selection ring - thick, rotating, dramatic */}
+      {isSelected && <SelectionRing position={[0, -0.8, 0]} color={color} />}
 
       {/* Completed checkmark - bigger and bolder */}
       {isCompleted && (
@@ -186,6 +431,26 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick,
           distance={3}
         />
       )}
+
+      {/* DRAMATIC hover glow - bright color burst on hover */}
+      {hovered && isAvailable && !isCompleted && (
+        <pointLight
+          position={[0, 0, 0]}
+          color={color}
+          intensity={2.5}
+          distance={4}
+        />
+      )}
+
+      {/* Star sparkles for special nodes (god/joker) */}
+      {(node.type === 'god' || node.type === 'joker') && !isCompleted && (
+        <StarSparkles color={color} />
+      )}
+
+      {/* Confetti burst on completed nodes */}
+      {isCompleted && (
+        <ConfettiBurst color={color} />
+      )}
     </group>
   );
 };
@@ -235,17 +500,20 @@ const PlayerAvatar = ({ position, avatarSeed }) => {
   );
 };
 
-// Particle Trail Component for Completed Paths
+// Particle Trail Component for Completed Paths - Neo-brutal geometric shapes
 const ParticleTrail = ({ start, end }) => {
   const particlesRef = useRef();
   const particleCount = 8;
 
   const particles = useMemo(() => {
     const temp = [];
+    const shapeTypes = ['box', 'pyramid', 'octahedron', 'star'];
     for (let i = 0; i < particleCount; i++) {
       temp.push({
         offset: i / particleCount,
-        speed: 0.5 + Math.random() * 0.5
+        speed: 0.5 + Math.random() * 0.5,
+        shape: shapeTypes[Math.floor(Math.random() * shapeTypes.length)],
+        rotationSpeed: 1 + Math.random() * 2
       });
     }
     return temp;
@@ -263,17 +531,41 @@ const ParticleTrail = ({ start, end }) => {
       );
 
       if (particlesRef.current.children[i]) {
-        particlesRef.current.children[i].position.copy(position);
+        const child = particlesRef.current.children[i];
+        child.position.copy(position);
+        // Rotate particles for more dynamic feel
+        child.rotation.x = state.clock.elapsedTime * particle.rotationSpeed;
+        child.rotation.y = state.clock.elapsedTime * particle.rotationSpeed * 0.7;
       }
     });
   });
 
+  // Get geometry for particle shape
+  const getParticleGeometry = (shape) => {
+    switch (shape) {
+      case 'box':
+        return <boxGeometry args={[0.12, 0.12, 0.12]} />;
+      case 'pyramid':
+        return <coneGeometry args={[0.08, 0.15, 4]} />;
+      case 'octahedron':
+        return <octahedronGeometry args={[0.08]} />;
+      case 'star':
+        return <octahedronGeometry args={[0.1]} />;
+      default:
+        return <boxGeometry args={[0.1, 0.1, 0.1]} />;
+    }
+  };
+
   return (
     <group ref={particlesRef}>
-      {particles.map((_, i) => (
+      {particles.map((particle, i) => (
         <mesh key={i}>
-          <sphereGeometry args={[0.08, 8, 8]} />
-          <meshBasicMaterial color="#fde047" transparent opacity={0.8} />
+          {getParticleGeometry(particle.shape)}
+          <meshBasicMaterial
+            color={particle.shape === 'star' ? '#fbbf24' : '#fde047'}
+            transparent
+            opacity={0.9}
+          />
         </mesh>
       ))}
     </group>
@@ -291,6 +583,41 @@ const ConnectionLine = ({ start, end, active = false, completed = false, highlig
       new THREE.Vector3(...end)
     ];
   }, [start, end]);
+
+  // Diagonal stripe segments for completed paths
+  const stripeSegments = useMemo(() => {
+    if (!completed) return [];
+
+    const startVec = new THREE.Vector3(...start);
+    const endVec = new THREE.Vector3(...end);
+    const direction = new THREE.Vector3().subVectors(endVec, startVec);
+    const length = direction.length();
+    direction.normalize();
+
+    // Perpendicular vector for diagonal stripes
+    const perpendicular = new THREE.Vector3(-direction.y, direction.x, 0).normalize();
+
+    const stripes = [];
+    const stripeSpacing = 0.3;
+    const stripeLength = 0.25;
+    const numStripes = Math.floor(length / stripeSpacing);
+
+    for (let i = 1; i < numStripes; i++) {
+      const t = i * stripeSpacing;
+      const center = new THREE.Vector3().addVectors(
+        startVec,
+        direction.clone().multiplyScalar(t)
+      );
+
+      const offset = perpendicular.clone().multiplyScalar(stripeLength);
+      const p1 = new THREE.Vector3().addVectors(center, offset);
+      const p2 = new THREE.Vector3().subVectors(center, offset);
+
+      stripes.push([p1, p2]);
+    }
+
+    return stripes;
+  }, [start, end, completed]);
 
   // Determine line color: completed = gold, active = black, inactive = gray
   const lineColor = completed ? '#fbbf24' : (active ? '#000000' : '#9ca3af');
@@ -327,6 +654,16 @@ const ConnectionLine = ({ start, end, active = false, completed = false, highlig
         />
       )}
 
+      {/* DIAGONAL STRIPES on completed paths - neo-brutal pattern */}
+      {completed && stripeSegments.map((stripe, idx) => (
+        <Line
+          key={idx}
+          points={stripe}
+          color="#000000"
+          lineWidth={5}
+        />
+      ))}
+
       {/* Enhanced glow for active paths in highlight mode */}
       {highlightMode && active && !completed && (
         <Line
@@ -344,20 +681,147 @@ const ConnectionLine = ({ start, end, active = false, completed = false, highlig
   );
 };
 
-// Floor Label Component - Neo-Brutal
-const FloorLabel = ({ position, floorNumber }) => {
+// Floating Geometric Shapes - Background decoration
+const FloatingShapes = ({ biomeColor }) => {
+  const shapesData = useMemo(() => {
+    const shapes = [];
+    const count = 15;
+
+    for (let i = 0; i < count; i++) {
+      const type = ['box', 'pyramid', 'octahedron'][Math.floor(Math.random() * 3)];
+      shapes.push({
+        type,
+        position: [
+          (Math.random() - 0.5) * 20,
+          (Math.random() - 0.5) * 30,
+          (Math.random() - 0.5) * 8 - 10 // Behind the main scene
+        ],
+        scale: 0.3 + Math.random() * 0.5,
+        rotationSpeed: 0.2 + Math.random() * 0.3,
+        floatSpeed: 0.5 + Math.random() * 0.5,
+        floatOffset: Math.random() * Math.PI * 2
+      });
+    }
+    return shapes;
+  }, []);
+
   return (
-    <Billboard position={position}>
-      <Text
-        fontSize={0.5}
-        color="#000000"
-        anchorX="center"
-        anchorY="middle"
-        fontWeight="black"
+    <>
+      {shapesData.map((shape, idx) => (
+        <FloatingShape key={idx} {...shape} biomeColor={biomeColor} />
+      ))}
+    </>
+  );
+};
+
+const FloatingShape = ({ type, position, scale, rotationSpeed, floatSpeed, floatOffset, biomeColor }) => {
+  const meshRef = useRef();
+
+  useFrame((state) => {
+    if (!meshRef.current) return;
+
+    // Rotation
+    meshRef.current.rotation.x = state.clock.elapsedTime * rotationSpeed;
+    meshRef.current.rotation.y = state.clock.elapsedTime * rotationSpeed * 0.7;
+
+    // Floating
+    const float = Math.sin(state.clock.elapsedTime * floatSpeed + floatOffset) * 0.5;
+    meshRef.current.position.y = position[1] + float;
+  });
+
+  const geometry = useMemo(() => {
+    switch (type) {
+      case 'box':
+        return new THREE.BoxGeometry(1, 1, 1);
+      case 'pyramid':
+        return new THREE.ConeGeometry(0.5, 1, 4);
+      case 'octahedron':
+        return new THREE.OctahedronGeometry(0.6);
+      default:
+        return new THREE.BoxGeometry(1, 1, 1);
+    }
+  }, [type]);
+
+  return (
+    <group position={[position[0], position[1], position[2]]}>
+      {/* Hard shadow behind shape */}
+      <mesh
+        geometry={geometry}
+        position={[0.1, -0.1, -0.05]}
+        scale={scale}
+        raycast={() => null}
       >
-        FLOOR {floorNumber}
-      </Text>
-    </Billboard>
+        <meshBasicMaterial color="#000000" transparent opacity={0.2} />
+      </mesh>
+
+      {/* Main shape */}
+      <mesh ref={meshRef} geometry={geometry} scale={scale} raycast={() => null}>
+        <meshBasicMaterial color={biomeColor} transparent opacity={0.15} />
+      </mesh>
+
+      {/* Black edges */}
+      <lineSegments scale={scale} raycast={() => null}>
+        <edgesGeometry args={[geometry]} />
+        <lineBasicMaterial color="#000000" transparent opacity={0.3} linewidth={2} />
+      </lineSegments>
+    </group>
+  );
+};
+
+// Floor Label Component - Neo-Brutal with PERSONALITY
+const FloorLabel = ({ position, floorNumber }) => {
+  const labelRef = useRef();
+
+  // Gentle floating animation
+  useFrame((state) => {
+    if (!labelRef.current) return;
+    const float = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
+    labelRef.current.position.y = float;
+  });
+
+  return (
+    <group position={position} ref={labelRef}>
+      <Billboard>
+        <Html center style={{ pointerEvents: 'none' }}>
+          <div className="relative" style={{ width: '200px' }}>
+            {/* Main label box */}
+            <div className="nb-bg-white nb-border-xl nb-shadow-xl px-6 py-3 relative">
+              {/* Decorative corner triangles */}
+              <div className="absolute -top-2 -left-2 w-0 h-0" style={{
+                borderLeft: '16px solid black',
+                borderTop: '16px solid black',
+                borderRight: '16px solid transparent',
+                borderBottom: '16px solid transparent'
+              }}></div>
+              <div className="absolute -top-2 -right-2 w-0 h-0" style={{
+                borderRight: '16px solid black',
+                borderTop: '16px solid black',
+                borderLeft: '16px solid transparent',
+                borderBottom: '16px solid transparent'
+              }}></div>
+
+              {/* Floor text */}
+              <div className="text-center">
+                <div className="text-xs font-black text-purple-600 uppercase tracking-wider mb-1">
+                  Floor
+                </div>
+                <div className="text-4xl font-black text-black leading-none" style={{
+                  textShadow: '3px 3px 0 rgba(0,0,0,0.1)'
+                }}>
+                  {floorNumber}
+                </div>
+              </div>
+
+              {/* Decorative bottom stripe */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-purple-500"></div>
+            </div>
+
+            {/* Offset shadow for depth */}
+            <div className="absolute top-2 left-2 w-full h-full bg-black -z-10 nb-border-xl"></div>
+          </div>
+        </Html>
+      </Billboard>
+    </group>
   );
 };
 
@@ -658,6 +1122,19 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
       {/* Drag/Pan controls with parallax effect */}
       <DragPanCamera onCameraControlsReady={onCameraControlsReady} />
 
+      {/* Floating geometric shapes in background */}
+      <FloatingShapes biomeColor={
+        selectedBiomeData.color === 'red' ? '#ef4444' :
+        selectedBiomeData.color === 'orange' ? '#f97316' :
+        selectedBiomeData.color === 'yellow' ? '#eab308' :
+        selectedBiomeData.color === 'green' ? '#22c55e' :
+        selectedBiomeData.color === 'cyan' ? '#06b6d4' :
+        selectedBiomeData.color === 'blue' ? '#3b82f6' :
+        selectedBiomeData.color === 'purple' ? '#8b5cf6' :
+        selectedBiomeData.color === 'pink' ? '#ec4899' :
+        '#a78bfa'
+      } />
+
       {/* Connection Lines */}
       {connections.map((conn, idx) => (
         <ConnectionLine
@@ -798,6 +1275,89 @@ export const ThreeDMapView = ({
 
   return (
     <div ref={containerRef} className="w-full h-full relative">
+      {/* Hard-stop Gradient Bands - Neo-brutal background */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        style={{ opacity: 0.25 }}
+      >
+        <defs>
+          <linearGradient id="hardStopGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            {/* Hard stops - no smooth transitions */}
+            <stop offset="0%" stopColor={
+              selectedBiomeData.color === 'red' ? '#fca5a5' :
+              selectedBiomeData.color === 'orange' ? '#fdba74' :
+              selectedBiomeData.color === 'yellow' ? '#fde047' :
+              selectedBiomeData.color === 'green' ? '#86efac' :
+              selectedBiomeData.color === 'cyan' ? '#67e8f9' :
+              selectedBiomeData.color === 'blue' ? '#93c5fd' :
+              selectedBiomeData.color === 'purple' ? '#c4b5fd' :
+              selectedBiomeData.color === 'pink' ? '#f9a8d4' :
+              '#a78bfa'
+            } />
+            <stop offset="20%" stopColor={
+              selectedBiomeData.color === 'red' ? '#fca5a5' :
+              selectedBiomeData.color === 'orange' ? '#fdba74' :
+              selectedBiomeData.color === 'yellow' ? '#fde047' :
+              selectedBiomeData.color === 'green' ? '#86efac' :
+              selectedBiomeData.color === 'cyan' ? '#67e8f9' :
+              selectedBiomeData.color === 'blue' ? '#93c5fd' :
+              selectedBiomeData.color === 'purple' ? '#c4b5fd' :
+              selectedBiomeData.color === 'pink' ? '#f9a8d4' :
+              '#a78bfa'
+            } />
+            <stop offset="20%" stopColor="#ffffff" />
+            <stop offset="40%" stopColor="#ffffff" />
+            <stop offset="40%" stopColor={
+              selectedBiomeData.color === 'red' ? '#dc2626' :
+              selectedBiomeData.color === 'orange' ? '#ea580c' :
+              selectedBiomeData.color === 'yellow' ? '#ca8a04' :
+              selectedBiomeData.color === 'green' ? '#16a34a' :
+              selectedBiomeData.color === 'cyan' ? '#0891b2' :
+              selectedBiomeData.color === 'blue' ? '#2563eb' :
+              selectedBiomeData.color === 'purple' ? '#7c3aed' :
+              selectedBiomeData.color === 'pink' ? '#db2777' :
+              '#8b5cf6'
+            } />
+            <stop offset="60%" stopColor={
+              selectedBiomeData.color === 'red' ? '#dc2626' :
+              selectedBiomeData.color === 'orange' ? '#ea580c' :
+              selectedBiomeData.color === 'yellow' ? '#ca8a04' :
+              selectedBiomeData.color === 'green' ? '#16a34a' :
+              selectedBiomeData.color === 'cyan' ? '#0891b2' :
+              selectedBiomeData.color === 'blue' ? '#2563eb' :
+              selectedBiomeData.color === 'purple' ? '#7c3aed' :
+              selectedBiomeData.color === 'pink' ? '#db2777' :
+              '#8b5cf6'
+            } />
+            <stop offset="60%" stopColor="#fef3c7" />
+            <stop offset="80%" stopColor="#fef3c7" />
+            <stop offset="80%" stopColor={
+              selectedBiomeData.color === 'red' ? '#fca5a5' :
+              selectedBiomeData.color === 'orange' ? '#fdba74' :
+              selectedBiomeData.color === 'yellow' ? '#fde047' :
+              selectedBiomeData.color === 'green' ? '#86efac' :
+              selectedBiomeData.color === 'cyan' ? '#67e8f9' :
+              selectedBiomeData.color === 'blue' ? '#93c5fd' :
+              selectedBiomeData.color === 'purple' ? '#c4b5fd' :
+              selectedBiomeData.color === 'pink' ? '#f9a8d4' :
+              '#a78bfa'
+            } />
+            <stop offset="100%" stopColor={
+              selectedBiomeData.color === 'red' ? '#fca5a5' :
+              selectedBiomeData.color === 'orange' ? '#fdba74' :
+              selectedBiomeData.color === 'yellow' ? '#fde047' :
+              selectedBiomeData.color === 'green' ? '#86efac' :
+              selectedBiomeData.color === 'cyan' ? '#67e8f9' :
+              selectedBiomeData.color === 'blue' ? '#93c5fd' :
+              selectedBiomeData.color === 'purple' ? '#c4b5fd' :
+              selectedBiomeData.color === 'pink' ? '#f9a8d4' :
+              '#a78bfa'
+            } />
+          </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#hardStopGradient)" />
+      </svg>
+
       {/* Geometric Pattern Overlay - Biome specific */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none z-0"
