@@ -797,10 +797,65 @@ export const ThreeDMapView = ({
   }, []);
 
   return (
-    <div ref={containerRef} className="w-full h-full">
+    <div ref={containerRef} className="w-full h-full relative">
+      {/* Geometric Pattern Overlay - Biome specific */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        style={{ opacity: 0.15 }}
+      >
+        <defs>
+          {/* Diagonal Stripes Pattern */}
+          <pattern id="stripes" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="20" height="40" fill="#000000" />
+          </pattern>
+
+          {/* Grid Pattern */}
+          <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+            <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#000000" strokeWidth="3" />
+          </pattern>
+
+          {/* Dots Pattern */}
+          <pattern id="dots" width="30" height="30" patternUnits="userSpaceOnUse">
+            <circle cx="15" cy="15" r="8" fill="#000000" />
+          </pattern>
+
+          {/* Zigzag Pattern */}
+          <pattern id="zigzag" width="40" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 0 10 L 10 0 L 20 10 L 30 0 L 40 10 L 40 20 L 30 10 L 20 20 L 10 10 L 0 20 Z" fill="#000000" />
+          </pattern>
+
+          {/* Triangles Pattern */}
+          <pattern id="triangles" width="40" height="40" patternUnits="userSpaceOnUse">
+            <polygon points="20,0 40,40 0,40" fill="#000000" />
+          </pattern>
+
+          {/* Waves Pattern */}
+          <pattern id="waves" width="60" height="30" patternUnits="userSpaceOnUse">
+            <path d="M 0 15 Q 15 0, 30 15 T 60 15" fill="none" stroke="#000000" strokeWidth="4" />
+          </pattern>
+        </defs>
+
+        <rect
+          width="100%"
+          height="100%"
+          fill={`url(#${
+            selectedBiomeData.color === 'red' ? 'stripes' :
+            selectedBiomeData.color === 'orange' ? 'triangles' :
+            selectedBiomeData.color === 'yellow' ? 'dots' :
+            selectedBiomeData.color === 'green' ? 'waves' :
+            selectedBiomeData.color === 'cyan' ? 'grid' :
+            selectedBiomeData.color === 'blue' ? 'zigzag' :
+            selectedBiomeData.color === 'purple' ? 'dots' :
+            selectedBiomeData.color === 'pink' ? 'waves' :
+            'grid'
+          })`}
+        />
+      </svg>
+
       <Canvas
         gl={{ antialias: true }}
         dpr={[1, 2]}
+        className="relative z-10"
       >
         {/* Biome-specific neo-brutal background colors */}
         <color attach="background" args={[
