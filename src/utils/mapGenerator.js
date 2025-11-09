@@ -559,12 +559,21 @@ const generateBranchingTree = (act, biomeKey, biomeId) => {
         newNodes.push(childNode);
       }
 
-      // Connect all nodes from floor 3 to all nodes in floor 4
+      // Connect each floor 3 node to 1-2 random floor 4 nodes
       previousFloor.nodes.forEach((parentNode) => {
-        newNodes.forEach((childNode) => {
+        const connectionCount = Math.floor(Math.random() * 2) + 1; // 1-2 connections
+        const availableChildren = [...newNodes];
+
+        for (let i = 0; i < connectionCount && availableChildren.length > 0; i++) {
+          const randomIndex = Math.floor(Math.random() * availableChildren.length);
+          const childNode = availableChildren[randomIndex];
+
           childNode.parentIds.push(parentNode.id);
           parentNode.childrenIds.push(childNode.id);
-        });
+
+          // Remove to avoid duplicate connections from same parent
+          availableChildren.splice(randomIndex, 1);
+        }
       });
     } else {
       // For floors 2-3, create 2-3 branches per parent node

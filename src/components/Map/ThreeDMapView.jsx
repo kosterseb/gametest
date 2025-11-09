@@ -74,9 +74,10 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick 
         ref={meshRef}
         geometry={geometry}
         scale={isSelected ? scale * 1.2 : scale}
-        onClick={() => onClick && onClick(node)}
+        onClick={() => isAvailable && !isCompleted && onClick && onClick(node)}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
+        style={{ cursor: (isAvailable && !isCompleted) ? 'pointer' : 'default' }}
       >
         <meshBasicMaterial
           color={color}
@@ -210,10 +211,13 @@ const DragPanCamera = () => {
         const deltaX = e.clientX - dragStart.x;
         const deltaY = e.clientY - dragStart.y;
 
-        // Convert screen space to world space movement
+        // Convert screen space to world space movement with limits
+        const newX = cameraOffset.x - deltaX * 0.01;
+        const newY = cameraOffset.y + deltaY * 0.01;
+
         setCameraOffset({
-          x: cameraOffset.x - deltaX * 0.01,
-          y: cameraOffset.y + deltaY * 0.01
+          x: Math.max(-8, Math.min(8, newX)),  // Limit X movement
+          y: Math.max(-5, Math.min(5, newY))   // Limit Y movement
         });
 
         setDragStart({ x: e.clientX, y: e.clientY });

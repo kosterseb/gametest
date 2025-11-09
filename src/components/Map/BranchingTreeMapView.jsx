@@ -458,10 +458,10 @@ export const BranchingTreeMapView = () => {
         {/* Confirmation Panel - Show in both 2D and 3D */}
           {selectedNode && !selectedNode.completed && (
             <div
-              className="animate-fadeIn fixed z-50"
+              className="animate-fadeIn fixed z-30"
               style={is3DView && selectedNodeScreenPos ? {
                 left: `${selectedNodeScreenPos.x + 20}px`,
-                top: `${selectedNodeScreenPos.y}px`,
+                top: `${Math.max(150, selectedNodeScreenPos.y)}px`,
                 transform: 'translateY(-50%)'
               } : {
                 bottom: '2rem',
