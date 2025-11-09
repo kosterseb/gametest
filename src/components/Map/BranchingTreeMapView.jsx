@@ -530,8 +530,8 @@ export const BranchingTreeMapView = () => {
             <div
               className="animate-fadeIn fixed z-50"
               style={is3DView && selectedNodeScreenPos ? {
-                left: `${selectedNodeScreenPos.x + 80}px`, // Position to the right of the node (node width ~60px + small gap)
-                top: `${Math.max(150, selectedNodeScreenPos.y)}px`,
+                left: `${selectedNodeScreenPos.x + 100}px`, // Position beside the node with comfortable gap
+                top: `${selectedNodeScreenPos.y}px`,
                 transform: 'translateY(-50%)'
               } : {
                 bottom: '2rem',

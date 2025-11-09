@@ -338,12 +338,12 @@ const DragPanCamera = ({ onCameraControlsReady }) => {
         focusOnPosition: (x, y) => {
           setCameraOffset({
             x: Math.max(-8, Math.min(8, -x)),
-            y: Math.max(-8, Math.min(8, -y))  // Match increased drag limits
+            y: Math.max(-12, Math.min(8, -y))  // Increased downward limit to 12
           });
         },
         animateToPosition: (x, y, duration = 1000) => {
           const targetX = Math.max(-8, Math.min(8, -x));
-          const targetY = Math.max(-8, Math.min(8, -y));
+          const targetY = Math.max(-12, Math.min(8, -y));  // Increased downward limit to 12
           setTransition({
             active: true,
             startTime: Date.now(),
@@ -378,8 +378,8 @@ const DragPanCamera = ({ onCameraControlsReady }) => {
         const newY = cameraOffset.y + deltaY * 0.01;
 
         setCameraOffset({
-          x: Math.max(-8, Math.min(8, newX)),  // Limit X movement
-          y: Math.max(-8, Math.min(8, newY))   // Limit Y movement (increased for floor 4 visibility)
+          x: Math.max(-8, Math.min(8, newX)),   // Limit X movement
+          y: Math.max(-12, Math.min(8, newY))   // Increased downward limit to 12 for better floor visibility
         });
 
         setDragStart({ x: e.clientX, y: e.clientY });

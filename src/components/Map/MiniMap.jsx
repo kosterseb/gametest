@@ -8,7 +8,10 @@ export const MiniMap = ({ selectedBiomeData, currentActData, availableNodeIds, c
   const allNodes = [
     ...selectedBiomeData.floors.flatMap(f => f.nodes),
     currentActData.bossFloor.node
-  ];
+  ].filter(n => n && n.position); // Filter out nodes without positions
+
+  // Early return if no nodes
+  if (allNodes.length === 0) return null;
 
   // Find bounds for scaling
   const positions = allNodes.map(n => n.position);
