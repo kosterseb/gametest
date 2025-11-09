@@ -152,6 +152,11 @@ const gameReducer = (state, action) => {
           inventory: loadedProfile.currentRun.inventory,
           completedNodes: loadedProfile.currentRun.completedNodes,
           progressionMap: loadedProfile.currentRun.progressionMap,
+          branchingMap: loadedProfile.currentRun.branchingMap || [],
+          selectedBiome: loadedProfile.currentRun.selectedBiome || null,
+          biomeLocked: loadedProfile.currentRun.biomeLocked || false,
+          availableNodeIds: loadedProfile.currentRun.availableNodeIds || [],
+          completedNodeIds: loadedProfile.currentRun.completedNodeIds || [],
           showPreBattleLoadout: loadedProfile.settings.showPreBattleLoadout,
           prefer3DView: loadedProfile.settings.prefer3DView !== undefined ? loadedProfile.settings.prefer3DView : true
         } : {})
@@ -176,7 +181,12 @@ const gameReducer = (state, action) => {
             selectedCardTypes: state.selectedCardTypes,
             inventory: state.inventory,
             completedNodes: state.completedNodes,
-            progressionMap: state.progressionMap
+            progressionMap: state.progressionMap,
+            branchingMap: state.branchingMap,
+            selectedBiome: state.selectedBiome,
+            biomeLocked: state.biomeLocked,
+            availableNodeIds: state.availableNodeIds,
+            completedNodeIds: state.completedNodeIds
           },
           settings: {
             ...state.profile.settings,

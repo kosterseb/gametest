@@ -69,43 +69,21 @@ const BiomeSelectionScreen = ({ actData, onSelectBiome }) => {
                       </div>
                     </div>
 
-                    {/* Tree Preview - Simplified */}
-                    <div className="space-y-2">
-                      <div className="text-xs font-black text-black uppercase text-center mb-2">
-                        Branching Path Preview:
+                    {/* Biome Stats */}
+                    <div className="space-y-3">
+                      <div className="nb-bg-white nb-border nb-shadow px-4 py-3">
+                        <div className="text-xs text-gray-600 font-semibold uppercase mb-1">Total Floors</div>
+                        <div className="text-2xl font-black text-black">{biome.floors.length}</div>
                       </div>
 
-                      {biome.floors.map((floor, idx) => (
-                        <div key={floor.floor} className="mb-2">
-                          <div className="text-xs text-black font-bold text-center mb-1">
-                            Floor {floor.floor}
-                          </div>
-                          <div className="flex justify-center gap-2 flex-wrap">
-                            {floor.nodes.map((node, nodeIdx) => (
-                              <div
-                                key={node.id}
-                                className="nb-bg-white nb-border nb-shadow-sm px-2 py-1 text-xs font-bold uppercase"
-                              >
-                                {node.type}
-                              </div>
-                            ))}
-                          </div>
-                          {idx < biome.floors.length - 1 && (
-                            <div className="flex justify-center mt-1">
-                              <ArrowDown className="w-4 h-4 text-black" />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-
-                      <div className="flex justify-center mt-2">
-                        <ArrowDown className="w-5 h-5 text-black animate-bounce" />
+                      <div className="nb-bg-white nb-border nb-shadow px-4 py-3">
+                        <div className="text-xs text-gray-600 font-semibold uppercase mb-1">Boss Floor</div>
+                        <div className="text-2xl font-black text-black">{actData.bossFloor.floor}</div>
                       </div>
 
-                      <div className="nb-bg-purple nb-border nb-shadow-lg p-2 text-center">
-                        <span className="text-xs font-bold text-white uppercase">
-                          BOSS FLOOR {actData.bossFloor.floor}
-                        </span>
+                      <div className="nb-bg-white nb-border nb-shadow px-4 py-3">
+                        <div className="text-xs text-gray-600 font-semibold uppercase mb-1">Difficulty</div>
+                        <div className="text-lg font-black text-black uppercase">{biome.theme}</div>
                       </div>
                     </div>
 

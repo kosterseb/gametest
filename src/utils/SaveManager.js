@@ -54,6 +54,12 @@ export const createEmptyProfile = () => ({
     },
     completedNodes: [],
     progressionMap: [],
+    // Branching map state
+    branchingMap: [],
+    selectedBiome: null,
+    biomeLocked: false,
+    availableNodeIds: [],
+    completedNodeIds: [],
     // Run stats
     currentRunStats: {
       enemiesKilled: 0,

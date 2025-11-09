@@ -7,6 +7,7 @@ import { PageTransition } from './PageTransition';
 import { Card } from '../Cards/Card';
 import { Trophy, Package, AlertCircle, Check, X, Coins, Star } from 'lucide-react';
 import { NBButton, NBHeading, NBBadge } from './NeoBrutalUI';
+import { ActCompletionPopup } from './ActCompletionPopup';
 
 // Count-up animation component
 const CountUp = ({ end, duration = 2000, prefix = '', suffix = '' }) => {
@@ -58,9 +59,11 @@ export const UnifiedRewardScreen = () => {
   const [claimedItems, setClaimedItems] = useState([]);
   const [showBagFullWarning, setShowBagFullWarning] = useState(false);
   const [isBossItemReward, setIsBossItemReward] = useState(false);
+  const [showActCompletion, setShowActCompletion] = useState(false);
 
   const hasCardRewards = gameState.shouldShowCardReward;
   const hasItemRewards = gameState.shouldShowItemReward && (gameState.pendingItemRewards?.length || 0) > 0;
+  const isBossVictory = gameState.currentEnemyData?.isBoss;
 
   // Get last battle rewards
   const lastBattleGold = gameState.lastBattleRewards?.gold || 0;
@@ -163,7 +166,7 @@ export const UnifiedRewardScreen = () => {
         return;
       }
     }
-    
+
     if (hasCardRewards) {
       dispatch({ type: 'CLEAR_CARD_REWARD' });
     }
@@ -171,9 +174,20 @@ export const UnifiedRewardScreen = () => {
       dispatch({ type: 'CLEAR_ITEM_REWARD' });
     }
 
-    // Set flag to show battle recap on map
-    dispatch({ type: 'SHOW_BATTLE_RECAP' });
+    // If boss was defeated, show act completion popup
+    if (isBossVictory) {
+      setShowActCompletion(true);
+    } else {
+      // Set flag to show battle recap on map
+      dispatch({ type: 'SHOW_BATTLE_RECAP' });
+      navigate('/map');
+    }
+  };
 
+  const handleActContinue = () => {
+    // Complete the boss floor and move to next act
+    dispatch({ type: 'COMPLETE_BOSS_FLOOR' });
+    setShowActCompletion(false);
     navigate('/map');
   };
 
@@ -449,6 +463,14 @@ export const UnifiedRewardScreen = () => {
           </div>
         </div>
       </div>
+
+      {/* Act Completion Popup */}
+      {showActCompletion && (
+        <ActCompletionPopup
+          actNumber={gameState.currentAct}
+          onContinue={handleActContinue}
+        />
+      )}
     </PageTransition>
   );
 };
