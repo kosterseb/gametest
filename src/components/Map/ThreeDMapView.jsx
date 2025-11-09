@@ -268,7 +268,7 @@ const ScreenPositionTracker = ({ position, onPositionUpdate }) => {
 
     // Convert to pixel coordinates
     const x = (vector.x * 0.5 + 0.5) * size.width;
-    const y = (vector.y * -0.5 + 0.5) * size.height;
+    const y = (vector.y * -2.5 + 0.5) * size.height;
 
     onPositionUpdate({ x, y });
   });
@@ -296,9 +296,9 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
         // Center the nodes by subtracting the center offset
         const x = (node.position.x - centerOffset) * horizontalSpacing;
         // Shift nodes up by adding 1.1 to align with connection points
-        const y = -node.position.y * verticalSpacing + 1.1;
+        const y = -node.position.y * verticalSpacing + 0;
         // Add Z-depth for parallax effect - floors further down are further back
-        const z = -node.position.y * 0.5;
+        const z = -node.position.y * 0.2;
         positions.set(node.id, [x, y, z]);
       });
     });
