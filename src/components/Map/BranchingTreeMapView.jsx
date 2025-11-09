@@ -5,7 +5,7 @@ import { generateBranchingMap } from '../../utils/mapGenerator';
 import { PageTransition } from '../UI/PageTransition';
 import { MapNode } from './MapNode';
 import { NBButton, NBHeading, NBBadge } from '../UI/NeoBrutalUI';
-import { Heart, Coins, ArrowDown, CheckCircle, Maximize, Minimize } from 'lucide-react';
+import { Heart, Coins, ArrowDown, CheckCircle } from 'lucide-react';
 import { BattleRecapPopup } from '../UI/BattleRecapPopup';
 import { ThreeDMapView } from './ThreeDMapView';
 
@@ -276,19 +276,8 @@ export const BranchingTreeMapView = () => {
                 </div>
               </div>
 
-              {/* Player Stats and Controls */}
+              {/* Player Stats */}
               <div className="flex gap-3 items-center">
-                {/* 3D Toggle Button */}
-                <NBButton
-                  onClick={() => dispatch({ type: 'TOGGLE_3D_VIEW' })}
-                  variant={is3DView ? "success" : "white"}
-                  size="sm"
-                  className="px-4 py-2"
-                >
-                  {is3DView ? <Minimize className="w-4 h-4 mr-2" /> : <Maximize className="w-4 h-4 mr-2" />}
-                  {is3DView ? '2D' : '3D'}
-                </NBButton>
-
                 <div className="nb-bg-red nb-border-lg nb-shadow px-4 py-2">
                   <div className="flex items-center gap-2">
                     <Heart className="w-5 h-5 text-black" />

@@ -286,14 +286,12 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
     const horizontalSpacing = 2.5;
 
     floors.forEach((floor, floorIdx) => {
-      const numNodes = floor.nodes.length;
-      const startX = -(numNodes - 1) * horizontalSpacing / 2;
-
-      floor.nodes.forEach((node, nodeIdx) => {
-        const x = startX + nodeIdx * horizontalSpacing;
-        const y = -floorIdx * verticalSpacing;
+      floor.nodes.forEach((node) => {
+        // Use the node's stored position data for accurate placement
+        const x = node.position.x * horizontalSpacing;
+        const y = -node.position.y * verticalSpacing;
         // Add Z-depth for parallax effect - floors further down are further back
-        const z = -floorIdx * 0.5;
+        const z = -node.position.y * 0.5;
         positions.set(node.id, [x, y, z]);
       });
     });
@@ -301,7 +299,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
     // Add boss position
     if (currentActData.bossFloor) {
       const floorCount = floors.length;
-      positions.set(currentActData.bossFloor.node.id, [0, -(floorCount) * verticalSpacing, -floorCount * 0.5]);
+      positions.set(currentActData.bossFloor.node.id, [0, -floorCount * verticalSpacing, -floorCount * 0.5]);
     }
 
     return positions;

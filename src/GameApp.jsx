@@ -84,7 +84,7 @@ const GameApp = () => {
     <div className="relative min-h-screen">
       {/* Menu Buttons - Top Right, Stacked Vertically (for non-battle routes) */}
       {showMenuButtons && (
-        <div className="fixed top-4 right-4 z-50 flex flex-col gap-3">
+        <div className={`fixed right-4 z-50 flex flex-col gap-3 ${currentRoute === '/map' ? 'top-24' : 'top-4'}`}>
           {/* Settings Menu Button - ON TOP */}
           <NBButton
             onClick={() => setIsMenuOpen(true)}
