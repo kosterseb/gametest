@@ -27,10 +27,17 @@ const Edges = ({ geometry }) => {
 };
 
 // 3D Node Component - Neo-Brutal Style
-const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick, highlightMode }) => {
+const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick, highlightMode, onHoverChange }) => {
   const meshRef = useRef();
   const [hovered, setHovered] = useState(false);
   const geometryRef = useRef();
+
+  // Notify parent of hover changes
+  React.useEffect(() => {
+    if (onHoverChange) {
+      onHoverChange(hovered ? { node, position } : null);
+    }
+  }, [hovered, node, position, onHoverChange]);
 
   // Subtle animations only
   useFrame((state) => {
@@ -430,7 +437,15 @@ const ScreenPositionTracker = ({ position, onPositionUpdate }) => {
 };
 
 // Main 3D Scene
-const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelect, availableNodeIds, completedNodeIds, onSelectedNodeScreenPosition, onCameraControlsReady, highlightPaths }) => {
+const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelect, availableNodeIds, completedNodeIds, onSelectedNodeScreenPosition, onCameraControlsReady, highlightPaths, onHoveredNodeChange }) => {
+  const [hoveredNodeData, setHoveredNodeData] = useState(null);
+
+  // Track hovered node changes and notify parent
+  React.useEffect(() => {
+    if (onHoveredNodeChange) {
+      onHoveredNodeChange(hoveredNodeData);
+    }
+  }, [hoveredNodeData, onHoveredNodeChange]);
   // Calculate CONNECTION LINE positions (true positions for path structure)
   const connectionPositions = useMemo(() => {
     const positions = new Map();
@@ -576,6 +591,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
               isCompleted={completedNodeIds.includes(node.id)}
               onClick={onNodeSelect}
               highlightMode={highlightPaths}
+              onHoverChange={setHoveredNodeData}
             />
           );
         })
@@ -591,6 +607,19 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
           isCompleted={completedNodeIds.includes(currentActData.bossFloor.node.id)}
           onClick={onNodeSelect}
           highlightMode={highlightPaths}
+          onHoverChange={setHoveredNodeData}
+        />
+      )}
+
+      {/* Screen Position Tracker for Hovered Node */}
+      {hoveredNodeData && (
+        <ScreenPositionTracker
+          position={hoveredNodeData.position}
+          onPositionUpdate={(pos) => {
+            if (onHoveredNodeChange) {
+              onHoveredNodeChange({ ...hoveredNodeData, screenPos: pos });
+            }
+          }}
         />
       )}
 
@@ -632,7 +661,8 @@ export const ThreeDMapView = ({
   completedNodeIds,
   onSelectedNodeScreenPosition,
   onCameraControlsReady,
-  highlightPaths
+  highlightPaths,
+  onHoveredNodeChange
 }) => {
   const containerRef = React.useRef(null);
 
@@ -671,6 +701,7 @@ export const ThreeDMapView = ({
           onSelectedNodeScreenPosition={onSelectedNodeScreenPosition}
           onCameraControlsReady={onCameraControlsReady}
           highlightPaths={highlightPaths}
+          onHoveredNodeChange={onHoveredNodeChange}
         />
       </Canvas>
     </div>

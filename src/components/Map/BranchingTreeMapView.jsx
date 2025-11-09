@@ -151,6 +151,7 @@ export const BranchingTreeMapView = () => {
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [cameraControls, setCameraControls] = useState(null);
   const [highlightPaths, setHighlightPaths] = useState(false);
+  const [hoveredNode, setHoveredNode] = useState(null);
 
   // Use state from GameContext instead of local state
   const is3DView = gameState.prefer3DView;
@@ -161,6 +162,10 @@ export const BranchingTreeMapView = () => {
 
   const handleSelectedNodeScreenPosition = (pos) => {
     setSelectedNodeScreenPos(pos);
+  };
+
+  const handleHoveredNodeChange = (nodeData) => {
+    setHoveredNode(nodeData);
   };
 
   // Initialize branching map
@@ -332,6 +337,7 @@ export const BranchingTreeMapView = () => {
               onSelectedNodeScreenPosition={handleSelectedNodeScreenPosition}
               onCameraControlsReady={handleCameraControlsReady}
               highlightPaths={highlightPaths}
+              onHoveredNodeChange={handleHoveredNodeChange}
             />
 
             {/* Navigation Button - Left Side */}
@@ -571,6 +577,38 @@ export const BranchingTreeMapView = () => {
             maxHp={gameState.maxPlayerHealth}
             onContinue={handleRecapContinue}
           />
+        )}
+
+        {/* Hover Tooltip - Node Preview */}
+        {is3DView && hoveredNode && hoveredNode.screenPos && !selectedNode && (
+          <div
+            className="fixed z-45 pointer-events-none"
+            style={{
+              left: `${hoveredNode.screenPos.x + 60}px`,
+              top: `${hoveredNode.screenPos.y}px`,
+              transform: 'translateY(-50%)'
+            }}
+          >
+            <div className="nb-bg-white nb-border-lg nb-shadow-lg p-3 animate-fadeIn">
+              <div className="font-black text-sm text-black uppercase mb-1">
+                {hoveredNode.node.type}
+              </div>
+              {(hoveredNode.node.type === 'enemy' || hoveredNode.node.type === 'elite' || hoveredNode.node.type === 'boss') && hoveredNode.node.enemyData && (
+                <div className="text-xs">
+                  <div className="font-bold text-black">{hoveredNode.node.enemyData.name}</div>
+                  <div className="text-gray-700 font-semibold">
+                    HP: {hoveredNode.node.enemyData.health} | Gold: {hoveredNode.node.enemyData.goldReward[0]}-{hoveredNode.node.enemyData.goldReward[1]}
+                  </div>
+                </div>
+              )}
+              {hoveredNode.node.type === 'shop' && (
+                <div className="text-xs font-semibold text-gray-700">Buy cards & items</div>
+              )}
+              {hoveredNode.node.type === 'joker' && (
+                <div className="text-xs font-semibold text-gray-700">Mystery event</div>
+              )}
+            </div>
+          </div>
         )}
 
         {/* Map Navigation Dashboard */}
