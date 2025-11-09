@@ -311,7 +311,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
   const visualNodePositions = useMemo(() => {
     const positions = new Map();
     const floors = selectedBiomeData.floors;
-    const verticalSpacing = 1.5;
+    const verticalSpacing = 3;  // Match connection line spacing for alignment
     const horizontalSpacing = 1.8;
     const yOffset = 0; // Adjustable offset to align nodes with connection points
 
