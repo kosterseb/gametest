@@ -190,12 +190,27 @@ const FloorLabel = ({ position, floorNumber }) => {
 };
 
 // Drag/Pan Camera Controller with Parallax
-const DragPanCamera = () => {
+const DragPanCamera = ({ onCameraControlsReady }) => {
   const { camera, gl } = useThree();
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [cameraOffset, setCameraOffset] = useState({ x: 0, y: 0 });
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
+
+  // Expose camera control functions
+  React.useEffect(() => {
+    if (onCameraControlsReady) {
+      onCameraControlsReady({
+        resetCamera: () => setCameraOffset({ x: 0, y: 0 }),
+        focusOnPosition: (x, y) => {
+          setCameraOffset({
+            x: Math.max(-8, Math.min(8, -x)),
+            y: Math.max(-5, Math.min(5, -y))
+          });
+        }
+      });
+    }
+  }, [onCameraControlsReady]);
 
   // Track mouse for subtle parallax when NOT dragging
   React.useEffect(() => {
@@ -281,7 +296,7 @@ const ScreenPositionTracker = ({ position, onPositionUpdate }) => {
 };
 
 // Main 3D Scene
-const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelect, availableNodeIds, completedNodeIds, onSelectedNodeScreenPosition }) => {
+const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelect, availableNodeIds, completedNodeIds, onSelectedNodeScreenPosition, onCameraControlsReady }) => {
   // Calculate CONNECTION LINE positions (true positions for path structure)
   const connectionPositions = useMemo(() => {
     const positions = new Map();
@@ -384,7 +399,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
       <PerspectiveCamera makeDefault position={[0, 2, 12]} fov={45} rotation={[-0.15, 0, 0]} />
 
       {/* Drag/Pan controls with parallax effect */}
-      <DragPanCamera />
+      <DragPanCamera onCameraControlsReady={onCameraControlsReady} />
 
       {/* Connection Lines */}
       {connections.map((conn, idx) => (
@@ -464,7 +479,8 @@ export const ThreeDMapView = ({
   onNodeSelect,
   availableNodeIds,
   completedNodeIds,
-  onSelectedNodeScreenPosition
+  onSelectedNodeScreenPosition,
+  onCameraControlsReady
 }) => {
   return (
     <div className="w-full h-full">
@@ -483,6 +499,7 @@ export const ThreeDMapView = ({
           availableNodeIds={availableNodeIds}
           completedNodeIds={completedNodeIds}
           onSelectedNodeScreenPosition={onSelectedNodeScreenPosition}
+          onCameraControlsReady={onCameraControlsReady}
         />
       </Canvas>
     </div>

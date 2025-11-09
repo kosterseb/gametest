@@ -5,9 +5,10 @@ import { generateBranchingMap } from '../../utils/mapGenerator';
 import { PageTransition } from '../UI/PageTransition';
 import { MapNode } from './MapNode';
 import { NBButton, NBHeading, NBBadge } from '../UI/NeoBrutalUI';
-import { Heart, Coins, ArrowDown, CheckCircle } from 'lucide-react';
+import { Heart, Coins, ArrowDown, CheckCircle, MapIcon } from 'lucide-react';
 import { BattleRecapPopup } from '../UI/BattleRecapPopup';
 import { ThreeDMapView } from './ThreeDMapView';
+import { MapNavigationDashboard } from './MapNavigationDashboard';
 
 // Biome Selection Screen
 const BiomeSelectionScreen = ({ actData, onSelectBiome }) => {
@@ -147,9 +148,15 @@ export const BranchingTreeMapView = () => {
   const [showRecap, setShowRecap] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
   const [selectedNodeScreenPos, setSelectedNodeScreenPos] = useState(null);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [cameraControls, setCameraControls] = useState(null);
 
   // Use state from GameContext instead of local state
   const is3DView = gameState.prefer3DView;
+
+  const handleCameraControlsReady = (controls) => {
+    setCameraControls(controls);
+  };
 
   const handleSelectedNodeScreenPosition = (pos) => {
     setSelectedNodeScreenPos(pos);
@@ -244,6 +251,18 @@ export const BranchingTreeMapView = () => {
   // Get selected biome data
   const selectedBiomeData = currentActData?.biomeOptions.find(b => b.biomeId === gameState.selectedBiome);
 
+  // Get current node position for focus function
+  const currentNodePosition = React.useMemo(() => {
+    if (!selectedBiomeData || !gameState.completedNodeIds || gameState.completedNodeIds.length === 0) {
+      return { x: 0, y: 0 }; // Starting position
+    }
+    // Find the last completed node
+    const lastCompletedId = gameState.completedNodeIds[gameState.completedNodeIds.length - 1];
+    const allNodes = [...selectedBiomeData.floors.flatMap(f => f.nodes), currentActData.bossFloor?.node].filter(Boolean);
+    const lastNode = allNodes.find(n => n.id === lastCompletedId);
+    return lastNode?.position || { x: 0, y: 0 };
+  }, [gameState.completedNodeIds, selectedBiomeData, currentActData]);
+
   if (!selectedBiomeData) {
     return (
       <PageTransition>
@@ -307,7 +326,21 @@ export const BranchingTreeMapView = () => {
               availableNodeIds={gameState.availableNodeIds}
               completedNodeIds={gameState.completedNodeIds}
               onSelectedNodeScreenPosition={handleSelectedNodeScreenPosition}
+              onCameraControlsReady={handleCameraControlsReady}
             />
+
+            {/* Navigation Button - Left Side */}
+            <div className="fixed left-4 top-48 z-40">
+              <NBButton
+                onClick={() => setIsDashboardOpen(true)}
+                variant="white"
+                size="md"
+                className="w-16 h-16 flex items-center justify-center p-0"
+                aria-label="Open navigation dashboard"
+              >
+                <MapIcon className="w-8 h-8" />
+              </NBButton>
+            </div>
           </div>
         )}
 
@@ -532,6 +565,16 @@ export const BranchingTreeMapView = () => {
             hpAfter={gameState.playerHealth}
             maxHp={gameState.maxPlayerHealth}
             onContinue={handleRecapContinue}
+          />
+        )}
+
+        {/* Map Navigation Dashboard */}
+        {is3DView && (
+          <MapNavigationDashboard
+            isOpen={isDashboardOpen}
+            onClose={() => setIsDashboardOpen(false)}
+            cameraControls={cameraControls}
+            currentNodePosition={currentNodePosition}
           />
         )}
       </div>
