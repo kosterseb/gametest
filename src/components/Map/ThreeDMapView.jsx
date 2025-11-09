@@ -198,26 +198,27 @@ const PlayerAvatar = ({ position, avatarSeed }) => {
   useFrame((state) => {
     if (!groupRef.current) return;
     const bob = Math.sin(state.clock.elapsedTime * 2) * 0.15;
-    groupRef.current.position.y = position[1] + 1.2 + bob;
+    groupRef.current.position.y = 1.5 + bob;
   });
 
   return (
-    <group ref={groupRef} position={[position[0], position[1], position[2]]}>
+    <group position={[position[0], position[1], position[2]]} ref={groupRef}>
       <Billboard>
-        <Html center>
-          <div className="relative">
+        <Html center style={{ pointerEvents: 'none' }}>
+          <div className="relative" style={{ width: '60px', height: '60px' }}>
             {/* Avatar with neo-brutal styling */}
             <div className="nb-bg-white nb-border-lg nb-shadow-xl p-1">
               <img
                 src={`https://api.dicebear.com/9.x/notionists/svg?seed=${avatarSeed}`}
                 alt="Player"
                 className="w-12 h-12 nb-border"
+                style={{ display: 'block' }}
               />
             </div>
             {/* Pointer arrow */}
             <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
-              <div className="w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-white"></div>
-              <div className="w-0 h-0 border-l-6 border-l-transparent border-r-6 border-r-transparent border-t-6 border-t-black absolute -top-1 left-1/2 -translate-x-1/2"></div>
+              <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-white"></div>
+              <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-black absolute -top-1 left-1/2 -translate-x-1/2"></div>
             </div>
           </div>
         </Html>
@@ -227,8 +228,8 @@ const PlayerAvatar = ({ position, avatarSeed }) => {
       <pointLight
         position={[0, -0.5, 0]}
         color="#fbbf24"
-        intensity={0.8}
-        distance={2}
+        intensity={1.2}
+        distance={2.5}
       />
     </group>
   );
