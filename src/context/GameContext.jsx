@@ -520,6 +520,7 @@ const gameReducer = (state, action) => {
 
     case 'COMPLETE_NODE_IN_TREE':
       // Complete a node and make its children available
+      // IMPORTANT: Lock out sibling nodes (alternate paths the player didn't choose)
       const nodeId = action.nodeId;
       const currentAct = state.branchingMap[state.currentAct - 1];
 
@@ -534,13 +535,15 @@ const gameReducer = (state, action) => {
         return state;
       }
 
-      // Find the completed node to get its children
+      // Find the completed node to get its children and floor
       let completedNode = null;
+      let completedNodeFloor = null;
       let isLastFloorBeforeBoss = false;
 
       for (const floor of selectedBiome.floors) {
         completedNode = floor.nodes.find(n => n.id === nodeId);
         if (completedNode) {
+          completedNodeFloor = floor;
           // Check if this is floor 4 (last floor before boss)
           isLastFloorBeforeBoss = floor.floor === (state.currentAct - 1) * 5 + 4;
           break;
@@ -555,7 +558,15 @@ const gameReducer = (state, action) => {
       // Get children IDs
       const childrenIds = completedNode.childrenIds || [];
 
-      // Update the map: mark node as completed and unavailable
+      // Find sibling nodes (other available nodes on the same floor that weren't chosen)
+      const siblingNodeIds = completedNodeFloor.nodes
+        .filter(node =>
+          node.id !== nodeId && // Not the chosen node
+          state.availableNodeIds.includes(node.id) // Was available as an option
+        )
+        .map(node => node.id);
+
+      // Update the map: mark node as completed, lock out siblings, make children available
       const mapAfterNodeCompletion = state.branchingMap.map((act, actIdx) => {
         if (actIdx === state.currentAct - 1) {
           return {
@@ -570,6 +581,10 @@ const gameReducer = (state, action) => {
                       // Mark completed node
                       if (node.id === nodeId) {
                         return { ...node, completed: true, available: false };
+                      }
+                      // Lock out sibling nodes (alternate paths not chosen)
+                      if (siblingNodeIds.includes(node.id)) {
+                        return { ...node, available: false };
                       }
                       // Make children available
                       if (childrenIds.includes(node.id)) {
@@ -591,9 +606,12 @@ const gameReducer = (state, action) => {
         return act;
       });
 
-      // Update available nodes list
+      // Update available nodes list: remove completed node AND sibling nodes, add children
       const newAvailableNodeIds = [
-        ...state.availableNodeIds.filter(id => id !== nodeId), // Remove completed node
+        ...state.availableNodeIds.filter(id =>
+          id !== nodeId && // Remove completed node
+          !siblingNodeIds.includes(id) // Remove locked out siblings
+        ),
         ...childrenIds // Add children
       ];
 
