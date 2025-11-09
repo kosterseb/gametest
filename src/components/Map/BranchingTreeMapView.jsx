@@ -9,6 +9,7 @@ import { Heart, Coins, ArrowDown, CheckCircle, MapIcon } from 'lucide-react';
 import { BattleRecapPopup } from '../UI/BattleRecapPopup';
 import { ThreeDMapView } from './ThreeDMapView';
 import { MapNavigationDashboard } from './MapNavigationDashboard';
+import { MiniMap } from './MiniMap';
 
 // Biome Selection Screen
 const BiomeSelectionScreen = ({ actData, onSelectBiome }) => {
@@ -645,6 +646,16 @@ export const BranchingTreeMapView = () => {
             currentNodePosition={currentNodePosition}
             highlightPaths={highlightPaths}
             onToggleHighlight={() => setHighlightPaths(!highlightPaths)}
+          />
+        )}
+
+        {/* Mini-Map */}
+        {is3DView && (
+          <MiniMap
+            selectedBiomeData={selectedBiomeData}
+            currentActData={currentActData}
+            availableNodeIds={gameState.availableNodeIds}
+            completedNodeIds={gameState.completedNodeIds}
           />
         )}
       </div>
