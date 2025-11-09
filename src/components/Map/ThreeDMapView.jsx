@@ -282,7 +282,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
   const nodePositions = useMemo(() => {
     const positions = new Map();
     const floors = selectedBiomeData.floors;
-    const verticalSpacing = 2.2;
+    const verticalSpacing = 1.5;  // Reduced to bring nodes closer together
     const horizontalSpacing = 1.8;
 
     floors.forEach((floor, floorIdx) => {
@@ -295,7 +295,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
       floor.nodes.forEach((node) => {
         // Center the nodes by subtracting the center offset
         const x = (node.position.x - centerOffset) * horizontalSpacing;
-        // Shift nodes up by adding 1.1 to align with connection points
+        // No Y offset - nodes at their calculated vertical positions
         const y = -node.position.y * verticalSpacing + 0;
         // Add Z-depth for parallax effect - floors further down are further back
         const z = -node.position.y * 0.2;
@@ -303,10 +303,10 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
       });
     });
 
-    // Add boss position (with same upward offset)
+    // Add boss position
     if (currentActData.bossFloor) {
       const floorCount = floors.length;
-      positions.set(currentActData.bossFloor.node.id, [0, -floorCount * verticalSpacing + 1.1, -floorCount * 0.5]);
+      positions.set(currentActData.bossFloor.node.id, [0, -floorCount * verticalSpacing + 0, -floorCount * 0.2]);
     }
 
     return positions;
