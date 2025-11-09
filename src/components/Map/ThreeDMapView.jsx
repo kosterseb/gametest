@@ -36,12 +36,12 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick 
   useFrame((state) => {
     if (!meshRef.current) return;
 
-    // Very subtle bounce for available nodes only
+    // Very subtle bounce for available nodes only (local offset only, group already positioned)
     if (isAvailable && !isCompleted) {
       const bounce = Math.sin(state.clock.elapsedTime * 2) * 0.05;
-      meshRef.current.position.y = position[1] + bounce;
+      meshRef.current.position.y = bounce;
     } else {
-      meshRef.current.position.y = position[1];
+      meshRef.current.position.y = 0;
     }
   });
 
