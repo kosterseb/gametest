@@ -1,5 +1,5 @@
 import React from 'react';
-import { Compass, Target, Maximize2, X, Zap } from 'lucide-react';
+import { Compass, Target, Maximize2, X, Zap, ZoomIn, ZoomOut } from 'lucide-react';
 import { NBButton } from '../UI/NeoBrutalUI';
 
 export const MapNavigationDashboard = ({ isOpen, onClose, cameraControls, currentNodePosition, highlightPaths, onToggleHighlight }) => {
@@ -18,6 +18,18 @@ export const MapNavigationDashboard = ({ isOpen, onClose, cameraControls, curren
   const handleToggleHighlight = () => {
     if (onToggleHighlight) {
       onToggleHighlight();
+    }
+  };
+
+  const handleZoomIn = () => {
+    if (cameraControls?.zoomIn) {
+      cameraControls.zoomIn();
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (cameraControls?.zoomOut) {
+      cameraControls.zoomOut();
     }
   };
 
@@ -97,6 +109,28 @@ export const MapNavigationDashboard = ({ isOpen, onClose, cameraControls, curren
               <div className="text-sm opacity-80">{highlightPaths ? 'Click to turn off' : 'Show available routes'}</div>
             </div>
           </NBButton>
+
+          {/* Zoom Controls */}
+          <div className="flex gap-2">
+            <NBButton
+              onClick={handleZoomIn}
+              variant="white"
+              size="lg"
+              className="flex-1 flex items-center justify-center gap-2"
+            >
+              <ZoomIn className="w-6 h-6" />
+              <span className="font-black">ZOOM IN</span>
+            </NBButton>
+            <NBButton
+              onClick={handleZoomOut}
+              variant="white"
+              size="lg"
+              className="flex-1 flex items-center justify-center gap-2"
+            >
+              <ZoomOut className="w-6 h-6" />
+              <span className="font-black">ZOOM OUT</span>
+            </NBButton>
+          </div>
 
           {/* Help Text */}
           <div className="mt-8 p-4 nb-bg-purple-light nb-border nb-shadow">

@@ -206,6 +206,11 @@ export const BranchingTreeMapView = () => {
     if (!node.available || node.completed) return;
     setSelectedNode(node);
     setSelectedNodeScreenPos(null); // Reset screen position when selecting new node
+
+    // Trigger camera shake for boss nodes
+    if (node.type === 'boss' && cameraControls?.shake) {
+      cameraControls.shake();
+    }
   };
 
   const handleConfirmSelection = () => {

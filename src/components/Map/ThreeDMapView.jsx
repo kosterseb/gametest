@@ -172,8 +172,55 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick,
   );
 };
 
+// Particle Trail Component for Completed Paths
+const ParticleTrail = ({ start, end }) => {
+  const particlesRef = useRef();
+  const particleCount = 8;
+
+  const particles = useMemo(() => {
+    const temp = [];
+    for (let i = 0; i < particleCount; i++) {
+      temp.push({
+        offset: i / particleCount,
+        speed: 0.5 + Math.random() * 0.5
+      });
+    }
+    return temp;
+  }, []);
+
+  useFrame((state) => {
+    if (!particlesRef.current) return;
+
+    particles.forEach((particle, i) => {
+      const progress = (state.clock.elapsedTime * particle.speed + particle.offset) % 1;
+      const position = new THREE.Vector3().lerpVectors(
+        new THREE.Vector3(...start),
+        new THREE.Vector3(...end),
+        progress
+      );
+
+      if (particlesRef.current.children[i]) {
+        particlesRef.current.children[i].position.copy(position);
+      }
+    });
+  });
+
+  return (
+    <group ref={particlesRef}>
+      {particles.map((_, i) => (
+        <mesh key={i}>
+          <sphereGeometry args={[0.08, 8, 8]} />
+          <meshBasicMaterial color="#fde047" transparent opacity={0.8} />
+        </mesh>
+      ))}
+    </group>
+  );
+};
+
 // Neo-Brutal Connection Line Component
-const ConnectionLine = ({ start, end, active = false }) => {
+const ConnectionLine = ({ start, end, active = false, completed = false, highlightMode = false }) => {
+  const lineRef = useRef();
+
   // Straight thick lines for neo-brutal aesthetic
   const points = useMemo(() => {
     return [
@@ -182,13 +229,55 @@ const ConnectionLine = ({ start, end, active = false }) => {
     ];
   }, [start, end]);
 
+  // Determine line color: completed = gold, active = black, inactive = gray
+  const lineColor = completed ? '#fbbf24' : (active ? '#000000' : '#9ca3af');
+  const lineWidth = completed ? 8 : (active ? 6 : 3);
+
+  // Pulse animation for highlight mode
+  useFrame((state) => {
+    if (lineRef.current && highlightMode && active && !completed) {
+      const pulse = Math.sin(state.clock.elapsedTime * 3) * 0.3 + 0.7;
+      lineRef.current.material.opacity = pulse;
+    } else if (lineRef.current) {
+      lineRef.current.material.opacity = 1;
+    }
+  });
+
   return (
-    <Line
-      points={points}
-      color="#000000"
-      lineWidth={active ? 6 : 3}
-      transparent={false}
-    />
+    <>
+      <Line
+        ref={lineRef}
+        points={points}
+        color={lineColor}
+        lineWidth={lineWidth}
+        transparent={highlightMode && active && !completed}
+      />
+
+      {/* Glow effect for completed paths */}
+      {completed && (
+        <Line
+          points={points}
+          color="#fde047"
+          lineWidth={12}
+          transparent={true}
+          opacity={0.3}
+        />
+      )}
+
+      {/* Enhanced glow for active paths in highlight mode */}
+      {highlightMode && active && !completed && (
+        <Line
+          points={points}
+          color="#a78bfa"
+          lineWidth={10}
+          transparent={true}
+          opacity={0.4}
+        />
+      )}
+
+      {/* Particle trail for completed paths */}
+      {completed && <ParticleTrail start={start} end={end} />}
+    </>
   );
 };
 
@@ -216,18 +305,26 @@ const DragPanCamera = ({ onCameraControlsReady }) => {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [cameraOffset, setCameraOffset] = useState({ x: 0, y: 0 });
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const [shake, setShake] = useState({ active: false, startTime: 0 });
+  const [zoom, setZoom] = useState(0); // Zoom offset from default position
 
   // Expose camera control functions
   React.useEffect(() => {
     if (onCameraControlsReady) {
       onCameraControlsReady({
-        resetCamera: () => setCameraOffset({ x: 0, y: 0 }),
+        resetCamera: () => {
+          setCameraOffset({ x: 0, y: 0 });
+          setZoom(0);
+        },
         focusOnPosition: (x, y) => {
           setCameraOffset({
             x: Math.max(-8, Math.min(8, -x)),
             y: Math.max(-5, Math.min(5, -y))
           });
-        }
+        },
+        shake: () => setShake({ active: true, startTime: Date.now() }),
+        zoomIn: () => setZoom(prev => Math.max(-6, prev - 2)),  // Move closer (min 6 units from origin)
+        zoomOut: () => setZoom(prev => Math.min(6, prev + 2))   // Move farther (max 18 units from origin)
       });
     }
   }, [onCameraControlsReady]);
@@ -280,13 +377,30 @@ const DragPanCamera = ({ onCameraControlsReady }) => {
   }, [isDragging, dragStart, cameraOffset]);
 
   // Apply camera movement
-  useFrame(() => {
+  useFrame((state) => {
     // Parallax effect (subtle) when not dragging
     const parallaxX = isDragging ? 0 : mouse.x * 0.5;
     const parallaxY = isDragging ? 0 : mouse.y * 0.3;
 
-    camera.position.x = cameraOffset.x + parallaxX;
-    camera.position.y = 2 + cameraOffset.y + parallaxY;
+    // Camera shake effect
+    let shakeX = 0;
+    let shakeY = 0;
+    if (shake.active) {
+      const elapsed = Date.now() - shake.startTime;
+      const shakeDuration = 500; // 0.5 seconds
+
+      if (elapsed < shakeDuration) {
+        const intensity = (1 - elapsed / shakeDuration) * 0.3; // Decay over time
+        shakeX = (Math.random() - 0.5) * intensity;
+        shakeY = (Math.random() - 0.5) * intensity;
+      } else {
+        setShake({ active: false, startTime: 0 });
+      }
+    }
+
+    camera.position.x = cameraOffset.x + parallaxX + shakeX;
+    camera.position.y = 2 + cameraOffset.y + parallaxY + shakeY;
+    camera.position.z = 12 + zoom; // Apply zoom offset to Z position
   });
 
   return null;
@@ -387,7 +501,14 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
             const endPos = connectionPositions.get(childId);
             if (startPos && endPos) {
               const isActive = availableNodeIds.includes(childId) || completedNodeIds.includes(node.id);
-              lines.push({ start: startPos, end: endPos, active: isActive });
+              // Connection is completed if both parent and child nodes are completed
+              const isCompleted = completedNodeIds.includes(node.id) && completedNodeIds.includes(childId);
+              lines.push({
+                start: startPos,
+                end: endPos,
+                active: isActive,
+                completed: isCompleted
+              });
             }
           });
         }
@@ -401,7 +522,13 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
         const startPos = connectionPositions.get(node.id);
         const endPos = connectionPositions.get(currentActData.bossFloor.node.id);
         if (startPos && endPos) {
-          lines.push({ start: startPos, end: endPos, active: false });
+          const isCompleted = completedNodeIds.includes(node.id) && completedNodeIds.includes(currentActData.bossFloor.node.id);
+          lines.push({
+            start: startPos,
+            end: endPos,
+            active: false,
+            completed: isCompleted
+          });
         }
       });
     }
@@ -428,6 +555,8 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
           start={conn.start}
           end={conn.end}
           active={conn.active}
+          completed={conn.completed}
+          highlightMode={highlightPaths}
         />
       ))}
 
