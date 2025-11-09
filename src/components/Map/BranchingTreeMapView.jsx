@@ -183,6 +183,31 @@ export const BranchingTreeMapView = () => {
     }
   }, [gameState.showBattleRecap, gameState.lastBattleRewards]);
 
+  // Trigger floor transition animation when new nodes become available
+  useEffect(() => {
+    if (!is3DView || !cameraControls?.animateToPosition || !selectedBiomeData) return;
+
+    // Get the newly available nodes
+    const availableNodes = gameState.availableNodeIds
+      .map(id => {
+        const allNodes = [
+          ...selectedBiomeData.floors.flatMap(f => f.nodes),
+          currentActData?.bossFloor?.node
+        ].filter(Boolean);
+        return allNodes.find(n => n.id === id);
+      })
+      .filter(Boolean);
+
+    if (availableNodes.length > 0) {
+      // Calculate average position of available nodes
+      const avgX = availableNodes.reduce((sum, node) => sum + node.position.x, 0) / availableNodes.length;
+      const avgY = availableNodes.reduce((sum, node) => sum + node.position.y, 0) / availableNodes.length;
+
+      // Animate camera to focus on available nodes
+      cameraControls.animateToPosition(avgX, avgY, 800);
+    }
+  }, [gameState.availableNodeIds.length, is3DView, cameraControls, selectedBiomeData, currentActData]);
+
   // Get current node position for focus function (must be before early returns)
   const currentActData = gameState.branchingMap[gameState.currentAct - 1];
   const selectedBiomeData = currentActData?.biomeOptions.find(b => b.biomeId === gameState.selectedBiome);

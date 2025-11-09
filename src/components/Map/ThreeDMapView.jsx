@@ -325,6 +325,7 @@ const DragPanCamera = ({ onCameraControlsReady }) => {
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const [shake, setShake] = useState({ active: false, startTime: 0 });
   const [zoom, setZoom] = useState(0); // Zoom offset from default position
+  const [transition, setTransition] = useState({ active: false, startTime: 0, startPos: { x: 0, y: 0 }, targetPos: { x: 0, y: 0 }, duration: 1000 });
 
   // Expose camera control functions
   React.useEffect(() => {
@@ -340,12 +341,23 @@ const DragPanCamera = ({ onCameraControlsReady }) => {
             y: Math.max(-8, Math.min(8, -y))  // Match increased drag limits
           });
         },
+        animateToPosition: (x, y, duration = 1000) => {
+          const targetX = Math.max(-8, Math.min(8, -x));
+          const targetY = Math.max(-8, Math.min(8, -y));
+          setTransition({
+            active: true,
+            startTime: Date.now(),
+            startPos: { x: cameraOffset.x, y: cameraOffset.y },
+            targetPos: { x: targetX, y: targetY },
+            duration
+          });
+        },
         shake: () => setShake({ active: true, startTime: Date.now() }),
         zoomIn: () => setZoom(prev => Math.max(-6, prev - 2)),  // Move closer (min 6 units from origin)
         zoomOut: () => setZoom(prev => Math.min(6, prev + 2))   // Move farther (max 18 units from origin)
       });
     }
-  }, [onCameraControlsReady]);
+  }, [onCameraControlsReady, cameraOffset]);
 
   // Track mouse for subtle parallax when NOT dragging
   React.useEffect(() => {
@@ -396,6 +408,28 @@ const DragPanCamera = ({ onCameraControlsReady }) => {
 
   // Apply camera movement
   useFrame((state) => {
+    // Smooth transition animation
+    if (transition.active) {
+      const elapsed = Date.now() - transition.startTime;
+      const progress = Math.min(elapsed / transition.duration, 1);
+
+      // Ease-in-out function for smooth animation
+      const easeInOutCubic = (t) => {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      };
+
+      const easedProgress = easeInOutCubic(progress);
+
+      const newX = transition.startPos.x + (transition.targetPos.x - transition.startPos.x) * easedProgress;
+      const newY = transition.startPos.y + (transition.targetPos.y - transition.startPos.y) * easedProgress;
+
+      setCameraOffset({ x: newX, y: newY });
+
+      if (progress >= 1) {
+        setTransition({ ...transition, active: false });
+      }
+    }
+
     // Parallax effect (subtle) when not dragging
     const parallaxX = isDragging ? 0 : mouse.x * 0.5;
     const parallaxY = isDragging ? 0 : mouse.y * 0.3;
