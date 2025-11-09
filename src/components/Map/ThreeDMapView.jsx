@@ -282,7 +282,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
   const nodePositions = useMemo(() => {
     const positions = new Map();
     const floors = selectedBiomeData.floors;
-    const verticalSpacing = 1.5;  // Reduced to bring nodes closer together
+    const verticalSpacing = 3;  // Reduced to bring nodes closer together
     const horizontalSpacing = 1.8;
 
     floors.forEach((floor, floorIdx) => {
