@@ -326,9 +326,10 @@ export const BranchingTreeMapView = () => {
     <PageTransition>
       <div className="h-screen nb-bg-purple flex flex-col overflow-hidden">
         {/* Header - Player Stats - Fixed on top */}
-        <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6 z-40 flex-shrink-0">
-            <div className="flex justify-between items-center mb-4">
-              <div>
+        <div className="nb-bg-purple p-6 z-40 flex-shrink-0">
+            <div className="flex justify-between items-center">
+              {/* Act + Biome Info - White Box */}
+              <div className="nb-bg-white nb-border-xl nb-shadow-xl p-4">
                 <NBHeading level={1} className="mb-2">
                   ACT {gameState.currentAct}
                 </NBHeading>
@@ -542,8 +543,8 @@ export const BranchingTreeMapView = () => {
             <div
               className="animate-fadeIn fixed z-50"
               style={is3DView && selectedNodeScreenPos ? {
-                left: `${selectedNodeScreenPos.x + 100}px`, // Position beside the node with comfortable gap
-                top: `${selectedNodeScreenPos.y}px`,
+                left: `${Math.min(selectedNodeScreenPos.x + 80, window.innerWidth - 400)}px`, // Position beside with bounds check
+                top: `${Math.max(180, Math.min(selectedNodeScreenPos.y, window.innerHeight - 200))}px`, // Keep away from header (180px) and bottom
                 transform: 'translateY(-50%)'
               } : {
                 bottom: '2rem',

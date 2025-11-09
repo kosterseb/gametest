@@ -1,7 +1,9 @@
-import React from 'react';
-import { Map } from 'lucide-react';
+import React, { useState } from 'react';
+import { Map, Minimize2, Maximize2 } from 'lucide-react';
 
 export const MiniMap = ({ selectedBiomeData, currentActData, availableNodeIds, completedNodeIds }) => {
+  const [isMinimized, setIsMinimized] = useState(false);
+
   if (!selectedBiomeData || !currentActData) return null;
 
   // Collect all nodes including boss
@@ -98,12 +100,33 @@ export const MiniMap = ({ selectedBiomeData, currentActData, availableNodeIds, c
     : null;
   const currentNode = currentNodeId ? allNodes.find(n => n.id === currentNodeId) : null;
 
+  // Minimized view - just a small button
+  if (isMinimized) {
+    return (
+      <button
+        onClick={() => setIsMinimized(false)}
+        className="fixed bottom-4 right-4 z-40 nb-bg-white nb-border-lg nb-shadow-xl p-3 hover:scale-105 transition-transform cursor-pointer"
+      >
+        <Map className="w-6 h-6 text-black" />
+      </button>
+    );
+  }
+
+  // Full mini-map view
   return (
     <div className="fixed bottom-4 right-4 z-40 nb-bg-white nb-border-lg nb-shadow-xl p-3 opacity-90 hover:opacity-100 transition-opacity">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-2">
-        <Map className="w-4 h-4 text-black" />
-        <div className="font-black text-xs text-black uppercase">Mini-Map</div>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <Map className="w-4 h-4 text-black" />
+          <div className="font-black text-xs text-black uppercase">Mini-Map</div>
+        </div>
+        <button
+          onClick={() => setIsMinimized(true)}
+          className="hover:scale-110 transition-transform"
+        >
+          <Minimize2 className="w-4 h-4 text-black" />
+        </button>
       </div>
 
       {/* Map SVG */}
