@@ -59,10 +59,12 @@ export const MiniMap = ({ selectedBiomeData, currentActData, availableNodeIds, c
   const connections = [];
   selectedBiomeData.floors.forEach(floor => {
     floor.nodes.forEach(node => {
-      if (node.childrenIds && node.childrenIds.length > 0) {
+      // Only create connections if the from node has a position
+      if (node && node.position && node.childrenIds && node.childrenIds.length > 0) {
         node.childrenIds.forEach(childId => {
           const childNode = allNodes.find(n => n.id === childId);
-          if (childNode) {
+          // Only add connection if both nodes have positions
+          if (childNode && childNode.position) {
             connections.push({
               from: node,
               to: childNode,
@@ -77,12 +79,16 @@ export const MiniMap = ({ selectedBiomeData, currentActData, availableNodeIds, c
   // Add connections from last floor to boss
   if (selectedBiomeData.floors.length > 0) {
     const lastFloor = selectedBiomeData.floors[selectedBiomeData.floors.length - 1];
+    const bossNode = currentActData.bossFloor.node;
     lastFloor.nodes.forEach(node => {
-      connections.push({
-        from: node,
-        to: currentActData.bossFloor.node,
-        active: completedNodeIds.includes(node.id) || availableNodeIds.includes(currentActData.bossFloor.node.id)
-      });
+      // Only add connection if both from node and boss node have positions
+      if (node && node.position && bossNode && bossNode.position) {
+        connections.push({
+          from: node,
+          to: bossNode,
+          active: completedNodeIds.includes(node.id) || availableNodeIds.includes(bossNode.id)
+        });
+      }
     });
   }
 
