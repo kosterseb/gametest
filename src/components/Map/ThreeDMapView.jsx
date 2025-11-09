@@ -278,49 +278,74 @@ const ScreenPositionTracker = ({ position, onPositionUpdate }) => {
 
 // Main 3D Scene
 const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelect, availableNodeIds, completedNodeIds, onSelectedNodeScreenPosition }) => {
-  // Calculate node positions in 2.5D space with parallax depth
-  const nodePositions = useMemo(() => {
+  // Calculate CONNECTION LINE positions (true positions for path structure)
+  const connectionPositions = useMemo(() => {
     const positions = new Map();
     const floors = selectedBiomeData.floors;
-    const verticalSpacing = 3;  // Reduced to bring nodes closer together
+    const verticalSpacing = 3;  // Spacing for connection lines
     const horizontalSpacing = 1.8;
 
     floors.forEach((floor, floorIdx) => {
-      // Calculate center offset for this floor to center all nodes around x=0
       const xPositions = floor.nodes.map(n => n.position.x);
       const minX = Math.min(...xPositions);
       const maxX = Math.max(...xPositions);
       const centerOffset = (minX + maxX) / 2;
 
       floor.nodes.forEach((node) => {
-        // Center the nodes by subtracting the center offset
         const x = (node.position.x - centerOffset) * horizontalSpacing;
-        // No Y offset - nodes at their calculated vertical positions
-        const y = -node.position.y * verticalSpacing + 0;
-        // Add Z-depth for parallax effect - floors further down are further back
+        const y = -node.position.y * verticalSpacing;
         const z = -node.position.y * 1.2;
         positions.set(node.id, [x, y, z]);
       });
     });
 
-    // Add boss position
     if (currentActData.bossFloor) {
       const floorCount = floors.length;
-      positions.set(currentActData.bossFloor.node.id, [0, -floorCount * verticalSpacing + 0, -floorCount * 0.2]);
+      positions.set(currentActData.bossFloor.node.id, [0, -floorCount * verticalSpacing, -floorCount * 1.2]);
     }
 
     return positions;
   }, [selectedBiomeData, currentActData]);
 
-  // Create connection lines
+  // Calculate VISUAL NODE positions (adjustable for alignment with lines)
+  const visualNodePositions = useMemo(() => {
+    const positions = new Map();
+    const floors = selectedBiomeData.floors;
+    const verticalSpacing = 1.5;
+    const horizontalSpacing = 1.8;
+    const yOffset = 0; // Adjustable offset to align nodes with connection points
+
+    floors.forEach((floor, floorIdx) => {
+      const xPositions = floor.nodes.map(n => n.position.x);
+      const minX = Math.min(...xPositions);
+      const maxX = Math.max(...xPositions);
+      const centerOffset = (minX + maxX) / 2;
+
+      floor.nodes.forEach((node) => {
+        const x = (node.position.x - centerOffset) * horizontalSpacing;
+        const y = -node.position.y * verticalSpacing + yOffset;
+        const z = -node.position.y * 1.2;
+        positions.set(node.id, [x, y, z]);
+      });
+    });
+
+    if (currentActData.bossFloor) {
+      const floorCount = floors.length;
+      positions.set(currentActData.bossFloor.node.id, [0, -floorCount * verticalSpacing + yOffset, -floorCount * 1.2]);
+    }
+
+    return positions;
+  }, [selectedBiomeData, currentActData]);
+
+  // Create connection lines (using connectionPositions for true path structure)
   const connections = useMemo(() => {
     const lines = [];
     selectedBiomeData.floors.forEach((floor) => {
       floor.nodes.forEach((node) => {
         if (node.childrenIds && node.childrenIds.length > 0) {
           node.childrenIds.forEach((childId) => {
-            const startPos = nodePositions.get(node.id);
-            const endPos = nodePositions.get(childId);
+            const startPos = connectionPositions.get(node.id);
+            const endPos = connectionPositions.get(childId);
             if (startPos && endPos) {
               const isActive = availableNodeIds.includes(childId) || completedNodeIds.includes(node.id);
               lines.push({ start: startPos, end: endPos, active: isActive });
@@ -334,8 +359,8 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
     const lastFloor = selectedBiomeData.floors[selectedBiomeData.floors.length - 1];
     if (lastFloor && currentActData.bossFloor) {
       lastFloor.nodes.forEach((node) => {
-        const startPos = nodePositions.get(node.id);
-        const endPos = nodePositions.get(currentActData.bossFloor.node.id);
+        const startPos = connectionPositions.get(node.id);
+        const endPos = connectionPositions.get(currentActData.bossFloor.node.id);
         if (startPos && endPos) {
           lines.push({ start: startPos, end: endPos, active: false });
         }
@@ -343,7 +368,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
     }
 
     return lines;
-  }, [selectedBiomeData, currentActData, nodePositions, availableNodeIds, completedNodeIds]);
+  }, [selectedBiomeData, currentActData, connectionPositions, availableNodeIds, completedNodeIds]);
 
   return (
     <>
@@ -367,10 +392,10 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
         />
       ))}
 
-      {/* Nodes */}
+      {/* Nodes (using visualNodePositions for adjustable alignment) */}
       {selectedBiomeData.floors.map((floor) =>
         floor.nodes.map((node) => {
-          const position = nodePositions.get(node.id);
+          const position = visualNodePositions.get(node.id);
           if (!position) return null;
 
           return (
@@ -387,11 +412,11 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
         })
       )}
 
-      {/* Boss Node */}
+      {/* Boss Node (using visualNodePositions) */}
       {currentActData.bossFloor && (
         <Node3D
           node={currentActData.bossFloor.node}
-          position={nodePositions.get(currentActData.bossFloor.node.id)}
+          position={visualNodePositions.get(currentActData.bossFloor.node.id)}
           isSelected={selectedNode?.id === currentActData.bossFloor.node.id}
           isAvailable={availableNodeIds.includes(currentActData.bossFloor.node.id)}
           isCompleted={completedNodeIds.includes(currentActData.bossFloor.node.id)}
@@ -416,10 +441,10 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
         />
       )}
 
-      {/* Track selected node screen position */}
+      {/* Track selected node screen position (using visualNodePositions) */}
       {selectedNode && (
         <ScreenPositionTracker
-          position={nodePositions.get(selectedNode.id)}
+          position={visualNodePositions.get(selectedNode.id)}
           onPositionUpdate={onSelectedNodeScreenPosition}
         />
       )}
