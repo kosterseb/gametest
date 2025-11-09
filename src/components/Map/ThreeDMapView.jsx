@@ -1,6 +1,6 @@
 import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { PerspectiveCamera, Line, Billboard, Text } from '@react-three/drei';
+import { PerspectiveCamera, Line, Billboard, Text, Html } from '@react-three/drei';
 import * as THREE from 'three';
 
 // Node type to color mapping - Neo-Brutal bright colors
@@ -186,6 +186,50 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick,
           distance={3}
         />
       )}
+    </group>
+  );
+};
+
+// Player Avatar Indicator - Shows where the player is
+const PlayerAvatar = ({ position, avatarSeed }) => {
+  const groupRef = useRef();
+
+  // Bobbing animation
+  useFrame((state) => {
+    if (!groupRef.current) return;
+    const bob = Math.sin(state.clock.elapsedTime * 2) * 0.15;
+    groupRef.current.position.y = position[1] + 1.2 + bob;
+  });
+
+  return (
+    <group ref={groupRef} position={[position[0], position[1], position[2]]}>
+      <Billboard>
+        <Html center>
+          <div className="relative">
+            {/* Avatar with neo-brutal styling */}
+            <div className="nb-bg-white nb-border-lg nb-shadow-xl p-1">
+              <img
+                src={`https://api.dicebear.com/9.x/notionists/svg?seed=${avatarSeed}`}
+                alt="Player"
+                className="w-12 h-12 nb-border"
+              />
+            </div>
+            {/* Pointer arrow */}
+            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
+              <div className="w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-white"></div>
+              <div className="w-0 h-0 border-l-6 border-l-transparent border-r-6 border-r-transparent border-t-6 border-t-black absolute -top-1 left-1/2 -translate-x-1/2"></div>
+            </div>
+          </div>
+        </Html>
+      </Billboard>
+
+      {/* Subtle glow underneath */}
+      <pointLight
+        position={[0, -0.5, 0]}
+        color="#fbbf24"
+        intensity={0.8}
+        distance={2}
+      />
     </group>
   );
 };
@@ -487,7 +531,7 @@ const ScreenPositionTracker = ({ position, onPositionUpdate }) => {
 };
 
 // Main 3D Scene
-const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelect, availableNodeIds, completedNodeIds, onSelectedNodeScreenPosition, onCameraControlsReady, highlightPaths, onHoveredNodeChange }) => {
+const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelect, availableNodeIds, completedNodeIds, onSelectedNodeScreenPosition, onCameraControlsReady, highlightPaths, onHoveredNodeChange, avatarSeed, currentNodePosition }) => {
   const [hoveredNodeData, setHoveredNodeData] = useState(null);
 
   // Track hovered node changes and notify parent
@@ -661,6 +705,23 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
         />
       )}
 
+      {/* Player Avatar Indicator */}
+      {avatarSeed && completedNodeIds.length > 0 && (() => {
+        // Find the last completed node to show player position
+        const lastCompletedId = completedNodeIds[completedNodeIds.length - 1];
+        const playerPosition = visualNodePositions.get(lastCompletedId);
+
+        if (playerPosition) {
+          return (
+            <PlayerAvatar
+              position={playerPosition}
+              avatarSeed={avatarSeed}
+            />
+          );
+        }
+        return null;
+      })()}
+
       {/* Screen Position Tracker for Hovered Node */}
       {hoveredNodeData && (
         <ScreenPositionTracker
@@ -712,7 +773,9 @@ export const ThreeDMapView = ({
   onSelectedNodeScreenPosition,
   onCameraControlsReady,
   highlightPaths,
-  onHoveredNodeChange
+  onHoveredNodeChange,
+  avatarSeed,
+  currentNodePosition
 }) => {
   const containerRef = React.useRef(null);
 
@@ -738,8 +801,18 @@ export const ThreeDMapView = ({
         gl={{ antialias: true }}
         dpr={[1, 2]}
       >
-        {/* Bright neo-brutal background */}
-        <color attach="background" args={['#a78bfa']} />
+        {/* Biome-specific neo-brutal background colors */}
+        <color attach="background" args={[
+          selectedBiomeData.color === 'red' ? '#fca5a5' :
+          selectedBiomeData.color === 'orange' ? '#fdba74' :
+          selectedBiomeData.color === 'yellow' ? '#fde047' :
+          selectedBiomeData.color === 'green' ? '#86efac' :
+          selectedBiomeData.color === 'cyan' ? '#67e8f9' :
+          selectedBiomeData.color === 'blue' ? '#93c5fd' :
+          selectedBiomeData.color === 'purple' ? '#c4b5fd' :
+          selectedBiomeData.color === 'pink' ? '#f9a8d4' :
+          '#a78bfa'  // default purple
+        ]} />
 
         <MapScene
           selectedBiomeData={selectedBiomeData}
@@ -752,6 +825,8 @@ export const ThreeDMapView = ({
           onCameraControlsReady={onCameraControlsReady}
           highlightPaths={highlightPaths}
           onHoveredNodeChange={onHoveredNodeChange}
+          avatarSeed={avatarSeed}
+          currentNodePosition={currentNodePosition}
         />
       </Canvas>
     </div>

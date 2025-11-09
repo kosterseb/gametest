@@ -355,6 +355,8 @@ export const BranchingTreeMapView = () => {
               onCameraControlsReady={handleCameraControlsReady}
               highlightPaths={highlightPaths}
               onHoveredNodeChange={handleHoveredNodeChange}
+              avatarSeed={gameState.profile?.avatarSeed}
+              currentNodePosition={currentNodePosition}
             />
 
             {/* Navigation Button - Left Side */}
