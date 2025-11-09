@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useSettings } from '../../context/SettingsContext';
 import { useRouter } from '../../hooks/useRouter';
-import { Settings, Home, BarChart3, X, Volume2, Zap, Monitor } from 'lucide-react';
+import { useGame } from '../../context/GameContext';
+import { Settings, Home, BarChart3, X, Volume2, Zap, Monitor, Box } from 'lucide-react';
 import { NBButton, NBCard, NBHeading, NBBadge, NBDivider, useNBConfirm } from './NeoBrutalUI';
 
 export const BattleMenu = ({ isOpen, onClose, gameState }) => {
   const [currentView, setCurrentView] = useState('main'); // 'main', 'settings', 'stats'
   const { settings, toggleSetting, updateSetting, toggleFullscreen } = useSettings();
+  const { dispatch } = useGame();
   const { navigate } = useRouter();
   const { confirm, ConfirmDialog } = useNBConfirm();
 
@@ -195,6 +197,24 @@ export const BattleMenu = ({ isOpen, onClose, gameState }) => {
                         type="checkbox"
                         checked={settings.cardAnimations}
                         onChange={() => toggleSetting('cardAnimations')}
+                        className="sr-only peer"
+                      />
+                      <div className="w-16 h-8 nb-border-lg bg-gray-300 peer-checked:bg-green-400 peer transition-all cursor-pointer"></div>
+                      <div className="absolute left-1 top-1 bg-black w-6 h-6 transition-all peer-checked:translate-x-8 nb-border"></div>
+                    </div>
+                  </label>
+
+                  {/* 3D Map View Toggle */}
+                  <label className="flex items-center justify-between cursor-pointer nb-border-lg nb-bg-white p-4 hover:translate-x-1 transition-transform">
+                    <div>
+                      <p className="font-bold text-lg">3D Map View</p>
+                      <p className="text-sm text-gray-600 font-semibold">Use 3D for progression map</p>
+                    </div>
+                    <div className="relative inline-block w-16 h-8">
+                      <input
+                        type="checkbox"
+                        checked={gameState.prefer3DView}
+                        onChange={() => dispatch({ type: 'TOGGLE_3D_VIEW' })}
                         className="sr-only peer"
                       />
                       <div className="w-16 h-8 nb-border-lg bg-gray-300 peer-checked:bg-green-400 peer transition-all cursor-pointer"></div>

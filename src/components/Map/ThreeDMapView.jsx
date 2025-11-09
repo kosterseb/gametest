@@ -286,9 +286,15 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
     const horizontalSpacing = 2.5;
 
     floors.forEach((floor, floorIdx) => {
+      // Calculate center offset for this floor to center all nodes around x=0
+      const xPositions = floor.nodes.map(n => n.position.x);
+      const minX = Math.min(...xPositions);
+      const maxX = Math.max(...xPositions);
+      const centerOffset = (minX + maxX) / 2;
+
       floor.nodes.forEach((node) => {
-        // Use the node's stored position data for accurate placement
-        const x = node.position.x * horizontalSpacing;
+        // Center the nodes by subtracting the center offset
+        const x = (node.position.x - centerOffset) * horizontalSpacing;
         const y = -node.position.y * verticalSpacing;
         // Add Z-depth for parallax effect - floors further down are further back
         const z = -node.position.y * 0.5;
