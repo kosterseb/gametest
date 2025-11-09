@@ -85,11 +85,21 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick,
       <mesh
         ref={meshRef}
         geometry={geometry}
-        scale={isSelected ? scale * 1.2 : scale}
-        onClick={() => isAvailable && !isCompleted && onClick && onClick(node)}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
-        style={{ cursor: (isAvailable && !isCompleted) ? 'pointer' : 'default' }}
+        scale={isSelected ? scale * 1.2 : (hovered ? scale * 1.05 : scale)}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (isAvailable && !isCompleted && onClick) {
+            onClick(node);
+          }
+        }}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          setHovered(true);
+        }}
+        onPointerOut={(e) => {
+          e.stopPropagation();
+          setHovered(false);
+        }}
       >
         <meshBasicMaterial
           color={color}
@@ -98,9 +108,10 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick,
         />
       </mesh>
 
-      {/* Thick black outline edges */}
+      {/* Thick black outline edges - raycast disabled to not block hover */}
       <lineSegments
-        scale={isSelected ? scale * 1.2 : scale}
+        scale={isSelected ? scale * 1.2 : (hovered ? scale * 1.05 : scale)}
+        raycast={() => null}
       >
         <edgesGeometry args={[geometry]} />
         <lineBasicMaterial

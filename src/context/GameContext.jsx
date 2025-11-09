@@ -598,7 +598,7 @@ const gameReducer = (state, action) => {
               return biome;
             }),
             // If last floor, make boss available
-            bossFloor: isLastFloorBeforeBoss && childrenIds.length === 0
+            bossFloor: isLastFloorBeforeBoss
               ? { ...act.bossFloor, node: { ...act.bossFloor.node, available: true } }
               : act.bossFloor
           };
@@ -607,12 +607,14 @@ const gameReducer = (state, action) => {
       });
 
       // Update available nodes list: remove completed node AND sibling nodes, add children
+      // If this is the last floor before boss, add boss node ID
       const newAvailableNodeIds = [
         ...state.availableNodeIds.filter(id =>
           id !== nodeId && // Remove completed node
           !siblingNodeIds.includes(id) // Remove locked out siblings
         ),
-        ...childrenIds // Add children
+        ...childrenIds, // Add children
+        ...(isLastFloorBeforeBoss ? [currentAct.bossFloor.node.id] : []) // Add boss if last floor
       ];
 
       return {

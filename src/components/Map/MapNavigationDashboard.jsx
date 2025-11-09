@@ -116,19 +116,17 @@ export const MapNavigationDashboard = ({ isOpen, onClose, cameraControls, curren
               onClick={handleZoomIn}
               variant="white"
               size="lg"
-              className="flex-1 flex items-center justify-center gap-2"
+              className="flex-1 flex items-center justify-center p-0"
             >
               <ZoomIn className="w-6 h-6" />
-              <span className="font-black">ZOOM IN</span>
             </NBButton>
             <NBButton
               onClick={handleZoomOut}
               variant="white"
               size="lg"
-              className="flex-1 flex items-center justify-center gap-2"
+              className="flex-1 flex items-center justify-center p-0"
             >
               <ZoomOut className="w-6 h-6" />
-              <span className="font-black">ZOOM OUT</span>
             </NBButton>
           </div>
 
