@@ -27,7 +27,7 @@ const Edges = ({ geometry }) => {
 };
 
 // 3D Node Component - Neo-Brutal Style
-const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick }) => {
+const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick, highlightMode }) => {
   const meshRef = useRef();
   const [hovered, setHovered] = useState(false);
   const geometryRef = useRef();
@@ -36,9 +36,13 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick 
   useFrame((state) => {
     if (!meshRef.current) return;
 
+    // Enhanced bounce for available nodes when highlight mode is active
+    const bounceMultiplier = (highlightMode && isAvailable && !isCompleted) ? 2.5 : 1;
+    const bounceSpeed = (highlightMode && isAvailable && !isCompleted) ? 3 : 2;
+
     // Very subtle bounce for available nodes only (local offset only, group already positioned)
     if (isAvailable && !isCompleted) {
-      const bounce = Math.sin(state.clock.elapsedTime * 2) * 0.05;
+      const bounce = Math.sin(state.clock.elapsedTime * bounceSpeed) * 0.05 * bounceMultiplier;
       meshRef.current.position.y = bounce;
     } else {
       meshRef.current.position.y = 0;
@@ -46,7 +50,8 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick 
   });
 
   const color = NODE_COLORS[node.type] || '#ffffff';
-  const opacity = isCompleted ? 0.4 : 1.0;
+  // Opacity: completed = 0.4, unavailable = 0.3, available = 1.0
+  const opacity = isCompleted ? 0.4 : (isAvailable ? 1.0 : 0.3);
 
   // Chunky geometric shapes for neo-brutal
   // Scale based on Z position for depth effect (things further back are slightly smaller)
@@ -91,7 +96,12 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick 
         scale={isSelected ? scale * 1.2 : scale}
       >
         <edgesGeometry args={[geometry]} />
-        <lineBasicMaterial color="#000000" linewidth={4} />
+        <lineBasicMaterial
+          color="#000000"
+          linewidth={4}
+          transparent={!isAvailable && !isCompleted}
+          opacity={!isAvailable && !isCompleted ? 0.3 : 1.0}
+        />
       </lineSegments>
 
       {/* Selection indicator - chunky ring (rotated to face viewer) */}
@@ -148,6 +158,16 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, onClick 
           {node.type.toUpperCase()}
         </Text>
       </Billboard>
+
+      {/* Highlight glow effect - only for available nodes in highlight mode */}
+      {highlightMode && isAvailable && !isCompleted && (
+        <pointLight
+          position={[0, 0, 0]}
+          color={color}
+          intensity={1.5}
+          distance={3}
+        />
+      )}
     </group>
   );
 };
@@ -296,7 +316,7 @@ const ScreenPositionTracker = ({ position, onPositionUpdate }) => {
 };
 
 // Main 3D Scene
-const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelect, availableNodeIds, completedNodeIds, onSelectedNodeScreenPosition, onCameraControlsReady }) => {
+const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelect, availableNodeIds, completedNodeIds, onSelectedNodeScreenPosition, onCameraControlsReady, highlightPaths }) => {
   // Calculate CONNECTION LINE positions (true positions for path structure)
   const connectionPositions = useMemo(() => {
     const positions = new Map();
@@ -426,6 +446,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
               isAvailable={availableNodeIds.includes(node.id)}
               isCompleted={completedNodeIds.includes(node.id)}
               onClick={onNodeSelect}
+              highlightMode={highlightPaths}
             />
           );
         })
@@ -440,6 +461,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
           isAvailable={availableNodeIds.includes(currentActData.bossFloor.node.id)}
           isCompleted={completedNodeIds.includes(currentActData.bossFloor.node.id)}
           onClick={onNodeSelect}
+          highlightMode={highlightPaths}
         />
       )}
 
@@ -480,10 +502,29 @@ export const ThreeDMapView = ({
   availableNodeIds,
   completedNodeIds,
   onSelectedNodeScreenPosition,
-  onCameraControlsReady
+  onCameraControlsReady,
+  highlightPaths
 }) => {
+  const containerRef = React.useRef(null);
+
+  // Disable scroll wheel to prevent accidental zooming/scrolling
+  React.useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const preventWheel = (e) => {
+      e.preventDefault();
+    };
+
+    container.addEventListener('wheel', preventWheel, { passive: false });
+
+    return () => {
+      container.removeEventListener('wheel', preventWheel);
+    };
+  }, []);
+
   return (
-    <div className="w-full h-full">
+    <div ref={containerRef} className="w-full h-full">
       <Canvas
         gl={{ antialias: true }}
         dpr={[1, 2]}
@@ -500,6 +541,7 @@ export const ThreeDMapView = ({
           completedNodeIds={completedNodeIds}
           onSelectedNodeScreenPosition={onSelectedNodeScreenPosition}
           onCameraControlsReady={onCameraControlsReady}
+          highlightPaths={highlightPaths}
         />
       </Canvas>
     </div>

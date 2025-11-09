@@ -150,6 +150,7 @@ export const BranchingTreeMapView = () => {
   const [selectedNodeScreenPos, setSelectedNodeScreenPos] = useState(null);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [cameraControls, setCameraControls] = useState(null);
+  const [highlightPaths, setHighlightPaths] = useState(false);
 
   // Use state from GameContext instead of local state
   const is3DView = gameState.prefer3DView;
@@ -325,6 +326,7 @@ export const BranchingTreeMapView = () => {
               completedNodeIds={gameState.completedNodeIds}
               onSelectedNodeScreenPosition={handleSelectedNodeScreenPosition}
               onCameraControlsReady={handleCameraControlsReady}
+              highlightPaths={highlightPaths}
             />
 
             {/* Navigation Button - Left Side */}
@@ -491,7 +493,7 @@ export const BranchingTreeMapView = () => {
             <div
               className="animate-fadeIn fixed z-30"
               style={is3DView && selectedNodeScreenPos ? {
-                left: `${selectedNodeScreenPos.x + 20}px`,
+                left: `${selectedNodeScreenPos.x + 80}px`, // Position to the right of the node (node width ~60px + small gap)
                 top: `${Math.max(150, selectedNodeScreenPos.y)}px`,
                 transform: 'translateY(-50%)'
               } : {
@@ -573,6 +575,8 @@ export const BranchingTreeMapView = () => {
             onClose={() => setIsDashboardOpen(false)}
             cameraControls={cameraControls}
             currentNodePosition={currentNodePosition}
+            highlightPaths={highlightPaths}
+            onToggleHighlight={() => setHighlightPaths(!highlightPaths)}
           />
         )}
       </div>

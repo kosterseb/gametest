@@ -1,8 +1,8 @@
 import React from 'react';
-import { Compass, Target, Maximize2, X } from 'lucide-react';
+import { Compass, Target, Maximize2, X, Zap } from 'lucide-react';
 import { NBButton } from '../UI/NeoBrutalUI';
 
-export const MapNavigationDashboard = ({ isOpen, onClose, cameraControls, currentNodePosition }) => {
+export const MapNavigationDashboard = ({ isOpen, onClose, cameraControls, currentNodePosition, highlightPaths, onToggleHighlight }) => {
   const handleOverview = () => {
     if (cameraControls?.resetCamera) {
       cameraControls.resetCamera();
@@ -12,6 +12,12 @@ export const MapNavigationDashboard = ({ isOpen, onClose, cameraControls, curren
   const handleFocusPlayer = () => {
     if (cameraControls?.focusOnPosition && currentNodePosition) {
       cameraControls.focusOnPosition(currentNodePosition.x, currentNodePosition.y);
+    }
+  };
+
+  const handleToggleHighlight = () => {
+    if (onToggleHighlight) {
+      onToggleHighlight();
     }
   };
 
@@ -75,6 +81,20 @@ export const MapNavigationDashboard = ({ isOpen, onClose, cameraControls, curren
             <div className="text-left">
               <div className="font-black text-lg">FOCUS PLAYER</div>
               <div className="text-sm opacity-80">Center on current position</div>
+            </div>
+          </NBButton>
+
+          {/* Highlight Available Paths Button */}
+          <NBButton
+            onClick={handleToggleHighlight}
+            variant={highlightPaths ? "success" : "yellow"}
+            size="lg"
+            className="w-full flex items-center gap-3 justify-start"
+          >
+            <Zap className="w-6 h-6" />
+            <div className="text-left">
+              <div className="font-black text-lg">{highlightPaths ? 'PATHS HIGHLIGHTED' : 'HIGHLIGHT PATHS'}</div>
+              <div className="text-sm opacity-80">{highlightPaths ? 'Click to turn off' : 'Show available routes'}</div>
             </div>
           </NBButton>
 
