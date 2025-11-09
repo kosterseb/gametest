@@ -296,9 +296,9 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
         // Center the nodes by subtracting the center offset
         const x = (node.position.x - centerOffset) * horizontalSpacing;
         // Shift nodes up by adding 1.1 to align with connection points
-        const y = -node.position.y * verticalSpacing + 0;
+        const y = -node.position.y * verticalSpacing + 1.1;
         // Add Z-depth for parallax effect - floors further down are further back
-        const z = -node.position.y * 0.2;
+        const z = -node.position.y * 1.2;
         positions.set(node.id, [x, y, z]);
       });
     });
