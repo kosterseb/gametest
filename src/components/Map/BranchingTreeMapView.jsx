@@ -177,6 +177,21 @@ export const BranchingTreeMapView = () => {
     }
   }, [gameState.showBattleRecap, gameState.lastBattleRewards]);
 
+  // Get current node position for focus function (must be before early returns)
+  const currentActData = gameState.branchingMap[gameState.currentAct - 1];
+  const selectedBiomeData = currentActData?.biomeOptions.find(b => b.biomeId === gameState.selectedBiome);
+
+  const currentNodePosition = React.useMemo(() => {
+    if (!selectedBiomeData || !gameState.completedNodeIds || gameState.completedNodeIds.length === 0) {
+      return { x: 0, y: 0 }; // Starting position
+    }
+    // Find the last completed node
+    const lastCompletedId = gameState.completedNodeIds[gameState.completedNodeIds.length - 1];
+    const allNodes = [...selectedBiomeData.floors.flatMap(f => f.nodes), currentActData.bossFloor?.node].filter(Boolean);
+    const lastNode = allNodes.find(n => n.id === lastCompletedId);
+    return lastNode?.position || { x: 0, y: 0 };
+  }, [gameState.completedNodeIds, selectedBiomeData, currentActData]);
+
   const handleBiomeSelection = (biomeId) => {
     dispatch({ type: 'SELECT_BIOME', biomeId });
   };
@@ -241,27 +256,10 @@ export const BranchingTreeMapView = () => {
     );
   }
 
-  const currentActData = gameState.branchingMap[gameState.currentAct - 1];
-
   // Show biome selection if no biome is selected yet
   if (!gameState.biomeLocked && currentActData) {
     return <BiomeSelectionScreen actData={currentActData} onSelectBiome={handleBiomeSelection} />;
   }
-
-  // Get selected biome data
-  const selectedBiomeData = currentActData?.biomeOptions.find(b => b.biomeId === gameState.selectedBiome);
-
-  // Get current node position for focus function
-  const currentNodePosition = React.useMemo(() => {
-    if (!selectedBiomeData || !gameState.completedNodeIds || gameState.completedNodeIds.length === 0) {
-      return { x: 0, y: 0 }; // Starting position
-    }
-    // Find the last completed node
-    const lastCompletedId = gameState.completedNodeIds[gameState.completedNodeIds.length - 1];
-    const allNodes = [...selectedBiomeData.floors.flatMap(f => f.nodes), currentActData.bossFloor?.node].filter(Boolean);
-    const lastNode = allNodes.find(n => n.id === lastCompletedId);
-    return lastNode?.position || { x: 0, y: 0 };
-  }, [gameState.completedNodeIds, selectedBiomeData, currentActData]);
 
   if (!selectedBiomeData) {
     return (
