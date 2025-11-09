@@ -282,8 +282,8 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
   const nodePositions = useMemo(() => {
     const positions = new Map();
     const floors = selectedBiomeData.floors;
-    const verticalSpacing = 3;
-    const horizontalSpacing = 2.5;
+    const verticalSpacing = 2.2;
+    const horizontalSpacing = 1.8;
 
     floors.forEach((floor, floorIdx) => {
       // Calculate center offset for this floor to center all nodes around x=0
