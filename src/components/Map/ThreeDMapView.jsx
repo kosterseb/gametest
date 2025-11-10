@@ -827,6 +827,284 @@ const FloatingShape = ({ type, position, scale, rotationSpeed, floatSpeed, float
   );
 };
 
+// Animated Walker Character - Simple geometric "NPC" that walks around
+const WalkerCharacter = ({ path, speed, offset, color, size = 0.3 }) => {
+  const groupRef = useRef();
+  const leftLegRef = useRef();
+  const rightLegRef = useRef();
+  const headRef = useRef();
+
+  useFrame((state) => {
+    if (!groupRef.current) return;
+
+    // Move along path
+    const t = (state.clock.elapsedTime * speed + offset) % 1;
+    const pos = new THREE.Vector3().lerpVectors(
+      new THREE.Vector3(...path.start),
+      new THREE.Vector3(...path.end),
+      t
+    );
+    groupRef.current.position.copy(pos);
+
+    // Calculate direction of movement
+    const direction = new THREE.Vector3().subVectors(
+      new THREE.Vector3(...path.end),
+      new THREE.Vector3(...path.start)
+    );
+    const angle = Math.atan2(direction.y, direction.x);
+    groupRef.current.rotation.z = angle;
+
+    // Animate legs (walking motion)
+    const walkCycle = Math.sin(state.clock.elapsedTime * speed * 10);
+    if (leftLegRef.current && rightLegRef.current) {
+      leftLegRef.current.rotation.x = walkCycle * 0.5;
+      rightLegRef.current.rotation.x = -walkCycle * 0.5;
+    }
+
+    // Bob head slightly
+    if (headRef.current) {
+      headRef.current.position.y = Math.abs(walkCycle) * 0.05;
+    }
+  });
+
+  return (
+    <group ref={groupRef} raycast={() => null}>
+      {/* Body */}
+      <mesh>
+        <boxGeometry args={[size * 0.6, size, size * 0.4]} />
+        <meshBasicMaterial color={color} />
+      </mesh>
+      <lineSegments>
+        <edgesGeometry args={[new THREE.BoxGeometry(size * 0.6, size, size * 0.4)]} />
+        <lineBasicMaterial color="#000000" />
+      </lineSegments>
+
+      {/* Head */}
+      <group ref={headRef} position={[0, size * 0.7, 0]}>
+        <mesh>
+          <sphereGeometry args={[size * 0.35, 8, 8]} />
+          <meshBasicMaterial color={color} />
+        </mesh>
+        <lineSegments>
+          <edgesGeometry args={[new THREE.SphereGeometry(size * 0.35, 8, 8)]} />
+          <lineBasicMaterial color="#000000" />
+        </lineSegments>
+      </group>
+
+      {/* Left Leg */}
+      <group ref={leftLegRef} position={[-size * 0.15, -size * 0.5, 0]}>
+        <mesh>
+          <boxGeometry args={[size * 0.2, size * 0.5, size * 0.2]} />
+          <meshBasicMaterial color={color} />
+        </mesh>
+      </group>
+
+      {/* Right Leg */}
+      <group ref={rightLegRef} position={[size * 0.15, -size * 0.5, 0]}>
+        <mesh>
+          <boxGeometry args={[size * 0.2, size * 0.5, size * 0.2]} />
+          <meshBasicMaterial color={color} />
+        </mesh>
+      </group>
+    </group>
+  );
+};
+
+// Flying Bird/Creature - Simple animated flying object
+const FlyingCreature = ({ radius, speed, offset, height, color }) => {
+  const meshRef = useRef();
+  const wingLeftRef = useRef();
+  const wingRightRef = useRef();
+
+  useFrame((state) => {
+    if (!meshRef.current) return;
+
+    const t = state.clock.elapsedTime * speed + offset;
+
+    // Circular flight path
+    const x = Math.cos(t) * radius;
+    const z = Math.sin(t) * radius;
+    const y = height + Math.sin(t * 2) * 0.5; // Gentle up and down
+
+    meshRef.current.position.set(x, y, z);
+
+    // Face direction of travel
+    meshRef.current.rotation.z = t;
+
+    // Flap wings
+    const flapAngle = Math.sin(t * 8) * 0.5;
+    if (wingLeftRef.current && wingRightRef.current) {
+      wingLeftRef.current.rotation.z = flapAngle;
+      wingRightRef.current.rotation.z = -flapAngle;
+    }
+  });
+
+  return (
+    <group ref={meshRef} raycast={() => null}>
+      {/* Body */}
+      <mesh>
+        <coneGeometry args={[0.15, 0.3, 4]} rotation={[0, 0, Math.PI / 2]} />
+        <meshBasicMaterial color={color} />
+      </mesh>
+      <lineSegments>
+        <edgesGeometry args={[new THREE.ConeGeometry(0.15, 0.3, 4)]} />
+        <lineBasicMaterial color="#000000" />
+      </lineSegments>
+
+      {/* Left Wing */}
+      <group ref={wingLeftRef} position={[0, 0.1, 0]}>
+        <mesh rotation={[0, 0, Math.PI / 4]}>
+          <boxGeometry args={[0.3, 0.1, 0.02]} />
+          <meshBasicMaterial color={color} transparent opacity={0.9} />
+        </mesh>
+      </group>
+
+      {/* Right Wing */}
+      <group ref={wingRightRef} position={[0, -0.1, 0]}>
+        <mesh rotation={[0, 0, -Math.PI / 4]}>
+          <boxGeometry args={[0.3, 0.1, 0.02]} />
+          <meshBasicMaterial color={color} transparent opacity={0.9} />
+        </mesh>
+      </group>
+    </group>
+  );
+};
+
+// Bouncing Creature - Fun little bouncing entity
+const BouncingCreature = ({ position, color, size = 0.25 }) => {
+  const meshRef = useRef();
+
+  useFrame((state) => {
+    if (!meshRef.current) return;
+
+    // Bounce animation
+    const bounce = Math.abs(Math.sin(state.clock.elapsedTime * 2)) * 0.8;
+    meshRef.current.position.y = position[1] + bounce;
+
+    // Squash and stretch
+    const squash = 1 - (bounce * 0.2);
+    meshRef.current.scale.set(1 + (1 - squash) * 0.3, squash, 1 + (1 - squash) * 0.3);
+
+    // Rotate slightly
+    meshRef.current.rotation.y = state.clock.elapsedTime * 0.5;
+  });
+
+  return (
+    <group position={[position[0], position[1], position[2]]} raycast={() => null}>
+      <mesh ref={meshRef}>
+        <sphereGeometry args={[size, 8, 8]} />
+        <meshBasicMaterial color={color} />
+      </mesh>
+      <lineSegments ref={meshRef}>
+        <edgesGeometry args={[new THREE.SphereGeometry(size, 8, 8)]} />
+        <lineBasicMaterial color="#000000" />
+      </lineSegments>
+    </group>
+  );
+};
+
+// Animated Background Scene with creatures
+const AnimatedBackgroundCreatures = () => {
+  // Walking characters
+  const walkers = useMemo(() => {
+    const paths = [];
+    const colors = ['#ef4444', '#3b82f6', '#22c55e', '#f97316', '#8b5cf6', '#ec4899', '#fbbf24'];
+
+    // Horizontal walkers
+    for (let i = 0; i < 5; i++) {
+      const y = -10 + (i * 4);
+      paths.push({
+        id: `walker-h-${i}`,
+        path: {
+          start: [-15, y, -20],
+          end: [15, y, -20]
+        },
+        speed: 0.15 + Math.random() * 0.1,
+        offset: Math.random(),
+        color: colors[Math.floor(Math.random() * colors.length)],
+        size: 0.25 + Math.random() * 0.15
+      });
+    }
+
+    // Vertical walkers
+    for (let i = 0; i < 3; i++) {
+      const x = -10 + (i * 10);
+      paths.push({
+        id: `walker-v-${i}`,
+        path: {
+          start: [x, -15, -20],
+          end: [x, 5, -20]
+        },
+        speed: 0.12 + Math.random() * 0.1,
+        offset: Math.random(),
+        color: colors[Math.floor(Math.random() * colors.length)],
+        size: 0.25 + Math.random() * 0.15
+      });
+    }
+
+    return paths;
+  }, []);
+
+  // Flying creatures
+  const flyers = useMemo(() => {
+    const creatures = [];
+    const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4'];
+
+    for (let i = 0; i < 6; i++) {
+      creatures.push({
+        id: `flyer-${i}`,
+        radius: 5 + Math.random() * 8,
+        speed: 0.2 + Math.random() * 0.3,
+        offset: Math.random() * Math.PI * 2,
+        height: 3 + Math.random() * 4,
+        color: colors[Math.floor(Math.random() * colors.length)]
+      });
+    }
+
+    return creatures;
+  }, []);
+
+  // Bouncing creatures
+  const bouncers = useMemo(() => {
+    const creatures = [];
+    const colors = ['#22c55e', '#eab308', '#f97316', '#ef4444'];
+
+    for (let i = 0; i < 8; i++) {
+      creatures.push({
+        id: `bouncer-${i}`,
+        position: [
+          -12 + Math.random() * 24,
+          -8 + Math.random() * 10,
+          -22 - Math.random() * 3
+        ],
+        color: colors[Math.floor(Math.random() * colors.length)],
+        size: 0.2 + Math.random() * 0.2
+      });
+    }
+
+    return creatures;
+  }, []);
+
+  return (
+    <group>
+      {/* Walking characters */}
+      {walkers.map((walker) => (
+        <WalkerCharacter key={walker.id} {...walker} />
+      ))}
+
+      {/* Flying creatures */}
+      {flyers.map((flyer) => (
+        <FlyingCreature key={flyer.id} {...flyer} />
+      ))}
+
+      {/* Bouncing creatures */}
+      {bouncers.map((bouncer) => (
+        <BouncingCreature key={bouncer.id} {...bouncer} />
+      ))}
+    </group>
+  );
+};
+
 // Floor Label Component - Neo-Brutal with PERSONALITY
 const FloorLabel = ({ position, floorNumber }) => {
   const labelRef = useRef();
@@ -1103,7 +1381,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
     const floors = selectedBiomeData.floors;
     const verticalSpacing = 3;  // Match connection line spacing for alignment
     const horizontalSpacing = 1.8;
-    const yOffset = 0; // Adjustable offset to align nodes with connection points
+    const yOffset = 5; // Shift nodes upward to better center them in view
 
     floors.forEach((floor, floorIdx) => {
       const xPositions = floor.nodes.map(n => n.position.x);
@@ -1186,6 +1464,9 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
 
       {/* Drag/Pan controls with parallax effect */}
       <DragPanCamera onCameraControlsReady={onCameraControlsReady} disableDrag={selectedNode !== null} />
+
+      {/* Animated creatures in background */}
+      <AnimatedBackgroundCreatures />
 
       {/* Floating geometric shapes in background */}
       <FloatingShapes biomeColor={
@@ -1299,7 +1580,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
       {selectedBiomeData.floors.map((floor, idx) => (
         <FloorLabel
           key={floor.floor}
-          position={[-8, -idx * 3, 0]}
+          position={[-8, -idx * 3 + 5, 0]}
           floorNumber={floor.floor}
         />
       ))}
@@ -1307,7 +1588,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
       {/* Boss Floor Label */}
       {currentActData.bossFloor && (
         <FloorLabel
-          position={[-8, -(selectedBiomeData.floors.length) * 3, 0]}
+          position={[-8, -(selectedBiomeData.floors.length) * 3 + 5, 0]}
           floorNumber={currentActData.bossFloor.floor}
         />
       )}
