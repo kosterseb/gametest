@@ -21,7 +21,7 @@ export const MainMenu = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-red-500 flex flex-col items-center justify-center p-4">
       {/* Animated Title */}
       <div className="mb-8">
-        <AnimatedTitle text="CARD QUEST" />
+        <AnimatedTitle text="RETENTA" />
         <p className="text-center text-white text-xl drop-shadow-lg mt-4">
           A Roguelike Card Adventure
         </p>

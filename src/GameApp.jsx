@@ -19,6 +19,7 @@ import { ActTransition } from './components/UI/ActTransitions';
 import { PreBattleLoadout } from './components/UI/PreBattleLoadout';
 import { BattleMenu } from './components/UI/BattleMenu';
 import { GameMenu } from './components/UI/GameMenu';
+import { SplashScreen } from './components/UI/SplashScreen';
 import { Menu, User } from 'lucide-react';
 import { NBButton } from './components/UI/NeoBrutalUI';
 
@@ -27,6 +28,7 @@ const GameApp = () => {
   const { gameState, dispatch } = useGame();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCharacterMenuOpen, setIsCharacterMenuOpen] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
   const renderRoute = () => {
     switch (currentRoute) {
@@ -79,6 +81,11 @@ const GameApp = () => {
     setIsCharacterMenuOpen(false);
     dispatch({ type: 'CLOSE_MENU' });
   };
+
+  // If splash screen is still showing, render only that
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
 
   return (
     <div className="relative min-h-screen">

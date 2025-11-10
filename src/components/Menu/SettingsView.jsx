@@ -136,7 +136,7 @@ export const SettingsView = () => {
 
         {/* Game Info */}
         <div className="bg-gray-800 p-4 rounded-lg border-2 border-gray-700 text-center mt-8">
-          <p className="text-gray-400 text-sm mb-1">Card Quest</p>
+          <p className="text-gray-400 text-sm mb-1">RETENTA</p>
           <p className="text-gray-500 text-xs">A Roguelike Card Adventure</p>
         </div>
       </div>
