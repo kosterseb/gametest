@@ -15,7 +15,17 @@ export const NBButton = ({
   className = '',
   ...props
 }) => {
-  const baseClasses = 'nb-btn nb-hover-lg nb-active font-bold uppercase tracking-wide transition-all';
+  const [isClicked, setIsClicked] = React.useState(false);
+
+  const handleClick = (e) => {
+    if (!disabled && onClick) {
+      setIsClicked(true);
+      setTimeout(() => setIsClicked(false), 300);
+      onClick(e);
+    }
+  };
+
+  const baseClasses = 'nb-btn nb-hover-lg nb-active font-bold uppercase tracking-wide transition-all hover-lift';
 
   const variantClasses = {
     primary: 'nb-bg-yellow nb-shadow-lg',
@@ -36,11 +46,12 @@ export const NBButton = ({
   };
 
   const disabledClasses = disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer';
+  const animationClass = isClicked ? 'animate-quickBounce' : '';
 
   return (
     <button
-      onClick={disabled ? undefined : onClick}
-      className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${disabledClasses} ${className}`}
+      onClick={handleClick}
+      className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${disabledClasses} ${animationClass} ${className}`}
       disabled={disabled}
       {...props}
     >
@@ -54,6 +65,7 @@ export const NBCard = ({
   children,
   color = 'white',
   shadow = 'xl',
+  animate = true,
   className = '',
   ...props
 }) => {
@@ -77,7 +89,7 @@ export const NBCard = ({
 
   return (
     <div
-      className={`nb-border-xl ${shadowClasses[shadow]} ${colorClasses[color]} p-6 ${className}`}
+      className={`nb-border-xl ${shadowClasses[shadow]} ${colorClasses[color]} p-6 ${animate ? 'animate-scaleIn' : ''} ${className}`}
       {...props}
     >
       {children}
@@ -126,6 +138,7 @@ export const NBInput = ({
 export const NBBadge = ({
   children,
   color = 'yellow',
+  animate = false,
   className = '',
   ...props
 }) => {
@@ -142,7 +155,7 @@ export const NBBadge = ({
 
   return (
     <span
-      className={`nb-border-lg nb-shadow px-3 py-1 inline-block font-bold text-sm uppercase ${colorClasses[color]} ${className}`}
+      className={`nb-border-lg nb-shadow px-3 py-1 inline-block font-bold text-sm uppercase ${colorClasses[color]} ${animate ? 'animate-pulse' : ''} ${className}`}
       {...props}
     >
       {children}
@@ -162,9 +175,9 @@ export const NBModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 animate-fadeIn">
       <div
-        className={`nb-border-xl nb-shadow-xl nb-bg-white max-w-4xl w-full max-h-[90vh] overflow-hidden ${className}`}
+        className={`nb-border-xl nb-shadow-xl nb-bg-white max-w-4xl w-full max-h-[90vh] overflow-hidden animate-bounceIn ${className}`}
         {...props}
       >
         {/* Header */}
@@ -173,7 +186,7 @@ export const NBModal = ({
             <h2 className="nb-heading text-2xl">{title}</h2>
             <button
               onClick={onClose}
-              className="nb-btn nb-bg-red px-4 py-2 text-xl font-black"
+              className="nb-btn nb-bg-red px-4 py-2 text-xl font-black hover-scale"
             >
               ✕
             </button>
@@ -326,6 +339,13 @@ export const NBDropdown = ({
     right: 'left-full ml-2'
   };
 
+  const animationClasses = {
+    bottom: 'animate-slideInTop',
+    top: 'animate-slideInBottom',
+    left: 'animate-slideInRight',
+    right: 'animate-slideInLeft'
+  };
+
   return (
     <div className={`relative ${className}`} {...props}>
       {/* Trigger Button */}
@@ -335,7 +355,7 @@ export const NBDropdown = ({
           ${colorClasses[color]} nb-border-lg nb-shadow
           px-4 py-2 font-bold uppercase text-sm
           flex items-center gap-2
-          nb-hover cursor-pointer transition-all
+          nb-hover cursor-pointer transition-all hover-lift
           ${triggerClassName}
         `}
       >
@@ -351,6 +371,7 @@ export const NBDropdown = ({
             absolute ${positionClasses[position]}
             nb-bg-white nb-border-xl nb-shadow-xl
             p-4 z-50 min-w-[200px]
+            ${animationClasses[position]}
             ${contentClassName}
           `}
         >
@@ -398,6 +419,7 @@ export const NBAlert = ({
       className={`
         ${typeColors[type]} nb-border-xl nb-shadow-xl
         p-4 flex items-center gap-3
+        animate-slideInRight
         ${className}
       `}
       {...props}
@@ -409,7 +431,7 @@ export const NBAlert = ({
       {onClose && (
         <button
           onClick={onClose}
-          className="nb-bg-white nb-border nb-shadow w-8 h-8 flex items-center justify-center font-black text-lg nb-hover"
+          className="nb-bg-white nb-border nb-shadow w-8 h-8 flex items-center justify-center font-black text-lg nb-hover hover-scale"
         >
           ✕
         </button>
@@ -459,9 +481,9 @@ export const NBConfirmDialog = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-70">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-70 animate-fadeIn">
       <div
-        className={`nb-border-xl nb-shadow-xl nb-bg-white max-w-md w-full ${className}`}
+        className={`nb-border-xl nb-shadow-xl nb-bg-white max-w-md w-full animate-bounceIn ${className}`}
         {...props}
       >
         {/* Header */}

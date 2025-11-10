@@ -827,6 +827,266 @@ const FloatingShape = ({ type, position, scale, rotationSpeed, floatSpeed, float
   );
 };
 
+// Animated Person - walks along a path
+const AnimatedPerson = ({ path, speed, offset, color }) => {
+  const meshRef = useRef();
+
+  useFrame((state) => {
+    if (!meshRef.current) return;
+
+    const t = (state.clock.elapsedTime * speed + offset) % 1;
+    const pos = new THREE.Vector3().lerpVectors(
+      new THREE.Vector3(...path.start),
+      new THREE.Vector3(...path.end),
+      t
+    );
+
+    meshRef.current.position.copy(pos);
+  });
+
+  return (
+    <mesh ref={meshRef} raycast={() => null}>
+      <circleGeometry args={[0.08, 8]} />
+      <meshBasicMaterial color={color} transparent opacity={0.8} />
+    </mesh>
+  );
+};
+
+// Animated Car - drives along a road
+const AnimatedCar = ({ path, speed, offset, color }) => {
+  const meshRef = useRef();
+
+  useFrame((state) => {
+    if (!meshRef.current) return;
+
+    const t = (state.clock.elapsedTime * speed + offset) % 1;
+    const pos = new THREE.Vector3().lerpVectors(
+      new THREE.Vector3(...path.start),
+      new THREE.Vector3(...path.end),
+      t
+    );
+
+    meshRef.current.position.copy(pos);
+
+    // Rotate car to face direction of travel
+    const angle = path.orientation === 'horizontal' ? 0 : Math.PI / 2;
+    meshRef.current.rotation.z = angle;
+  });
+
+  return (
+    <group ref={meshRef} raycast={() => null}>
+      {/* Car body */}
+      <mesh>
+        <boxGeometry args={[0.15, 0.25, 0.05]} />
+        <meshBasicMaterial color={color} transparent opacity={0.9} />
+      </mesh>
+      {/* Black outline */}
+      <lineSegments>
+        <edgesGeometry args={[new THREE.BoxGeometry(0.15, 0.25, 0.05)]} />
+        <lineBasicMaterial color="#000000" transparent opacity={0.9} />
+      </lineSegments>
+    </group>
+  );
+};
+
+// City Scene Background - Bird's eye view with animated elements
+const CitySceneBackground = () => {
+  // Generate buildings in a grid pattern
+  const buildings = useMemo(() => {
+    const items = [];
+    for (let x = -20; x < 20; x += 2.5) {
+      for (let y = -25; y < 5; y += 2.5) {
+        // Skip some randomly for roads and variation
+        if (Math.random() > 0.35) {
+          items.push({
+            id: `building-${x}-${y}`,
+            position: [x, y, -23],
+            width: 0.8 + Math.random() * 0.6,
+            depth: 0.8 + Math.random() * 0.6,
+            height: 0.3 + Math.random() * 0.8,
+            color: ['#e5e7eb', '#d1d5db', '#f3f4f6', '#fbbf24', '#fde047'][Math.floor(Math.random() * 5)]
+          });
+        }
+      }
+    }
+    return items;
+  }, []);
+
+  // Generate roads - horizontal and vertical
+  const roads = useMemo(() => {
+    const items = [];
+    // Horizontal roads
+    for (let y = -25; y < 5; y += 5) {
+      items.push({
+        id: `road-h-${y}`,
+        position: [0, y, -23.1],
+        width: 40,
+        depth: 0.8,
+        orientation: 'horizontal'
+      });
+    }
+    // Vertical roads
+    for (let x = -20; x < 20; x += 5) {
+      items.push({
+        id: `road-v-${x}`,
+        position: [x, -10, -23.1],
+        width: 0.8,
+        depth: 30,
+        orientation: 'vertical'
+      });
+    }
+    return items;
+  }, []);
+
+  // Generate walking people paths (along sidewalks)
+  const peoplePaths = useMemo(() => {
+    const paths = [];
+    const colors = ['#ef4444', '#3b82f6', '#22c55e', '#f97316', '#8b5cf6', '#ec4899'];
+
+    // People walking horizontally
+    for (let i = 0; i < 15; i++) {
+      const y = -25 + Math.random() * 30;
+      paths.push({
+        id: `person-h-${i}`,
+        path: {
+          start: [-20, y, -22.5],
+          end: [20, y, -22.5],
+          orientation: 'horizontal'
+        },
+        speed: 0.05 + Math.random() * 0.1,
+        offset: Math.random(),
+        color: colors[Math.floor(Math.random() * colors.length)]
+      });
+    }
+
+    // People walking vertically
+    for (let i = 0; i < 15; i++) {
+      const x = -20 + Math.random() * 40;
+      paths.push({
+        id: `person-v-${i}`,
+        path: {
+          start: [x, -25, -22.5],
+          end: [x, 5, -22.5],
+          orientation: 'vertical'
+        },
+        speed: 0.05 + Math.random() * 0.1,
+        offset: Math.random(),
+        color: colors[Math.floor(Math.random() * colors.length)]
+      });
+    }
+
+    return paths;
+  }, []);
+
+  // Generate car paths (on roads)
+  const carPaths = useMemo(() => {
+    const paths = [];
+    const colors = ['#dc2626', '#2563eb', '#16a34a', '#f59e0b', '#7c3aed', '#000000'];
+
+    // Cars on horizontal roads
+    for (let i = 0; i < 8; i++) {
+      const y = -25 + (i % 5) * 5;
+      paths.push({
+        id: `car-h-${i}`,
+        path: {
+          start: [-20, y, -22.8],
+          end: [20, y, -22.8],
+          orientation: 'horizontal'
+        },
+        speed: 0.15 + Math.random() * 0.15,
+        offset: Math.random(),
+        color: colors[Math.floor(Math.random() * colors.length)]
+      });
+    }
+
+    // Cars on vertical roads
+    for (let i = 0; i < 8; i++) {
+      const x = -20 + (i % 8) * 5;
+      paths.push({
+        id: `car-v-${i}`,
+        path: {
+          start: [x, -25, -22.8],
+          end: [x, 5, -22.8],
+          orientation: 'vertical'
+        },
+        speed: 0.15 + Math.random() * 0.15,
+        offset: Math.random(),
+        color: colors[Math.floor(Math.random() * colors.length)]
+      });
+    }
+
+    return paths;
+  }, []);
+
+  return (
+    <group>
+      {/* Roads */}
+      {roads.map((road) => (
+        <mesh key={road.id} position={road.position} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
+          <planeGeometry args={[road.width, road.depth]} />
+          <meshBasicMaterial color="#374151" transparent opacity={0.6} />
+        </mesh>
+      ))}
+
+      {/* Road markings (center lines) */}
+      {roads.map((road) => (
+        <mesh
+          key={`${road.id}-line`}
+          position={[road.position[0], road.position[1], road.position[2] + 0.01]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          raycast={() => null}
+        >
+          <planeGeometry args={[road.orientation === 'horizontal' ? road.width : 0.1, road.orientation === 'horizontal' ? 0.1 : road.depth]} />
+          <meshBasicMaterial color="#fbbf24" transparent opacity={0.5} />
+        </mesh>
+      ))}
+
+      {/* Buildings */}
+      {buildings.map((building) => (
+        <group key={building.id} position={building.position} raycast={() => null}>
+          {/* Building body */}
+          <mesh position={[0, 0, building.height / 2]}>
+            <boxGeometry args={[building.width, building.depth, building.height]} />
+            <meshBasicMaterial color={building.color} transparent opacity={0.8} />
+          </mesh>
+          {/* Building outline */}
+          <lineSegments position={[0, 0, building.height / 2]}>
+            <edgesGeometry args={[new THREE.BoxGeometry(building.width, building.depth, building.height)]} />
+            <lineBasicMaterial color="#000000" transparent opacity={0.6} />
+          </lineSegments>
+          {/* Shadow */}
+          <mesh position={[0.05, -0.05, 0]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
+            <planeGeometry args={[building.width, building.depth]} />
+            <meshBasicMaterial color="#000000" transparent opacity={0.2} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Animated people walking */}
+      {peoplePaths.map((person) => (
+        <AnimatedPerson
+          key={person.id}
+          path={person.path}
+          speed={person.speed}
+          offset={person.offset}
+          color={person.color}
+        />
+      ))}
+
+      {/* Animated cars driving */}
+      {carPaths.map((car) => (
+        <AnimatedCar
+          key={car.id}
+          path={car.path}
+          speed={car.speed}
+          offset={car.offset}
+          color={car.color}
+        />
+      ))}
+    </group>
+  );
+};
+
 // Floor Label Component - Neo-Brutal with PERSONALITY
 const FloorLabel = ({ position, floorNumber }) => {
   const labelRef = useRef();
@@ -910,13 +1170,13 @@ const DragPanCamera = ({ onCameraControlsReady, disableDrag = false }) => {
         focusOnPosition: (x, y) => {
           setCameraOffset({
             x: Math.max(-8, Math.min(8, -x)),
-            y: Math.max(-12, Math.min(8, -y))  // Increased downward limit to 12
+            y: Math.max(-12, Math.min(3, -y))  // Reduced upward limit to minimize top space
           });
           setZoom(0);  // Reset zoom when focusing on position
         },
         animateToPosition: (x, y, duration = 1000) => {
           const targetX = Math.max(-8, Math.min(8, -x));
-          const targetY = Math.max(-12, Math.min(8, -y));  // Increased downward limit to 12
+          const targetY = Math.max(-12, Math.min(3, -y));  // Reduced upward limit to minimize top space
           setTransition({
             active: true,
             startTime: Date.now(),
@@ -952,7 +1212,7 @@ const DragPanCamera = ({ onCameraControlsReady, disableDrag = false }) => {
 
         setCameraOffset({
           x: Math.max(-8, Math.min(8, newX)),   // Limit X movement
-          y: Math.max(-12, Math.min(8, newY))   // Increased downward limit to 12 for better floor visibility
+          y: Math.max(-12, Math.min(3, newY))   // Reduced upward limit to minimize top space
         });
 
         setDragStart({ x: e.clientX, y: e.clientY });
@@ -1186,6 +1446,9 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
 
       {/* Drag/Pan controls with parallax effect */}
       <DragPanCamera onCameraControlsReady={onCameraControlsReady} disableDrag={selectedNode !== null} />
+
+      {/* Animated City Scene - Bird's eye view with houses, roads, people, and cars */}
+      <CitySceneBackground />
 
       {/* Floating geometric shapes in background */}
       <FloatingShapes biomeColor={
