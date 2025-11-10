@@ -631,7 +631,8 @@ const gameReducer = (state, action) => {
         ...state,
         branchingMap: mapAfterNodeCompletion,
         completedNodeIds: [...state.completedNodeIds, nodeId],
-        availableNodeIds: newAvailableNodeIds
+        availableNodeIds: newAvailableNodeIds,
+        currentFloor: completedNodeFloor.floor  // Update to the floor the player just completed
       };
 
     case 'COMPLETE_BOSS_FLOOR': {
@@ -657,7 +658,7 @@ const gameReducer = (state, action) => {
         ...state,
         branchingMap: mapAfterBossComplete,
         currentAct: nextAct,
-        currentFloor: completedActNum * 5 + 1,
+        currentFloor: completedActNum * 5,  // Set to the boss floor number (5, 10, 15, etc.)
         selectedBiome: null,
         biomeLocked: false,
         availableNodeIds: []

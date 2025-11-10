@@ -302,10 +302,30 @@ export const BranchingTreeMapView = () => {
 
   return (
     <PageTransition>
-      <div className="h-screen nb-bg-purple flex flex-col overflow-hidden">
-        {/* Header - Player Stats - Fixed on top */}
-        <div className="nb-bg-purple p-6 z-40 flex-shrink-0">
-            <div className="flex justify-between items-center">
+      <div className="h-screen relative overflow-hidden">
+        {/* 3D View - Fills entire screen */}
+        {is3DView && (
+          <div className="absolute inset-0">
+            <ThreeDMapView
+              selectedBiomeData={selectedBiomeData}
+              currentActData={currentActData}
+              selectedNode={selectedNode}
+              onNodeSelect={handleNodeSelect}
+              availableNodeIds={gameState.availableNodeIds}
+              completedNodeIds={gameState.completedNodeIds}
+              onSelectedNodeScreenPosition={handleSelectedNodeScreenPosition}
+              onCameraControlsReady={handleCameraControlsReady}
+              highlightPaths={highlightPaths}
+              onHoveredNodeChange={handleHoveredNodeChange}
+              avatarSeed={gameState.profile?.avatarSeed}
+              currentNodePosition={currentNodePosition}
+            />
+          </div>
+        )}
+
+        {/* Header - Player Stats - Fixed on top with backdrop */}
+        <div className="absolute top-0 left-0 right-0 p-6 z-40 pointer-events-none">
+            <div className="flex justify-between items-center pointer-events-auto">
               {/* Act + Biome Info - White Box */}
               <div className="nb-bg-white nb-border-xl nb-shadow-xl p-4">
                 <NBHeading level={1} className="mb-2">
@@ -341,26 +361,9 @@ export const BranchingTreeMapView = () => {
             </div>
         </div>
 
-        {/* 3D View - Fills remaining screen space */}
+        {/* Navigation Button - Left Side (only in 3D view) */}
         {is3DView && (
-          <div className="flex-1 relative">
-            <ThreeDMapView
-              selectedBiomeData={selectedBiomeData}
-              currentActData={currentActData}
-              selectedNode={selectedNode}
-              onNodeSelect={handleNodeSelect}
-              availableNodeIds={gameState.availableNodeIds}
-              completedNodeIds={gameState.completedNodeIds}
-              onSelectedNodeScreenPosition={handleSelectedNodeScreenPosition}
-              onCameraControlsReady={handleCameraControlsReady}
-              highlightPaths={highlightPaths}
-              onHoveredNodeChange={handleHoveredNodeChange}
-              avatarSeed={gameState.profile?.avatarSeed}
-              currentNodePosition={currentNodePosition}
-            />
-
-            {/* Navigation Button - Left Side */}
-            <div className="fixed left-4 top-48 z-40">
+          <div className="absolute left-4 top-48 z-40">
               <NBButton
                 onClick={() => setIsDashboardOpen(true)}
                 variant="white"
@@ -370,7 +373,6 @@ export const BranchingTreeMapView = () => {
               >
                 <MapIcon className="w-8 h-8" />
               </NBButton>
-            </div>
           </div>
         )}
 

@@ -358,11 +358,19 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, isRecent
         </>
       )}
 
-      {/* Node type icon - pops out when selected */}
+      {/* Node type icon - pops out when selected or hovered, extra boost for boss */}
       <Billboard>
         <Text
-          position={[0, 0, isSelected ? 0.9 : (hovered ? 0.65 : 0.5)]}
-          fontSize={isSelected ? 0.55 : (hovered ? 0.5 : 0.45)}
+          position={[0, 0,
+            node.type === 'boss'
+              ? (isSelected ? 1.3 : (hovered ? 1.0 : 0.8))  // Boss icons much higher
+              : (isSelected ? 0.9 : (hovered ? 0.65 : 0.5))  // Normal icons
+          ]}
+          fontSize={
+            node.type === 'boss'
+              ? (isSelected ? 0.65 : (hovered ? 0.6 : 0.55))  // Boss icons bigger
+              : (isSelected ? 0.55 : (hovered ? 0.5 : 0.45))  // Normal icons
+          }
           anchorX="center"
           anchorY="middle"
           outlineWidth={0.04}
