@@ -204,11 +204,11 @@ export const SplashScreen = ({ onComplete }) => {
         className="absolute inset-0 pointer-events-none"
       />
 
-      {/* Studio Logo */}
+      {/* Studio Logo - 5x larger */}
       <div
         className="relative z-10 flex flex-col items-center transition-opacity duration-300"
         style={{
-          transform: `scale(${logoScale})`,
+          transform: `scale(${logoScale * 5})`,
           transition: 'none', // Disable CSS transition, we're animating via state
         }}
       >
@@ -220,16 +220,6 @@ export const SplashScreen = ({ onComplete }) => {
             filter: `drop-shadow(0 0 ${30 * logoScale}px rgba(255, 255, 255, ${0.5 * logoScale}))`,
           }}
         />
-
-        {/* Tagline - fades in after logo grows */}
-        <p
-          className="text-white text-2xl mt-6 font-light tracking-wider transition-opacity duration-500"
-          style={{
-            opacity: logoScale > 0.8 ? 1 : 0,
-          }}
-        >
-          Kinda Whimsical Games
-        </p>
       </div>
     </div>
   );
