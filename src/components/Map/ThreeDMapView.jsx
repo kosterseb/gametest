@@ -885,7 +885,7 @@ const FloorLabel = ({ position, floorNumber }) => {
 };
 
 // Drag/Pan Camera Controller with Parallax
-const DragPanCamera = ({ onCameraControlsReady }) => {
+const DragPanCamera = ({ onCameraControlsReady, disableDrag = false }) => {
   const { camera, gl } = useThree();
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -960,8 +960,11 @@ const DragPanCamera = ({ onCameraControlsReady }) => {
     };
 
     const handleMouseDown = (e) => {
-      setIsDragging(true);
-      setDragStart({ x: e.clientX, y: e.clientY });
+      // Don't start dragging if disabled
+      if (!disableDrag) {
+        setIsDragging(true);
+        setDragStart({ x: e.clientX, y: e.clientY });
+      }
     };
 
     const handleMouseUp = () => {
@@ -977,7 +980,7 @@ const DragPanCamera = ({ onCameraControlsReady }) => {
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, dragStart, cameraOffset]);
+  }, [isDragging, dragStart, cameraOffset, disableDrag]);
 
   // Apply camera movement
   useFrame((state) => {
@@ -1078,9 +1081,10 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
       const centerOffset = (minX + maxX) / 2;
 
       floor.nodes.forEach((node) => {
+        // Use floor index for consistent vertical positioning
         const x = (node.position.x - centerOffset) * horizontalSpacing;
-        const y = -node.position.y * verticalSpacing;
-        const z = -node.position.y * 1.2;
+        const y = -floorIdx * verticalSpacing;
+        const z = -floorIdx * 1.2;
         positions.set(node.id, [x, y, z]);
       });
     });
@@ -1108,9 +1112,10 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
       const centerOffset = (minX + maxX) / 2;
 
       floor.nodes.forEach((node) => {
+        // Use floor index for consistent vertical positioning
         const x = (node.position.x - centerOffset) * horizontalSpacing;
-        const y = -node.position.y * verticalSpacing + yOffset;
-        const z = -node.position.y * 1.2;
+        const y = -floorIdx * verticalSpacing + yOffset;
+        const z = -floorIdx * 1.2;
         positions.set(node.id, [x, y, z]);
       });
     });
@@ -1180,7 +1185,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
       <PerspectiveCamera makeDefault position={[0, 2, 12]} fov={45} rotation={[-0.15, 0, 0]} />
 
       {/* Drag/Pan controls with parallax effect */}
-      <DragPanCamera onCameraControlsReady={onCameraControlsReady} />
+      <DragPanCamera onCameraControlsReady={onCameraControlsReady} disableDrag={selectedNode !== null} />
 
       {/* Floating geometric shapes in background */}
       <FloatingShapes biomeColor={

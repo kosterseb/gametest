@@ -627,12 +627,17 @@ const gameReducer = (state, action) => {
         ...(isLastFloorBeforeBoss ? [currentAct.bossFloor.node.id] : []) // Add boss if last floor
       ];
 
+      // Calculate current floor: use the floor number from the completed node's floor
+      const calculatedFloor = completedNodeFloor.floor;
+
+      console.log('COMPLETE_NODE_IN_TREE: completedNodeFloor.floor =', completedNodeFloor.floor, 'nodeId =', nodeId);
+
       return {
         ...state,
         branchingMap: mapAfterNodeCompletion,
         completedNodeIds: [...state.completedNodeIds, nodeId],
         availableNodeIds: newAvailableNodeIds,
-        currentFloor: completedNodeFloor.floor  // Update to the floor the player just completed
+        currentFloor: calculatedFloor
       };
 
     case 'COMPLETE_BOSS_FLOOR': {
