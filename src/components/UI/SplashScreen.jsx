@@ -5,6 +5,7 @@ export const SplashScreen = ({ onComplete }) => {
   const canvasRef = useRef(null);
   const [fadeOut, setFadeOut] = useState(false);
   const [logoScale, setLogoScale] = useState(0.1);
+  const [logoBop, setLogoBop] = useState(0);
   const [backgroundExpansion, setBackgroundExpansion] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
   const confettiParticles = useRef([]);
@@ -155,7 +156,18 @@ export const SplashScreen = ({ onComplete }) => {
 
       if (progress < 1) {
         requestAnimationFrame(animateLogo);
+      } else {
+        // After growth completes, start bobbing animation
+        animateBop();
       }
+    };
+
+    // Continuous bobbing animation after growth completes
+    const animateBop = () => {
+      const elapsed = Date.now() - startTime.current - logoAnimationDuration;
+      const bopAmount = Math.sin(elapsed / 300) * 0.03; // Gentle up/down bop
+      setLogoBop(bopAmount);
+      requestAnimationFrame(animateBop);
     };
 
     animateLogo();
@@ -204,11 +216,11 @@ export const SplashScreen = ({ onComplete }) => {
         className="absolute inset-0 pointer-events-none"
       />
 
-      {/* Studio Logo - 5x larger */}
+      {/* Studio Logo - 4x larger with bop */}
       <div
         className="relative z-10 flex flex-col items-center transition-opacity duration-300"
         style={{
-          transform: `scale(${logoScale * 5})`,
+          transform: `scale(${(logoScale + logoBop) * 4})`,
           transition: 'none', // Disable CSS transition, we're animating via state
         }}
       >
