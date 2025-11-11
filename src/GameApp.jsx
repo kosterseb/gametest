@@ -103,22 +103,24 @@ const GameApp = () => {
             <Menu className="w-8 h-8" />
           </NBButton>
 
-          {/* Character Button - UNDERNEATH with Avatar */}
-          <button
-            onClick={handleOpenCharacterMenu}
-            className="w-16 h-16 nb-bg-cyan nb-border-xl nb-shadow-lg nb-hover flex items-center justify-center p-0 overflow-hidden"
-            aria-label="Open character menu"
-          >
-            {gameState.profile?.avatarSeed ? (
-              <img
-                src={`https://api.dicebear.com/9.x/notionists/svg?seed=${gameState.profile.avatarSeed}`}
-                alt="Your character"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <User className="w-8 h-8 text-black" />
-            )}
-          </button>
+          {/* Character Button - UNDERNEATH with Avatar (only show if profile exists) */}
+          {gameState.profile && (
+            <button
+              onClick={handleOpenCharacterMenu}
+              className="w-16 h-16 nb-bg-cyan nb-border-xl nb-shadow-lg nb-hover flex items-center justify-center p-0 overflow-hidden"
+              aria-label="Open character menu"
+            >
+              {gameState.profile.avatarSeed ? (
+                <img
+                  src={`https://api.dicebear.com/9.x/notionists/svg?seed=${gameState.profile.avatarSeed}`}
+                  alt="Your character"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-8 h-8 text-black" />
+              )}
+            </button>
+          )}
         </div>
       )}
 
