@@ -41,8 +41,16 @@ const FlyingCard = ({ color, speed = 0.05 }) => {
       getRandomFloat(0.03, 0.08), // Upward bias
       getRandomFloat(-0.01, 0.01)
     ),
-    rotation: getRandomFloat(0, Math.PI * 2),
-    rotationSpeed: getRandomFloat(-0.05, 0.05),
+    rotation: new THREE.Vector3(
+      getRandomFloat(0, Math.PI * 2), // X - pitch
+      getRandomFloat(0, Math.PI * 2), // Y - yaw
+      getRandomFloat(0, Math.PI * 2)  // Z - roll
+    ),
+    rotationSpeed: new THREE.Vector3(
+      getRandomFloat(-0.03, 0.03), // Flip forward/backward
+      getRandomFloat(-0.04, 0.04), // Turn left/right
+      getRandomFloat(-0.02, 0.02)  // Spin
+    ),
   }), []);
 
   // Animation loop
@@ -56,8 +64,15 @@ const FlyingCard = ({ color, speed = 0.05 }) => {
     meshRef.current.position.y += initialData.velocity.y;
     meshRef.current.position.z += initialData.velocity.z;
 
-    // Rotate the card
-    meshRef.current.rotation.z += initialData.rotationSpeed;
+    // Rotate the card in 3D - tumbling through the air
+    meshRef.current.rotation.x += initialData.rotationSpeed.x;
+    meshRef.current.rotation.y += initialData.rotationSpeed.y;
+    meshRef.current.rotation.z += initialData.rotationSpeed.z;
+
+    // Add subtle "curl" effect - cards bend/wobble slightly as they fly
+    const wobble = Math.sin(lifeTimeRef.current * 3) * 0.1;
+    meshRef.current.rotation.x += wobble * 0.01;
+    meshRef.current.rotation.y += wobble * 0.015;
 
     // Fade in quickly, then fade out at the end
     const lifeProgress = lifeTimeRef.current / maxLifeTime.current;
@@ -85,7 +100,7 @@ const FlyingCard = ({ color, speed = 0.05 }) => {
       ref={meshRef}
       geometry={geometry}
       position={initialData.position}
-      rotation={[0, 0, initialData.rotation]}
+      rotation={[initialData.rotation.x, initialData.rotation.y, initialData.rotation.z]}
     >
       <meshBasicMaterial
         ref={materialRef}
