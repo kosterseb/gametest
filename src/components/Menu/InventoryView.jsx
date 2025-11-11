@@ -3,11 +3,13 @@ import { useGame } from '../../context/GameContext';
 import { useRouter } from '../../hooks/useRouter';
 import { Package, Zap, Shield, AlertCircle, Check, ArrowRight, ArrowLeft, Plus } from 'lucide-react';
 import { ITEM_TYPES, ITEM_RARITY_CONFIG, getItemById } from '../../data/items';
+import { NBButton, NBHeading, NBBadge } from '../UI/NeoBrutalUI';
 
 export const InventoryView = () => {
   const { gameState, dispatch } = useGame();
   const { currentRoute } = useRouter();
   const [selectedItem, setSelectedItem] = useState(null);
+  const [draggedItem, setDraggedItem] = useState(null);
 
   const isInBattle = currentRoute === '/battle';
 
@@ -81,35 +83,98 @@ export const InventoryView = () => {
     dispatch({ type: 'USE_CONSUMABLE', instanceId: item.instanceId });
   };
 
+  // Drag and Drop Handlers
+  const handleDragStart = (e, item, location, index) => {
+    if (!item) return;
+    setDraggedItem({ item, location, index });
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, targetLocation, targetIndex) => {
+    e.preventDefault();
+
+    if (!draggedItem) return;
+
+    const { item, location: sourceLocation, index: sourceIndex } = draggedItem;
+
+    // Same slot - do nothing
+    if (sourceLocation === targetLocation && sourceIndex === targetIndex) {
+      setDraggedItem(null);
+      return;
+    }
+
+    // Handle different drop scenarios
+    if (sourceLocation === 'bag' && targetLocation === 'consumable') {
+      // Equip consumable from bag
+      if (item.type === ITEM_TYPES.CONSUMABLE) {
+        dispatch({ type: 'EQUIP_CONSUMABLE', item });
+      }
+    } else if (sourceLocation === 'bag' && targetLocation === 'passive') {
+      // Equip passive from bag
+      if (item.type === ITEM_TYPES.PASSIVE) {
+        dispatch({ type: 'EQUIP_PASSIVE', item });
+      }
+    } else if (sourceLocation === 'consumable' && targetLocation === 'bag') {
+      // Unequip consumable to bag
+      const hasSpace = bag.some(slot => slot === null);
+      if (hasSpace) {
+        dispatch({ type: 'UNEQUIP_CONSUMABLE', instanceId: item.instanceId });
+      }
+    } else if (sourceLocation === 'passive' && targetLocation === 'bag') {
+      // Unequip passive to bag
+      const hasSpace = bag.some(slot => slot === null);
+      if (hasSpace) {
+        dispatch({ type: 'UNEQUIP_PASSIVE' });
+      }
+    }
+
+    setDraggedItem(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+  };
+
   // Render item card
   const renderItemCard = (item, location, index) => {
     const isEmpty = !item;
     const isSelected = selectedItem?.item?.instanceId === item?.instanceId;
+    const isDragging = draggedItem?.item?.instanceId === item?.instanceId;
     const rarityConfig = item ? ITEM_RARITY_CONFIG[item.rarity] : ITEM_RARITY_CONFIG.common;
 
     return (
-      <button
+      <div
         key={`${location}_${index}`}
+        draggable={!isEmpty}
+        onDragStart={(e) => handleDragStart(e, item, location, index)}
+        onDragOver={handleDragOver}
+        onDrop={(e) => handleDrop(e, location, index)}
+        onDragEnd={handleDragEnd}
         onClick={() => !isEmpty && handleItemClick(item, location)}
-        disabled={isEmpty}
         className={`
-          ${isEmpty ? 'bg-gray-100 border-dashed border-gray-300' : `${rarityConfig.bgColor} ${rarityConfig.borderColor} hover:scale-105 cursor-pointer`}
-          ${isSelected ? 'ring-4 ring-purple-500' : ''}
-          border-2 rounded-lg p-3 transition-all duration-200
+          ${isEmpty ? 'nb-bg-white nb-border-lg' : `${rarityConfig.bgColor} nb-border-lg nb-hover cursor-pointer`}
+          ${isSelected ? 'nb-shadow-colored-yellow' : 'nb-shadow'}
+          ${isDragging ? 'opacity-50 scale-95' : ''}
+          p-3 transition-all duration-200
           flex flex-col items-center justify-center
           min-h-[100px] relative
-          ${isEmpty ? 'cursor-not-allowed' : ''}
+          ${isEmpty ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}
         `}
       >
         {isEmpty ? (
-          <div className="text-gray-400 text-center">
+          <div className="text-black text-center">
             <Plus className="w-6 h-6 mx-auto mb-1" />
-            <span className="text-xs">Empty</span>
+            <span className="text-xs font-bold uppercase">Empty</span>
           </div>
         ) : (
           <>
             {/* Rarity badge */}
-            <div className={`absolute top-1 left-1 ${rarityConfig.bgColor} ${rarityConfig.borderColor} border px-2 py-0.5 rounded text-xs font-bold ${rarityConfig.color}`}>
+            <div className={`absolute top-1 left-1 ${rarityConfig.bgColor} nb-border nb-shadow px-2 py-0.5 text-xs font-black uppercase text-black`}>
               {rarityConfig.name[0]}
             </div>
 
@@ -117,15 +182,15 @@ export const InventoryView = () => {
             <div className="text-4xl mb-2">{item.emoji}</div>
 
             {/* Name */}
-            <div className="text-sm font-bold text-center text-gray-800">{item.name}</div>
+            <div className="text-sm font-black text-center text-black uppercase">{item.name}</div>
 
             {/* Type badge */}
-            <div className={`mt-1 text-xs px-2 py-0.5 rounded ${item.type === ITEM_TYPES.CONSUMABLE ? 'bg-blue-500' : 'bg-purple-500'} text-white font-semibold`}>
-              {item.type === ITEM_TYPES.CONSUMABLE ? 'Consumable' : 'Passive'}
+            <div className={`mt-1 text-xs px-2 py-0.5 nb-border nb-shadow ${item.type === ITEM_TYPES.CONSUMABLE ? 'nb-bg-blue' : 'nb-bg-purple'} text-black font-black uppercase`}>
+              {item.type === ITEM_TYPES.CONSUMABLE ? 'CONS' : 'PASS'}
             </div>
           </>
         )}
-      </button>
+      </div>
     );
   };
 
@@ -133,11 +198,11 @@ export const InventoryView = () => {
     <div>
       {/* Battle Warning */}
       {isInBattle && (
-        <div className="mb-6 bg-orange-100 border-2 border-orange-500 rounded-lg p-4 flex items-center gap-3">
-          <AlertCircle className="w-6 h-6 text-orange-600 flex-shrink-0" />
+        <div className="mb-6 nb-bg-orange nb-border-xl nb-shadow-lg p-6 flex items-center gap-3">
+          <AlertCircle className="w-6 h-6 text-black flex-shrink-0" />
           <div>
-            <h4 className="font-bold text-orange-800 mb-1">⚔️ In Battle</h4>
-            <p className="text-sm text-orange-700">
+            <NBHeading level={4} className="text-black mb-2">⚔️ IN BATTLE</NBHeading>
+            <p className="text-sm text-black font-bold uppercase">
               Use consumables via battle buttons. Cannot equip/unequip during combat.
             </p>
           </div>
@@ -145,22 +210,24 @@ export const InventoryView = () => {
       )}
 
       {/* Header */}
-      <div className="mb-6 bg-white p-4 rounded-lg shadow">
-        <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-          <Package className="w-6 h-6 text-purple-600" />
-          Your Inventory
-        </h3>
-        <p className="text-gray-600 text-sm">
-          Manage your items. Click to select, then equip or unequip.
-        </p>
+      <div className="mb-6 nb-bg-purple nb-border-xl nb-shadow-lg p-6">
+        <div className="flex items-center gap-3 mb-3">
+          <Package className="w-6 h-6 text-black" />
+          <NBHeading level={3} className="text-black">YOUR INVENTORY</NBHeading>
+        </div>
+        <div className="nb-bg-white nb-border-lg nb-shadow px-4 py-2 inline-block">
+          <p className="text-black font-bold text-sm uppercase">
+            Manage your items. Click to select, then equip or unequip.
+          </p>
+        </div>
       </div>
 
       {/* Bag Section */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h4 className="text-lg font-bold flex items-center gap-2">
-            🎒 Bag ({bagItemCount}/{maxBagSize})
-          </h4>
+          <NBHeading level={4} className="text-black flex items-center gap-2">
+            🎒 BAG ({bagItemCount}/{maxBagSize})
+          </NBHeading>
         </div>
 
         <div className="grid grid-cols-4 gap-3">
@@ -168,30 +235,30 @@ export const InventoryView = () => {
         </div>
 
         {bagItemCount === 0 && (
-          <div className="text-center text-gray-500 py-8">
-            <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>Your bag is empty!</p>
-            <p className="text-sm mt-1">Find items in shops, battles, and mystery nodes.</p>
+          <div className="text-center py-8 nb-bg-white nb-border-xl nb-shadow-lg p-6">
+            <Package className="w-12 h-12 mx-auto mb-3 text-black" />
+            <p className="font-black text-black uppercase mb-2">Your bag is empty!</p>
+            <p className="text-sm text-black font-bold">Find items in shops, battles, and mystery nodes.</p>
           </div>
         )}
       </div>
 
       {/* Tool Belt Section */}
       <div className="mb-8">
-        <h4 className="text-lg font-bold mb-4 flex items-center gap-2">
-          🛡️ Equipped Tool Belt
-        </h4>
+        <NBHeading level={4} className="text-black mb-4 flex items-center gap-2">
+          🛡️ EQUIPPED TOOL BELT
+        </NBHeading>
 
         {/* Consumables */}
-        <div className="mb-4">
-          <h5 className="text-md font-semibold mb-2 text-gray-700">
+        <div className="mb-6">
+          <h5 className="text-sm font-black mb-3 text-black uppercase">
             Consumables ({equippedConsumableCount}/{gameState.maxConsumableSlots})
           </h5>
           <div className="grid grid-cols-2 gap-3">
             {toolBelt.consumables.map((item, index) => (
               <div key={`consumable_${index}`} className="relative">
                 {renderItemCard(item, 'consumable', index)}
-                
+
                 {/* Use button (outside battle only) */}
                 {item && !isInBattle && (
                   <button
@@ -199,7 +266,7 @@ export const InventoryView = () => {
                       e.stopPropagation();
                       handleUseConsumable(item);
                     }}
-                    className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg transition-all"
+                    className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 nb-bg-green nb-border nb-shadow text-black text-xs px-3 py-1 font-black uppercase transition-all nb-hover"
                   >
                     Use Now
                   </button>
@@ -211,7 +278,7 @@ export const InventoryView = () => {
 
         {/* Passive */}
         <div>
-          <h5 className="text-md font-semibold mb-2 text-gray-700">
+          <h5 className="text-sm font-black mb-3 text-black uppercase">
             Passive ({hasEquippedPassive ? '1' : '0'}/{gameState.maxPassiveSlots})
           </h5>
           <div className="grid grid-cols-1 max-w-[200px]">
@@ -222,62 +289,69 @@ export const InventoryView = () => {
 
       {/* Selected Item Actions */}
       {selectedItem && !isInBattle && (
-        <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4">
-          <h5 className="font-bold text-purple-800 mb-3">Selected Item:</h5>
-          
-          <div className="flex items-center gap-4 mb-4">
+        <div className="nb-bg-purple nb-border-xl nb-shadow-lg p-6 mb-6">
+          <NBHeading level={5} className="text-black mb-4">SELECTED ITEM:</NBHeading>
+
+          <div className="flex items-center gap-4 mb-6">
             <div className="text-4xl">{selectedItem.item.emoji}</div>
             <div>
-              <div className="font-bold text-gray-800">{selectedItem.item.name}</div>
-              <div className="text-sm text-gray-600">{selectedItem.item.description}</div>
+              <div className="font-black text-black uppercase mb-1">{selectedItem.item.name}</div>
+              <div className="text-sm text-black font-bold">{selectedItem.item.description}</div>
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-3 flex-wrap">
             {selectedItem.location === 'bag' && (
-              <button
+              <NBButton
                 onClick={handleEquipItem}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                variant="success"
+                size="lg"
+                className="flex-1 flex items-center justify-center gap-2"
               >
                 <ArrowRight className="w-4 h-4" />
-                Equip to Tool Belt
-              </button>
+                <span>EQUIP</span>
+              </NBButton>
             )}
 
             {(selectedItem.location === 'consumable' || selectedItem.location === 'passive') && (
-              <button
+              <NBButton
                 onClick={handleUnequipItem}
-                className="flex-1 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                variant="orange"
+                size="lg"
+                className="flex-1 flex items-center justify-center gap-2"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Unequip to Bag
-              </button>
+                <span>UNEQUIP</span>
+              </NBButton>
             )}
 
-            <button
+            <NBButton
               onClick={() => setSelectedItem(null)}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold transition-all"
+              variant="white"
+              size="lg"
             >
-              Cancel
-            </button>
+              CANCEL
+            </NBButton>
           </div>
         </div>
       )}
 
       {/* Info Section */}
-      <div className="mt-6 bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
-        <h5 className="font-bold text-blue-800 mb-2 flex items-center gap-2">
-          <AlertCircle className="w-5 h-5" />
-          How It Works
-        </h5>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• <strong>Bag:</strong> Store items here (max {maxBagSize} slots)</li>
-          <li>• <strong>Tool Belt:</strong> Equip items to use in battle</li>
-          <li>• <strong>Consumables:</strong> One-time use, consumed after use</li>
-          <li>• <strong>Passives:</strong> Always active while equipped</li>
-          <li>• <strong>Outside Battle:</strong> Use consumables now or save for combat</li>
-          <li>• <strong>During Battle:</strong> Use equipped consumables via battle buttons</li>
-        </ul>
+      <div className="mt-6 nb-bg-cyan nb-border-xl nb-shadow-lg p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <AlertCircle className="w-5 h-5 text-black" />
+          <NBHeading level={5} className="text-black">HOW IT WORKS</NBHeading>
+        </div>
+        <div className="nb-bg-white nb-border-lg nb-shadow p-4">
+          <ul className="text-sm text-black font-bold space-y-2">
+            <li>• <span className="font-black uppercase">Bag:</span> Store items here (max {maxBagSize} slots)</li>
+            <li>• <span className="font-black uppercase">Tool Belt:</span> Equip items to use in battle</li>
+            <li>• <span className="font-black uppercase">Consumables:</span> One-time use, consumed after use</li>
+            <li>• <span className="font-black uppercase">Passives:</span> Always active while equipped</li>
+            <li>• <span className="font-black uppercase">Outside Battle:</span> Use consumables now or save for combat</li>
+            <li>• <span className="font-black uppercase">During Battle:</span> Use equipped consumables via battle buttons</li>
+          </ul>
+        </div>
       </div>
     </div>
   );

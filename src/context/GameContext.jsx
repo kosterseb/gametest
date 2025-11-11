@@ -57,6 +57,14 @@ const initialGameState = {
   selectedNodeId: null,
   jokerBonus: null,
 
+  // BRANCHING TREE SYSTEM
+  useBranchingPaths: true, // Toggle to enable new branching system
+  branchingMap: [], // New map structure: array of act objects with biome options
+  selectedBiome: null, // Currently selected biome (e.g., 'act1_swamp')
+  completedNodeIds: [], // Array of completed node IDs in the tree
+  availableNodeIds: [], // Array of currently available node IDs
+  biomeLocked: false, // True once player selects a biome for current act
+
   gold: 0,
 
   // Boss/Elite tracking
@@ -105,6 +113,7 @@ const initialGameState = {
   maxPassiveSlots: 1,
   activeItemEffects: {},
   showPreBattleLoadout: true,
+  prefer3DView: true, // User preference for 3D map view
 
   // Inventory upgrades purchased
   bagUpgradesPurchased: 0,
@@ -143,7 +152,13 @@ const gameReducer = (state, action) => {
           inventory: loadedProfile.currentRun.inventory,
           completedNodes: loadedProfile.currentRun.completedNodes,
           progressionMap: loadedProfile.currentRun.progressionMap,
-          showPreBattleLoadout: loadedProfile.settings.showPreBattleLoadout
+          branchingMap: loadedProfile.currentRun.branchingMap || [],
+          selectedBiome: loadedProfile.currentRun.selectedBiome || null,
+          biomeLocked: loadedProfile.currentRun.biomeLocked || false,
+          availableNodeIds: loadedProfile.currentRun.availableNodeIds || [],
+          completedNodeIds: loadedProfile.currentRun.completedNodeIds || [],
+          showPreBattleLoadout: loadedProfile.settings.showPreBattleLoadout,
+          prefer3DView: loadedProfile.settings.prefer3DView !== undefined ? loadedProfile.settings.prefer3DView : true
         } : {})
       };
 
@@ -166,11 +181,17 @@ const gameReducer = (state, action) => {
             selectedCardTypes: state.selectedCardTypes,
             inventory: state.inventory,
             completedNodes: state.completedNodes,
-            progressionMap: state.progressionMap
+            progressionMap: state.progressionMap,
+            branchingMap: state.branchingMap,
+            selectedBiome: state.selectedBiome,
+            biomeLocked: state.biomeLocked,
+            availableNodeIds: state.availableNodeIds,
+            completedNodeIds: state.completedNodeIds
           },
           settings: {
             ...state.profile.settings,
-            showPreBattleLoadout: state.showPreBattleLoadout
+            showPreBattleLoadout: state.showPreBattleLoadout,
+            prefer3DView: state.prefer3DView
           }
         };
 
@@ -295,7 +316,13 @@ const gameReducer = (state, action) => {
             consumables: [null, null],
             passive: null
           }
-        }
+        },
+        // Reset branching tree system
+        branchingMap: [],
+        selectedBiome: null,
+        completedNodeIds: [],
+        availableNodeIds: [],
+        biomeLocked: false
       };
 
     case 'SET_USED_REVIVE':
@@ -397,7 +424,7 @@ const gameReducer = (state, action) => {
         selectedCardTypes: state.selectedCardTypes.filter(name => name !== action.cardName)
       };
 
-    case 'COMPLETE_NODE':
+    case 'COMPLETE_NODE': {
       const completedNodes = [...state.completedNodes, action.nodeId];
       const nextFloor = state.currentFloor + 1;
       const nextAct = Math.ceil(nextFloor / 5);
@@ -420,6 +447,228 @@ const gameReducer = (state, action) => {
         progressionMap: updatedMap,
         selectedNodeId: null
       };
+    }
+
+    // ========== BRANCHING TREE SYSTEM ACTIONS ==========
+    case 'INITIALIZE_BRANCHING_MAP':
+      return {
+        ...state,
+        branchingMap: action.map,
+        currentAct: 1,
+        currentFloor: 1,
+        selectedBiome: null,
+        completedNodeIds: [],
+        availableNodeIds: [],
+        biomeLocked: false
+      };
+
+    case 'SELECT_BIOME':
+      // Player selects a biome at the start of an act
+      if (state.biomeLocked) {
+        console.warn('Biome already selected for this act');
+        return state;
+      }
+
+      const actData = state.branchingMap[state.currentAct - 1];
+      if (!actData) {
+        console.error('Act data not found');
+        return state;
+      }
+
+      const selectedBiomeData = actData.biomeOptions.find(b => b.biomeId === action.biomeId);
+      if (!selectedBiomeData) {
+        console.error('Biome not found:', action.biomeId);
+        return state;
+      }
+
+      // Get the first node ID from the selected biome's tree
+      const firstFloor = selectedBiomeData.floors[0];
+      const firstNodeId = firstFloor?.nodes[0]?.id;
+
+      if (!firstNodeId) {
+        console.error('No starting node found in biome');
+        return state;
+      }
+
+      // Mark the map with the selected biome and make first node available
+      const mapWithSelectedBiome = state.branchingMap.map((act, idx) => {
+        if (idx === state.currentAct - 1) {
+          return {
+            ...act,
+            biomeOptions: act.biomeOptions.map(biome => {
+              if (biome.biomeId === action.biomeId) {
+                return {
+                  ...biome,
+                  floors: biome.floors.map((floor, floorIdx) => {
+                    if (floorIdx === 0) {
+                      return {
+                        ...floor,
+                        nodes: floor.nodes.map(node => ({
+                          ...node,
+                          available: true
+                        }))
+                      };
+                    }
+                    return floor;
+                  })
+                };
+              }
+              return biome;
+            })
+          };
+        }
+        return act;
+      });
+
+      return {
+        ...state,
+        selectedBiome: action.biomeId,
+        biomeLocked: true,
+        branchingMap: mapWithSelectedBiome,
+        availableNodeIds: [firstNodeId]
+      };
+
+    case 'COMPLETE_NODE_IN_TREE':
+      // Complete a node and make its children available
+      // IMPORTANT: Lock out sibling nodes (alternate paths the player didn't choose)
+      const nodeId = action.nodeId;
+      const currentAct = state.branchingMap[state.currentAct - 1];
+
+      if (!currentAct || !state.selectedBiome) {
+        console.error('Invalid state for completing node');
+        return state;
+      }
+
+      const selectedBiome = currentAct.biomeOptions.find(b => b.biomeId === state.selectedBiome);
+      if (!selectedBiome) {
+        console.error('Selected biome not found');
+        return state;
+      }
+
+      // Find the completed node to get its children and floor
+      let completedNode = null;
+      let completedNodeFloor = null;
+      let isLastFloorBeforeBoss = false;
+
+      for (const floor of selectedBiome.floors) {
+        completedNode = floor.nodes.find(n => n.id === nodeId);
+        if (completedNode) {
+          completedNodeFloor = floor;
+          // Check if this is floor 4 (last floor before boss)
+          isLastFloorBeforeBoss = floor.floor === (state.currentAct - 1) * 5 + 4;
+          break;
+        }
+      }
+
+      if (!completedNode) {
+        console.error('Node not found:', nodeId);
+        return state;
+      }
+
+      // Get children IDs
+      const childrenIds = completedNode.childrenIds || [];
+
+      // Find sibling nodes (other available nodes on the same floor that weren't chosen)
+      const siblingNodeIds = completedNodeFloor.nodes
+        .filter(node =>
+          node.id !== nodeId && // Not the chosen node
+          state.availableNodeIds.includes(node.id) // Was available as an option
+        )
+        .map(node => node.id);
+
+      // Update the map: mark node as completed, lock out siblings, make children available
+      const mapAfterNodeCompletion = state.branchingMap.map((act, actIdx) => {
+        if (actIdx === state.currentAct - 1) {
+          return {
+            ...act,
+            biomeOptions: act.biomeOptions.map(biome => {
+              if (biome.biomeId === state.selectedBiome) {
+                return {
+                  ...biome,
+                  floors: biome.floors.map(floor => ({
+                    ...floor,
+                    nodes: floor.nodes.map(node => {
+                      // Mark completed node
+                      if (node.id === nodeId) {
+                        return { ...node, completed: true, available: false };
+                      }
+                      // Lock out sibling nodes (alternate paths not chosen)
+                      if (siblingNodeIds.includes(node.id)) {
+                        return { ...node, available: false };
+                      }
+                      // Make children available
+                      if (childrenIds.includes(node.id)) {
+                        return { ...node, available: true };
+                      }
+                      return node;
+                    })
+                  }))
+                };
+              }
+              return biome;
+            }),
+            // If last floor, make boss available
+            bossFloor: isLastFloorBeforeBoss
+              ? { ...act.bossFloor, node: { ...act.bossFloor.node, available: true } }
+              : act.bossFloor
+          };
+        }
+        return act;
+      });
+
+      // Update available nodes list: remove completed node AND sibling nodes, add children
+      // If this is the last floor before boss, add boss node ID
+      const newAvailableNodeIds = [
+        ...state.availableNodeIds.filter(id =>
+          id !== nodeId && // Remove completed node
+          !siblingNodeIds.includes(id) // Remove locked out siblings
+        ),
+        ...childrenIds, // Add children
+        ...(isLastFloorBeforeBoss ? [currentAct.bossFloor.node.id] : []) // Add boss if last floor
+      ];
+
+      // Calculate current floor: use the floor number from the completed node's floor
+      const calculatedFloor = completedNodeFloor.floor;
+
+      console.log('COMPLETE_NODE_IN_TREE: completedNodeFloor.floor =', completedNodeFloor.floor, 'nodeId =', nodeId);
+
+      return {
+        ...state,
+        branchingMap: mapAfterNodeCompletion,
+        completedNodeIds: [...state.completedNodeIds, nodeId],
+        availableNodeIds: newAvailableNodeIds,
+        currentFloor: calculatedFloor
+      };
+
+    case 'COMPLETE_BOSS_FLOOR': {
+      // Complete boss and move to next act
+      const completedActNum = state.currentAct;
+      const nextAct = completedActNum + 1;
+
+      // Mark boss as completed
+      const mapAfterBossComplete = state.branchingMap.map((act, actIdx) => {
+        if (actIdx === completedActNum - 1) {
+          return {
+            ...act,
+            bossFloor: {
+              ...act.bossFloor,
+              node: { ...act.bossFloor.node, completed: true, available: false }
+            }
+          };
+        }
+        return act;
+      });
+
+      return {
+        ...state,
+        branchingMap: mapAfterBossComplete,
+        currentAct: nextAct,
+        currentFloor: completedActNum * 5,  // Set to the boss floor number (5, 10, 15, etc.)
+        selectedBiome: null,
+        biomeLocked: false,
+        availableNodeIds: []
+      };
+    }
 
     case 'SET_ENEMY_FOR_BATTLE':
       const enemyData = action.enemyData;
@@ -635,6 +884,31 @@ const gameReducer = (state, action) => {
         ...state,
         shouldShowItemReward: false,
         pendingItemRewards: []
+      };
+
+    case 'SET_LAST_BATTLE_REWARDS':
+      return {
+        ...state,
+        lastBattleRewards: action.rewards
+      };
+
+    case 'STORE_BATTLE_START_STATS':
+      return {
+        ...state,
+        battleStartStats: action.stats
+      };
+
+    case 'SHOW_BATTLE_RECAP':
+      return {
+        ...state,
+        showBattleRecap: true
+      };
+
+    case 'CLEAR_BATTLE_RECAP':
+      return {
+        ...state,
+        showBattleRecap: false,
+        battleStartStats: null
       };
 
     case 'ADD_PENDING_ITEM':
@@ -968,6 +1242,12 @@ const gameReducer = (state, action) => {
       return {
         ...state,
         showPreBattleLoadout: !state.showPreBattleLoadout
+      };
+
+    case 'TOGGLE_3D_VIEW':
+      return {
+        ...state,
+        prefer3DView: !state.prefer3DView
       };
 
     case 'OPEN_MENU':

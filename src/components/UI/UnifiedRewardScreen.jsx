@@ -4,27 +4,78 @@ import { useRouter } from '../../hooks/useRouter';
 import { getCardRewardOptions } from '../../data/cards';
 import { ITEM_RARITY_CONFIG } from '../../data/items';
 import { PageTransition } from './PageTransition';
-import { CardCompact } from '../Cards/Card';
-import { Trophy, Package, AlertCircle, Check, X } from 'lucide-react';
+import { Card } from '../Cards/Card';
+import { Trophy, Package, AlertCircle, Check, X, Coins, Star } from 'lucide-react';
+import { NBButton, NBHeading, NBBadge } from './NeoBrutalUI';
+import { ActCompletionPopup } from './ActCompletionPopup';
+
+// Count-up animation component
+const CountUp = ({ end, duration = 2000, prefix = '', suffix = '' }) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let startTime = null;
+    const startValue = 0;
+
+    const animate = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = timestamp - startTime;
+      const percentage = Math.min(progress / duration, 1);
+
+      // Easing function for smooth animation
+      const easeOutQuad = percentage * (2 - percentage);
+      const currentCount = Math.floor(startValue + (end - startValue) * easeOutQuad);
+
+      setCount(currentCount);
+
+      if (percentage < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setCount(end);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [end, duration]);
+
+  return <span>{prefix}{count.toLocaleString()}{suffix}</span>;
+};
 
 export const UnifiedRewardScreen = () => {
   const { gameState, dispatch } = useGame();
   const { navigate } = useRouter();
-  
+
+  // Animation state
+  const [showRewards, setShowRewards] = useState(false);
+
   // Card rewards
   const [cardOptions, setCardOptions] = useState([]);
   const [selectedCard, setSelectedCard] = useState(null);
   const [hasChosenCard, setHasChosenCard] = useState(false);
-  
+
   // Item rewards
   const [itemRewards, setItemRewards] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [claimedItems, setClaimedItems] = useState([]);
   const [showBagFullWarning, setShowBagFullWarning] = useState(false);
   const [isBossItemReward, setIsBossItemReward] = useState(false);
-  
+  const [showActCompletion, setShowActCompletion] = useState(false);
+
   const hasCardRewards = gameState.shouldShowCardReward;
   const hasItemRewards = gameState.shouldShowItemReward && (gameState.pendingItemRewards?.length || 0) > 0;
+  const isBossVictory = gameState.currentEnemyData?.isBoss;
+
+  // Get last battle rewards
+  const lastBattleGold = gameState.lastBattleRewards?.gold || 0;
+  const lastBattleExp = gameState.lastBattleRewards?.exp || 0;
+
+  // Trigger entrance animation
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowRewards(true);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Initialize rewards
   useEffect(() => {
@@ -115,14 +166,28 @@ export const UnifiedRewardScreen = () => {
         return;
       }
     }
-    
+
     if (hasCardRewards) {
       dispatch({ type: 'CLEAR_CARD_REWARD' });
     }
     if (hasItemRewards) {
       dispatch({ type: 'CLEAR_ITEM_REWARD' });
     }
-    
+
+    // If boss was defeated, show act completion popup
+    if (isBossVictory) {
+      setShowActCompletion(true);
+    } else {
+      // Set flag to show battle recap on map
+      dispatch({ type: 'SHOW_BATTLE_RECAP' });
+      navigate('/map');
+    }
+  };
+
+  const handleActContinue = () => {
+    // Complete the boss floor and move to next act
+    dispatch({ type: 'COMPLETE_BOSS_FLOOR' });
+    setShowActCompletion(false);
     navigate('/map');
   };
 
@@ -141,64 +206,101 @@ export const UnifiedRewardScreen = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center p-4">
-        <div className="max-w-6xl mx-auto w-full">
-          <div className="bg-white bg-opacity-95 p-8 rounded-xl shadow-2xl">
+      <div className="min-h-screen nb-bg-purple p-8 flex items-center justify-center">
+          <div className={`max-w-6xl mx-auto w-full relative z-10 transition-all duration-700 ${showRewards ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          {/* Gold & Experience Display */}
+          <div className={`grid grid-cols-2 gap-6 mb-8 transition-all duration-500 delay-200 ${showRewards ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+            {/* Gold Reward */}
+            <div className="nb-bg-yellow nb-border-xl nb-shadow-xl p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/30 blur-3xl rounded-full animate-pulse"></div>
+              <div className="relative z-10 text-center">
+                <Coins className="w-16 h-16 text-black mx-auto mb-3 drop-shadow-lg" />
+                <div className="text-black font-black text-sm uppercase mb-2">Gold Earned</div>
+                <div className="text-6xl font-black text-black drop-shadow-lg">
+                  {showRewards && <CountUp end={lastBattleGold} duration={2000} />}
+                </div>
+              </div>
+            </div>
+
+            {/* Experience Reward */}
+            <div className="nb-bg-purple nb-border-xl nb-shadow-xl p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-400/30 blur-3xl rounded-full animate-pulse"></div>
+              <div className="relative z-10 text-center">
+                <Star className="w-16 h-16 text-black mx-auto mb-3 drop-shadow-lg" />
+                <div className="text-black font-black text-sm uppercase mb-2">Experience</div>
+                <div className="text-6xl font-black text-black drop-shadow-lg">
+                  {showRewards && <CountUp end={lastBattleExp} duration={2000} suffix=" XP" />}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="nb-bg-white nb-border-xl nb-shadow-xl p-8">
             {/* Header */}
             <div className="text-center mb-8">
-              <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4 animate-pulse" />
-              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Victory Rewards!
-              </h1>
-              <p className="text-lg text-gray-600">
-                {hasCardRewards && hasItemRewards 
-                  ? isBossItemReward 
-                    ? 'Choose a card and select an item!'
-                    : 'Choose a card and claim your items!'
-                  : hasCardRewards 
-                  ? 'Choose one card to add to your collection'
-                  : isBossItemReward
-                  ? 'Choose one item to claim!'
-                  : 'Claim your item rewards!'}
-              </p>
+              <div className="nb-bg-yellow nb-border-xl nb-shadow-lg p-6 mb-6 inline-block animate-pulse">
+                <Trophy className="w-16 h-16 text-black mx-auto" />
+              </div>
+              <NBHeading level={1} className="text-black mb-4">
+                VICTORY REWARDS!
+              </NBHeading>
+              <div className="nb-bg-cyan nb-border-lg nb-shadow px-6 py-3 inline-block">
+                <p className="text-black font-bold text-sm uppercase">
+                  {hasCardRewards && hasItemRewards
+                    ? isBossItemReward
+                      ? 'Choose a card and select an item!'
+                      : 'Choose a card and claim your items!'
+                    : hasCardRewards
+                    ? 'Choose one card to add to your collection'
+                    : isBossItemReward
+                    ? 'Choose one item to claim!'
+                    : 'Claim your item rewards!'}
+                </p>
+              </div>
             </div>
 
             {/* Bag Full Warning */}
             {showBagFullWarning && (
-              <div className="mb-6 bg-orange-100 border-2 border-orange-500 rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <AlertCircle className="w-6 h-6 text-orange-600 flex-shrink-0" />
+              <div className="mb-6 nb-bg-orange nb-border-xl nb-shadow-lg p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <AlertCircle className="w-8 h-8 text-black flex-shrink-0" />
                   <div>
-                    <h4 className="font-bold text-orange-800">Bag is Full!</h4>
-                    <p className="text-sm text-orange-700">
+                    <NBHeading level={3} className="text-black mb-2">BAG IS FULL!</NBHeading>
+                    <p className="text-sm text-black font-bold uppercase">
                       Make room in your inventory to claim items.
                     </p>
                   </div>
                 </div>
-                <button
+                <NBButton
                   onClick={handleManageInventory}
-                  className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold transition-all w-full"
+                  variant="white"
+                  size="lg"
+                  className="w-full"
                 >
-                  Manage Inventory
-                </button>
+                  MANAGE INVENTORY
+                </NBButton>
               </div>
             )}
 
             {/* CARD REWARDS Section */}
             {hasCardRewards && !hasChosenCard && (
               <div className="mb-8">
-                <h2 className="text-2xl font-bold mb-4 text-center">🎴 Choose a Card</h2>
-                <div className="flex justify-center gap-6 mb-4 flex-wrap">
+                <div className="text-center mb-6">
+                  <NBHeading level={2} className="text-black">🎴 CHOOSE A CARD</NBHeading>
+                </div>
+                <div className="flex justify-center gap-6 mb-6 flex-wrap">
                   {cardOptions.map((card, index) => {
                     const alreadyOwned = gameState.unlockedCards?.some(c => c.name === card.name);
 
                     return (
                       <div key={index} className="relative">
-                        <CardCompact
+                        <Card
                           card={card}
                           onClick={() => !alreadyOwned && handleSelectCard(card)}
                           disabled={alreadyOwned}
-                          owned={alreadyOwned}
+                          compact={true}
+                          draggable={false}
+                          showCost={false}
                         />
                       </div>
                     );
@@ -207,36 +309,38 @@ export const UnifiedRewardScreen = () => {
 
                 {/* Skip Cards Button */}
                 <div className="text-center">
-                  <button
+                  <NBButton
                     onClick={handleSkipCards}
-                    className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold transition-all transform hover:scale-105 flex items-center gap-2 mx-auto"
+                    variant="white"
+                    size="md"
+                    className="flex items-center gap-2 mx-auto"
                   >
                     <X className="w-5 h-5" />
-                    Skip Card Rewards
-                  </button>
+                    <span>SKIP CARD REWARDS</span>
+                  </NBButton>
                 </div>
               </div>
             )}
 
             {/* Card Chosen Confirmation */}
             {hasCardRewards && hasChosenCard && selectedCard && (
-              <div className="mb-8 bg-green-50 border-2 border-green-500 rounded-lg p-4 text-center">
-                <Check className="w-12 h-12 text-green-600 mx-auto mb-2" />
-                <h3 className="text-xl font-bold text-green-800 mb-1">
-                  Card Added: {selectedCard.name}
-                </h3>
-                <p className="text-sm text-green-700">Check your deck in the menu!</p>
+              <div className="mb-8 nb-bg-green nb-border-xl nb-shadow-lg p-6 text-center">
+                <Check className="w-12 h-12 text-black mx-auto mb-3" />
+                <NBHeading level={3} className="text-black mb-2">
+                  CARD ADDED: {selectedCard.name}
+                </NBHeading>
+                <p className="text-sm text-black font-bold uppercase">Check your deck in the menu!</p>
               </div>
             )}
 
             {/* BOSS ITEM REWARDS */}
             {hasItemRewards && isBossItemReward && (
               <div className="mb-8">
-                <h2 className="text-2xl font-bold mb-4 text-center flex items-center justify-center gap-2">
-                  <Package className="w-8 h-8 text-purple-600" />
-                  Choose One Item
-                </h2>
-                
+                <div className="text-center mb-6 flex items-center justify-center gap-3">
+                  <Package className="w-8 h-8 text-black" />
+                  <NBHeading level={2} className="text-black">CHOOSE ONE ITEM</NBHeading>
+                </div>
+
                 {!selectedItem && (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {itemRewards.map((item) => {
@@ -246,22 +350,22 @@ export const UnifiedRewardScreen = () => {
                           key={item.instanceId}
                           onClick={() => handleSelectBossItem(item)}
                           className={`
-                            ${rarityConfig.bgColor} ${rarityConfig.borderColor}
-                            cursor-pointer transform hover:scale-105
-                            border-4 p-6 rounded-xl transition-all duration-300
-                            ${rarityConfig.glowColor} shadow-xl
+                            ${rarityConfig.bgColor}
+                            nb-border-xl nb-shadow-lg nb-hover
+                            cursor-pointer
+                            p-6 transition-all duration-300 relative
                           `}
                         >
-                          <div className={`absolute top-2 left-2 ${rarityConfig.bgColor} ${rarityConfig.borderColor} border-2 px-3 py-1 rounded-full text-xs font-bold ${rarityConfig.color}`}>
+                          <div className={`absolute top-2 left-2 ${rarityConfig.bgColor} nb-border nb-shadow px-3 py-1 text-xs font-black uppercase text-black`}>
                             {rarityConfig.name}
                           </div>
-                          <div className={`absolute bottom-2 left-2 text-xs px-2 py-1 rounded-full font-bold text-white ${item.type === 'consumable' ? 'bg-blue-600' : 'bg-purple-600'}`}>
+                          <div className={`absolute bottom-2 left-2 text-xs px-2 py-1 font-black uppercase nb-border nb-shadow ${item.type === 'consumable' ? 'nb-bg-blue' : 'nb-bg-purple'} text-black`}>
                             {item.type === 'consumable' ? 'CONSUMABLE' : 'PASSIVE'}
                           </div>
                           <div className="text-center">
                             <div className="text-6xl mb-3">{item.emoji}</div>
-                            <h3 className="text-xl font-bold mb-2 text-gray-800">{item.name}</h3>
-                            <p className="text-sm text-gray-700">{item.description}</p>
+                            <h3 className="text-xl font-black mb-2 text-black uppercase">{item.name}</h3>
+                            <p className="text-sm text-black font-bold">{item.description}</p>
                           </div>
                         </button>
                       );
@@ -270,28 +374,30 @@ export const UnifiedRewardScreen = () => {
                 )}
 
                 {selectedItem && !claimedItems.includes(selectedItem.instanceId) && (
-                  <div className="bg-purple-50 border-2 border-purple-400 rounded-lg p-6">
-                    <h3 className="text-xl font-bold text-purple-800 mb-4 text-center">Selected Item:</h3>
-                    <div className="flex items-center justify-center gap-6 mb-4">
+                  <div className="nb-bg-purple nb-border-xl nb-shadow-lg p-6">
+                    <NBHeading level={3} className="text-black mb-4 text-center">SELECTED ITEM:</NBHeading>
+                    <div className="flex items-center justify-center gap-6 mb-6">
                       <div className="text-6xl">{selectedItem.emoji}</div>
                       <div className="text-left">
-                        <div className="text-2xl font-bold text-gray-800">{selectedItem.name}</div>
-                        <div className="text-sm text-gray-600 mb-2">{selectedItem.description}</div>
+                        <div className="text-2xl font-black text-black uppercase">{selectedItem.name}</div>
+                        <div className="text-sm text-black font-bold mb-2">{selectedItem.description}</div>
                       </div>
                     </div>
-                    <button
+                    <NBButton
                       onClick={handleClaimBossItem}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold text-lg transition-all"
+                      variant="success"
+                      size="lg"
+                      className="w-full"
                     >
-                      Claim Item
-                    </button>
+                      CLAIM ITEM
+                    </NBButton>
                   </div>
                 )}
 
                 {selectedItem && claimedItems.includes(selectedItem.instanceId) && (
-                  <div className="bg-green-50 border-2 border-green-500 rounded-lg p-4 text-center">
-                    <Check className="w-12 h-12 text-green-600 mx-auto mb-2" />
-                    <h3 className="text-xl font-bold text-green-800">Item Claimed: {selectedItem.name}</h3>
+                  <div className="nb-bg-green nb-border-xl nb-shadow-lg p-6 text-center">
+                    <Check className="w-12 h-12 text-black mx-auto mb-3" />
+                    <NBHeading level={3} className="text-black">ITEM CLAIMED: {selectedItem.name}</NBHeading>
                   </div>
                 )}
               </div>
@@ -300,10 +406,10 @@ export const UnifiedRewardScreen = () => {
             {/* REGULAR ITEM REWARDS */}
             {hasItemRewards && !isBossItemReward && (
               <div className="mb-8">
-                <h2 className="text-2xl font-bold mb-4 text-center flex items-center justify-center gap-2">
-                  <Package className="w-8 h-8 text-purple-600" />
-                  Claim Your Items
-                </h2>
+                <div className="text-center mb-6 flex items-center justify-center gap-3">
+                  <Package className="w-8 h-8 text-black" />
+                  <NBHeading level={2} className="text-black">CLAIM YOUR ITEMS</NBHeading>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {itemRewards.map((item) => {
                     const rarityConfig = ITEM_RARITY_CONFIG[item.rarity];
@@ -315,22 +421,22 @@ export const UnifiedRewardScreen = () => {
                         onClick={() => !isClaimed && handleClaimItem(item)}
                         disabled={isClaimed}
                         className={`
-                          ${rarityConfig.bgColor} ${rarityConfig.borderColor}
-                          ${isClaimed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer transform hover:scale-105'}
-                          border-4 p-6 rounded-xl transition-all duration-300 ${rarityConfig.glowColor} shadow-xl relative
+                          ${rarityConfig.bgColor}
+                          ${isClaimed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer nb-hover'}
+                          nb-border-xl nb-shadow-lg p-6 transition-all duration-300 relative
                         `}
                       >
                         {isClaimed && (
-                          <div className="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+                          <div className="absolute top-2 right-2 nb-bg-green nb-border nb-shadow px-3 py-1 text-xs font-black text-black flex items-center gap-1 uppercase">
                             <Check className="w-4 h-4" /> CLAIMED
                           </div>
                         )}
                         <div className="text-center">
                           <div className="text-6xl mb-3">{item.emoji}</div>
-                          <h3 className="text-xl font-bold mb-2 text-gray-800">{item.name}</h3>
-                          <p className="text-sm text-gray-700 mb-2">{item.description}</p>
+                          <h3 className="text-xl font-black mb-2 text-black uppercase">{item.name}</h3>
+                          <p className="text-sm text-black font-bold mb-2">{item.description}</p>
                           {!isClaimed && (
-                            <div className="mt-3 bg-green-500 text-white px-4 py-2 rounded-lg font-bold">
+                            <div className="mt-3 nb-bg-green nb-border nb-shadow px-4 py-2 font-black text-black uppercase">
                               CLICK TO CLAIM
                             </div>
                           )}
@@ -345,17 +451,26 @@ export const UnifiedRewardScreen = () => {
             {/* Continue Button */}
             {canContinue() && (
               <div className="text-center">
-                <button
+                <NBButton
                   onClick={handleContinue}
-                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-bold text-xl transition-all transform hover:scale-105"
+                  variant="success"
+                  size="xl"
                 >
-                  Continue to Map
-                </button>
+                  CONTINUE TO MAP
+                </NBButton>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Act Completion Popup */}
+      {showActCompletion && (
+        <ActCompletionPopup
+          actNumber={gameState.currentAct}
+          onContinue={handleActContinue}
+        />
+      )}
     </PageTransition>
   );
 };

@@ -1,6 +1,23 @@
+/* Neo-Brutalism Design System */
+@import './styles/neobrutalism.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Mickey Mouse Hand Cursor - Neo-Brutal Style */
+* {
+  cursor: url("data:image/svg+xml,%3Csvg width='32' height='32' xmlns='http://www.w3.org/2000/svg'%3E%3C!-- White glove base --%3E%3Cellipse cx='16' cy='20' rx='12' ry='10' fill='white' stroke='black' stroke-width='2'/%3E%3C!-- Thumb --%3E%3Cellipse cx='8' cy='16' rx='5' ry='6' fill='white' stroke='black' stroke-width='2'/%3E%3C!-- Index finger --%3E%3Crect x='14' y='6' width='6' height='12' rx='3' fill='white' stroke='black' stroke-width='2'/%3E%3C!-- Middle finger --%3E%3Crect x='20' y='4' width='6' height='14' rx='3' fill='white' stroke='black' stroke-width='2'/%3E%3C!-- Ring finger --%3E%3Crect x='26' y='6' width='5' height='12' rx='2.5' fill='white' stroke='black' stroke-width='2'/%3E%3C/svg%3E") 16 16, auto;
+}
+
+button, a, [role="button"], .cursor-pointer {
+  cursor: url("data:image/svg+xml,%3Csvg width='32' height='32' xmlns='http://www.w3.org/2000/svg'%3E%3C!-- Pointing hand --%3E%3Cellipse cx='16' cy='22' rx='11' ry='8' fill='white' stroke='black' stroke-width='2'/%3E%3C!-- Index finger pointing --%3E%3Crect x='14' y='2' width='6' height='18' rx='3' fill='white' stroke='black' stroke-width='2'/%3E%3C!-- Thumb --%3E%3Cellipse cx='9' cy='18' rx='4' ry='5' fill='white' stroke='black' stroke-width='2'/%3E%3C!-- Other fingers curled --%3E%3Cellipse cx='20' cy='20' rx='5' ry='6' fill='white' stroke='black' stroke-width='2'/%3E%3Cellipse cx='25' cy='21' rx='4' ry='5' fill='white' stroke='black' stroke-width='2'/%3E%3C!-- Yellow trim (Mickey's glove) --%3E%3Cellipse cx='16' cy='26' rx='10' ry='4' fill='%23fcd34d' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E") 16 16, pointer;
+}
+
+input, textarea, select {
+  cursor: url("data:image/svg+xml,%3Csvg width='24' height='32' xmlns='http://www.w3.org/2000/svg'%3E%3C!-- Text cursor I-beam --%3E%3Crect x='10' y='2' width='4' height='28' fill='black'/%3E%3Crect x='6' y='2' width='12' height='3' fill='black'/%3E%3Crect x='6' y='27' width='12' height='3' fill='black'/%3E%3C/svg%3E") 12 16, text;
+}
+
 
 .reenie-beanie-regular {
     font-family: "Reenie Beanie", cursive;
@@ -46,4 +63,228 @@
 
   .animate-float-up {
     animation: floatUp 1s ease-out forwards;
+  }
+
+  @keyframes drawCard {
+    0% {
+      opacity: 0;
+      transform: translateX(400px) translateY(200px) rotate(45deg) scale(0.5);
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(var(--final-x, 0px)) translateY(var(--final-y, 0px)) rotate(var(--final-rotation, 0deg)) scale(1);
+    }
+  }
+
+  .animate-draw-card {
+    animation: drawCard 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* New UI Animations for Enhanced Liveliness */
+
+  @keyframes bounceIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.3) translateY(20px);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    70% {
+      transform: scale(0.95);
+    }
+    100% {
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .animate-bounceIn {
+    animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 0.9;
+    }
+  }
+
+  .animate-pulse {
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes slideInFromLeft {
+    0% {
+      opacity: 0;
+      transform: translateX(-50px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-slideInLeft {
+    animation: slideInFromLeft 0.4s ease-out;
+  }
+
+  @keyframes slideInFromRight {
+    0% {
+      opacity: 0;
+      transform: translateX(50px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-slideInRight {
+    animation: slideInFromRight 0.4s ease-out;
+  }
+
+  @keyframes slideInFromTop {
+    0% {
+      opacity: 0;
+      transform: translateY(-50px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slideInTop {
+    animation: slideInFromTop 0.4s ease-out;
+  }
+
+  @keyframes slideInFromBottom {
+    0% {
+      opacity: 0;
+      transform: translateY(50px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slideInBottom {
+    animation: slideInFromBottom 0.4s ease-out;
+  }
+
+  @keyframes gentleFloat {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-float {
+    animation: gentleFloat 3s ease-in-out infinite;
+  }
+
+  @keyframes quickBounce {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(0.95);
+    }
+  }
+
+  .animate-quickBounce {
+    animation: quickBounce 0.3s ease-in-out;
+  }
+
+  @keyframes wiggle {
+    0%, 100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(-3deg);
+    }
+    75% {
+      transform: rotate(3deg);
+    }
+  }
+
+  .animate-wiggle {
+    animation: wiggle 0.5s ease-in-out;
+  }
+
+  @keyframes scaleIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-scaleIn {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 5px rgba(139, 92, 246, 0.3),
+                  0 0 10px rgba(139, 92, 246, 0.2),
+                  0 0 15px rgba(139, 92, 246, 0.1);
+    }
+    50% {
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.5),
+                  0 0 20px rgba(139, 92, 246, 0.3),
+                  0 0 30px rgba(139, 92, 246, 0.2);
+    }
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite;
+  }
+
+  /* Stagger animations for lists */
+  .animate-stagger-1 { animation-delay: 0.1s; }
+  .animate-stagger-2 { animation-delay: 0.2s; }
+  .animate-stagger-3 { animation-delay: 0.3s; }
+  .animate-stagger-4 { animation-delay: 0.4s; }
+  .animate-stagger-5 { animation-delay: 0.5s; }
+
+  /* Hover effects */
+  .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .hover-scale {
+    transition: transform 0.2s ease;
+  }
+
+  .hover-scale:hover {
+    transform: scale(1.05);
   }

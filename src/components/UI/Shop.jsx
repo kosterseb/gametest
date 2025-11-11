@@ -1,22 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../../context/GameContext';
 import { useRouter } from '../../hooks/useRouter';
-import { cardTemplates, rollCardRarity } from '../../data/cards';
 import { ITEMS, createItemInstance } from '../../data/items';
-import { CardCompact } from '../Cards/Card';
 import { PageTransition } from './PageTransition';
-import { ShoppingCart, ArrowLeft, Coins, Trash2, Package, Heart, Zap, Users, TrendingUp, CreditCard } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Coins, Trash2, Package, Heart, Zap, Users, TrendingUp } from 'lucide-react';
+import { NBButton, NBHeading, NBBadge, useNBConfirm } from './NeoBrutalUI';
+import { PackOpening } from './PackOpening';
 
 export const Shop = () => {
   const { gameState, dispatch } = useGame();
   const { navigate } = useRouter();
+  const { confirm, ConfirmDialog } = useNBConfirm();
 
-  const [shopOffers, setShopOffers] = useState({ cards: [], items: [] });
-  const [purchasedCardIndices, setPurchasedCardIndices] = useState([]);
+  // Tab state
+  const [activeTab, setActiveTab] = useState('buy'); // 'buy' or 'sell'
+
+  // Pack opening state
+  const [showPackOpening, setShowPackOpening] = useState(false);
+  const [selectedPackType, setSelectedPackType] = useState(null);
+
+  // Shop offers for items
+  const [shopOffers, setShopOffers] = useState({ items: [] });
   const [purchasedItemIndices, setPurchasedItemIndices] = useState([]);
-  const cardPrice = 50;
+
+  // Prices
   const cardRemovalRefund = 20;
   const rerollPrice = 50;
+
+  // Pack prices
+  const packPrices = {
+    bronze: 50,
+    silver: 100,
+    gold: 200,
+    diamond: 400
+  };
 
   // Permanent upgrade prices
   const healthUpgradePrice = 100;
@@ -29,17 +46,6 @@ export const Shop = () => {
   const passiveSlotPrice = 150;
 
   const generateShopOffers = () => {
-    // Generate shop offers
-    const cardOffers = [];
-    for (let i = 0; i < 3; i++) {
-      const rarity = rollCardRarity({ common: 50, rare: 35, epic: 15 });
-      const cardsOfRarity = cardTemplates.filter(c => c.rarity === rarity);
-      if (cardsOfRarity.length > 0) {
-        const randomCard = cardsOfRarity[Math.floor(Math.random() * cardsOfRarity.length)];
-        cardOffers.push(randomCard);
-      }
-    }
-
     const itemOffers = [];
     const shopItems = ITEMS.filter(item => item.price);
     for (let i = 0; i < 3; i++) {
@@ -49,8 +55,7 @@ export const Shop = () => {
       }
     }
 
-    setShopOffers({ cards: cardOffers, items: itemOffers });
-    setPurchasedCardIndices([]);
+    setShopOffers({ items: itemOffers });
     setPurchasedItemIndices([]);
   };
 
@@ -58,68 +63,86 @@ export const Shop = () => {
     generateShopOffers();
   }, []);
 
-  const handleReroll = () => {
+  const handleReroll = async () => {
     if (gameState.gold < rerollPrice) {
-      alert('Not enough gold to reroll!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: 'You need more gold to reroll the shop!',
+        confirmText: 'OK',
+        cancelText: '',
+        confirmColor: 'yellow'
+      });
       return;
     }
 
-    if (window.confirm(`Reroll shop for ${rerollPrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Reroll Shop?',
+      message: `Reroll the shop for ${rerollPrice} gold?`,
+      confirmText: 'Reroll',
+      cancelText: 'Cancel',
+      confirmColor: 'yellow',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: rerollPrice });
       generateShopOffers();
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Rerolled shop for ${rerollPrice} gold!` });
     }
   };
 
-  const handleBuyCard = (card, index) => {
-    if (gameState.gold < cardPrice) {
-      alert('Not enough gold!');
+  const handleBuyPack = async (packType) => {
+    const price = packPrices[packType];
+
+    if (gameState.gold < price) {
+      await confirm({
+        title: 'Not Enough Gold',
+        message: 'You need more gold to buy this pack!',
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
-    if (purchasedCardIndices.includes(index)) {
-      alert('Already purchased this card!');
-      return;
-    }
-
-    if (gameState.unlockedCards?.some(c => c.name === card.name)) {
-      alert('You already own this card!');
-      return;
-    }
-
-    dispatch({ type: 'SPEND_GOLD', amount: cardPrice });
-    dispatch({ type: 'UNLOCK_CARD', card });
-    dispatch({ type: 'ADD_BATTLE_LOG', message: `Purchased ${card.name} for ${cardPrice} gold!` });
-    setPurchasedCardIndices([...purchasedCardIndices, index]);
+    dispatch({ type: 'SPEND_GOLD', amount: price });
+    setSelectedPackType(packType);
+    setShowPackOpening(true);
   };
 
-  const handleRemoveCard = (card) => {
-    if (gameState.unlockedCards.length <= 3) {
-      alert('You must have at least 3 cards!');
-      return;
-    }
-
-    if (window.confirm(`Remove ${card.name} from your collection for ${cardRemovalRefund} gold?`)) {
-      dispatch({ type: 'REMOVE_UNLOCKED_CARD', cardName: card.name });
-      dispatch({ type: 'ADD_GOLD', amount: cardRemovalRefund });
-      dispatch({ type: 'ADD_BATTLE_LOG', message: `Removed ${card.name} for ${cardRemovalRefund} gold!` });
-    }
+  const handlePackOpeningComplete = () => {
+    setShowPackOpening(false);
+    setSelectedPackType(null);
   };
 
-  const handleBuyItem = (item, index) => {
+  const handleBuyItem = async (item, index) => {
     if (gameState.gold < item.price) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: 'You need more gold to buy this item!',
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
     if (purchasedItemIndices.includes(index)) {
-      alert('Already purchased this item!');
+      await confirm({
+        title: 'Already Purchased',
+        message: 'You already purchased this item!',
+        confirmText: 'OK',
+        confirmColor: 'yellow'
+      });
       return;
     }
 
     const bag = gameState.inventory?.bag || [];
     if (!bag.some(slot => slot === null)) {
-      alert('Your bag is full!');
+      await confirm({
+        title: 'Bag Full',
+        message: 'Your bag is full! Sell some items to make room.',
+        confirmText: 'OK',
+        confirmColor: 'orange'
+      });
       return;
     }
 
@@ -129,30 +152,85 @@ export const Shop = () => {
     setPurchasedItemIndices([...purchasedItemIndices, index]);
   };
 
-  const handleSellItem = (item) => {
+  const handleRemoveCard = async (card) => {
+    if (gameState.unlockedCards.length <= 3) {
+      await confirm({
+        title: 'Cannot Remove Card',
+        message: 'You must have at least 3 cards in your collection!',
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
+      return;
+    }
+
+    const confirmed = await confirm({
+      title: 'Remove Card?',
+      message: `Remove ${card.name} from your collection for ${cardRemovalRefund} gold?`,
+      confirmText: 'Remove',
+      cancelText: 'Keep',
+      confirmColor: 'red',
+      cancelColor: 'green'
+    });
+
+    if (confirmed) {
+      dispatch({ type: 'REMOVE_UNLOCKED_CARD', cardName: card.name });
+      dispatch({ type: 'ADD_GOLD', amount: cardRemovalRefund });
+      dispatch({ type: 'ADD_BATTLE_LOG', message: `Removed ${card.name} for ${cardRemovalRefund} gold!` });
+    }
+  };
+
+  const handleSellItem = async (item) => {
     const sellPrice = Math.floor(item.price * 0.5);
-    
-    if (window.confirm(`Sell ${item.name} for ${sellPrice} gold?`)) {
+
+    const confirmed = await confirm({
+      title: 'Sell Item?',
+      message: `Sell ${item.name} for ${sellPrice} gold?`,
+      confirmText: 'Sell',
+      cancelText: 'Keep',
+      confirmColor: 'yellow',
+      cancelColor: 'green'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'REMOVE_ITEM_FROM_BAG', instanceId: item.instanceId });
       dispatch({ type: 'ADD_GOLD', amount: sellPrice });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Sold ${item.name} for ${sellPrice} gold!` });
     }
   };
 
-  // Permanent Upgrades
-  const handleBuyHealthUpgrade = () => {
+  // Permanent Upgrades (keeping existing logic)
+  const handleBuyHealthUpgrade = async () => {
     if (gameState.gold < healthUpgradePrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: `You need ${healthUpgradePrice} gold to upgrade health!`,
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
     const purchased = gameState.healthUpgradesPurchased || 0;
     if (purchased >= 5) {
-      alert('Maximum health upgrades reached!');
+      await confirm({
+        title: 'Max Upgrades Reached',
+        message: 'You have reached the maximum health upgrades!',
+        confirmText: 'OK',
+        confirmColor: 'purple'
+      });
       return;
     }
 
-    if (window.confirm(`Upgrade Max Health by 10 for ${healthUpgradePrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Upgrade Health?',
+      message: `Upgrade Max Health by 10 for ${healthUpgradePrice} gold?`,
+      confirmText: 'Upgrade',
+      cancelText: 'Cancel',
+      confirmColor: 'green',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: healthUpgradePrice });
       dispatch({ type: 'UPGRADE_HEALTH', amount: 10 });
       dispatch({ type: 'TRACK_UPGRADE', upgradeType: 'health' });
@@ -160,19 +238,38 @@ export const Shop = () => {
     }
   };
 
-  const handleBuyEnergyUpgrade = () => {
+  const handleBuyEnergyUpgrade = async () => {
     if (gameState.gold < energyUpgradePrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: `You need ${energyUpgradePrice} gold to upgrade energy!`,
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
     const purchased = gameState.energyUpgradesPurchased || 0;
     if (purchased >= 5) {
-      alert('Maximum energy upgrades reached!');
+      await confirm({
+        title: 'Max Upgrades Reached',
+        message: 'You have reached the maximum energy upgrades!',
+        confirmText: 'OK',
+        confirmColor: 'purple'
+      });
       return;
     }
 
-    if (window.confirm(`Upgrade Max Energy by 1 for ${energyUpgradePrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Upgrade Energy?',
+      message: `Upgrade Max Energy by 1 for ${energyUpgradePrice} gold?`,
+      confirmText: 'Upgrade',
+      cancelText: 'Cancel',
+      confirmColor: 'blue',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: energyUpgradePrice });
       dispatch({ type: 'UPGRADE_MAX_ENERGY', amount: 1 });
       dispatch({ type: 'TRACK_UPGRADE', upgradeType: 'energy' });
@@ -180,19 +277,38 @@ export const Shop = () => {
     }
   };
 
-  const handleBuyHandSizeUpgrade = () => {
+  const handleBuyHandSizeUpgrade = async () => {
     if (gameState.gold < handSizeUpgradePrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: `You need ${handSizeUpgradePrice} gold to upgrade hand size!`,
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
     const purchased = gameState.handSizeUpgradesPurchased || 0;
     if (purchased >= 5) {
-      alert('Maximum hand size upgrades reached!');
+      await confirm({
+        title: 'Max Upgrades Reached',
+        message: 'You have reached the maximum hand size upgrades!',
+        confirmText: 'OK',
+        confirmColor: 'purple'
+      });
       return;
     }
 
-    if (window.confirm(`Upgrade Hand Size by 1 for ${handSizeUpgradePrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Upgrade Hand Size?',
+      message: `Upgrade Hand Size by 1 for ${handSizeUpgradePrice} gold?`,
+      confirmText: 'Upgrade',
+      cancelText: 'Cancel',
+      confirmColor: 'purple',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: handSizeUpgradePrice });
       dispatch({ type: 'UPGRADE_HAND_SIZE', amount: 1 });
       dispatch({ type: 'TRACK_UPGRADE', upgradeType: 'handSize' });
@@ -201,26 +317,54 @@ export const Shop = () => {
   };
 
   // Boss Abilities
-  const handleBuyDrawAbility = () => {
+  const handleBuyDrawAbility = async () => {
     if (gameState.gold < drawAbilityPrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: `You need ${drawAbilityPrice} gold to unlock this ability!`,
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
-    if (window.confirm(`Unlock Draw Card ability for ${drawAbilityPrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Unlock Draw Ability?',
+      message: `Unlock Draw Card ability for ${drawAbilityPrice} gold?`,
+      confirmText: 'Unlock',
+      cancelText: 'Cancel',
+      confirmColor: 'cyan',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: drawAbilityPrice });
       dispatch({ type: 'PURCHASE_DRAW_ABILITY' });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Unlocked Draw Card ability!` });
     }
   };
 
-  const handleBuyDiscardAbility = () => {
+  const handleBuyDiscardAbility = async () => {
     if (gameState.gold < discardAbilityPrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: `You need ${discardAbilityPrice} gold to unlock this ability!`,
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
-    if (window.confirm(`Unlock Discard for Energy ability for ${discardAbilityPrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Unlock Discard Ability?',
+      message: `Unlock Discard for Energy ability for ${discardAbilityPrice} gold?`,
+      confirmText: 'Unlock',
+      cancelText: 'Cancel',
+      confirmColor: 'cyan',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: discardAbilityPrice });
       dispatch({ type: 'PURCHASE_DISCARD_ABILITY' });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Unlocked Discard for Energy ability!` });
@@ -228,57 +372,114 @@ export const Shop = () => {
   };
 
   // Inventory Upgrades
-  const handleBuyBagSlot = () => {
+  const handleBuyBagSlot = async () => {
     if (gameState.gold < bagSlotPrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: `You need ${bagSlotPrice} gold to expand bag size!`,
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
     const currentBagSize = gameState.inventory?.bag?.length || 6;
     if (currentBagSize >= 12) {
-      alert('Maximum bag size reached!');
+      await confirm({
+        title: 'Maximum Size Reached',
+        message: 'Your bag is already at maximum size!',
+        confirmText: 'OK',
+        confirmColor: 'purple'
+      });
       return;
     }
 
-    if (window.confirm(`Add +1 Bag Slot for ${bagSlotPrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Expand Bag?',
+      message: `Add +1 Bag Slot for ${bagSlotPrice} gold?`,
+      confirmText: 'Expand',
+      cancelText: 'Cancel',
+      confirmColor: 'orange',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: bagSlotPrice });
       dispatch({ type: 'EXPAND_BAG_SIZE' });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Bag size increased!` });
     }
   };
 
-  const handleBuyConsumableSlot = () => {
+  const handleBuyConsumableSlot = async () => {
     if (gameState.gold < consumableSlotPrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: `You need ${consumableSlotPrice} gold to expand consumable slots!`,
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
     const currentConsumableSize = gameState.inventory?.toolBelt?.consumables?.length || 4;
     if (currentConsumableSize >= 8) {
-      alert('Maximum consumable slots reached!');
+      await confirm({
+        title: 'Maximum Slots Reached',
+        message: 'You have reached the maximum consumable slots!',
+        confirmText: 'OK',
+        confirmColor: 'purple'
+      });
       return;
     }
 
-    if (window.confirm(`Add +1 Consumable Slot for ${consumableSlotPrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Expand Consumable Slots?',
+      message: `Add +1 Consumable Slot for ${consumableSlotPrice} gold?`,
+      confirmText: 'Expand',
+      cancelText: 'Cancel',
+      confirmColor: 'orange',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: consumableSlotPrice });
       dispatch({ type: 'EXPAND_CONSUMABLE_SIZE' });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Consumable slots increased!` });
     }
   };
 
-  const handleBuyPassiveSlot = () => {
+  const handleBuyPassiveSlot = async () => {
     if (gameState.gold < passiveSlotPrice) {
-      alert('Not enough gold!');
+      await confirm({
+        title: 'Not Enough Gold',
+        message: `You need ${passiveSlotPrice} gold to expand passive slots!`,
+        confirmText: 'OK',
+        confirmColor: 'red'
+      });
       return;
     }
 
     const currentPassiveSize = gameState.inventory?.toolBelt?.passives?.length || 3;
     if (currentPassiveSize >= 6) {
-      alert('Maximum passive slots reached!');
+      await confirm({
+        title: 'Maximum Slots Reached',
+        message: 'You have reached the maximum passive slots!',
+        confirmText: 'OK',
+        confirmColor: 'purple'
+      });
       return;
     }
 
-    if (window.confirm(`Add +1 Passive Slot for ${passiveSlotPrice} gold?`)) {
+    const confirmed = await confirm({
+      title: 'Expand Passive Slots?',
+      message: `Add +1 Passive Slot for ${passiveSlotPrice} gold?`,
+      confirmText: 'Expand',
+      cancelText: 'Cancel',
+      confirmColor: 'purple',
+      cancelColor: 'white'
+    });
+
+    if (confirmed) {
       dispatch({ type: 'SPEND_GOLD', amount: passiveSlotPrice });
       dispatch({ type: 'EXPAND_PASSIVE_SIZE' });
       dispatch({ type: 'ADD_BATTLE_LOG', message: `Passive slots increased!` });
@@ -306,525 +507,785 @@ export const Shop = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-600 p-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <ShoppingCart className="w-12 h-12 text-amber-600" />
-                <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                    Card & Item Shop
-                  </h1>
-                  <p className="text-gray-600">Buy cards, items, upgrades, and unlock abilities</p>
+      <div className="h-screen nb-bg-yellow p-3 overflow-hidden">
+        <div className="max-w-7xl mx-auto h-full flex gap-3">
+          {/* LEFT PANEL - Shop Character (30%) */}
+          <div className="w-[30%] flex flex-col gap-3">
+            {/* Header with Gold */}
+            <div className="nb-bg-white nb-border-xl nb-shadow-xl p-4">
+              <div className="text-center mb-3">
+                <div className="nb-bg-orange nb-border-lg nb-shadow p-2 inline-block mb-2">
+                  <ShoppingCart className="w-12 h-12 text-black" />
                 </div>
+                <NBHeading level={1} className="text-black mb-1 text-2xl">
+                  SHOP
+                </NBHeading>
               </div>
 
-              <div className="flex items-center gap-4">
-                {/* Reroll Button */}
-                <button
-                  onClick={handleReroll}
-                  disabled={gameState.gold < rerollPrice}
-                  className={`
-                    ${gameState.gold >= rerollPrice ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-400 cursor-not-allowed'}
-                    text-white px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105 shadow-lg
-                    flex items-center gap-2
-                  `}
-                >
-                  <TrendingUp className="w-5 h-5" />
-                  Reroll ({rerollPrice} <Coins className="w-4 h-4 inline" />)
-                </button>
+              {/* Gold Display */}
+              <div className="nb-bg-yellow nb-border-xl nb-shadow-xl px-4 py-3 flex items-center justify-center gap-2 mb-3">
+                <Coins className="w-8 h-8 text-black" />
+                <span className="text-4xl font-black text-black">{gameState.gold}</span>
+              </div>
 
-                {/* Gold Display */}
-                <div className="bg-gradient-to-r from-yellow-400 to-amber-500 px-6 py-3 rounded-lg border-4 border-yellow-300 shadow-lg">
-                  <div className="flex items-center gap-2">
-                    <Coins className="w-6 h-6 text-yellow-900" />
-                    <span className="text-3xl font-bold text-yellow-900">{gameState.gold}</span>
-                  </div>
-                </div>
+              {/* Reroll Button */}
+              <NBButton
+                onClick={handleReroll}
+                disabled={gameState.gold < rerollPrice}
+                variant={gameState.gold >= rerollPrice ? 'purple' : 'white'}
+                size="md"
+                className="w-full flex items-center justify-center gap-2"
+              >
+                <TrendingUp className="w-4 h-4" />
+                <span>Reroll ({rerollPrice}g)</span>
+              </NBButton>
+            </div>
+
+            {/* Shop Character Placeholder */}
+            <div className="nb-bg-purple nb-border-xl nb-shadow-xl p-6 flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-7xl mb-3">🧙</div>
+                <NBBadge color="yellow" className="px-4 py-2 text-sm">
+                  SHOPKEEPER
+                </NBBadge>
+                <p className="text-white font-bold text-xs mt-2 uppercase">
+                  Character Coming Soon!
+                </p>
               </div>
             </div>
+
+            {/* Leave Button */}
+            <NBButton
+              onClick={handleLeaveShop}
+              variant="danger"
+              size="lg"
+              className="flex items-center justify-center gap-2"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>LEAVE SHOP</span>
+            </NBButton>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* BUY CARDS Section */}
-            <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl">
-              <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 flex items-center justify-center gap-2">
-                🎴 Buy Cards
-                <span className="text-sm font-normal text-gray-600">({cardPrice} gold each)</span>
-              </h2>
-
-              <div className="flex flex-col gap-6 items-center">
-                {shopOffers.cards.map((card, index) => {
-                  const alreadyOwned = gameState.unlockedCards?.some(c => c.name === card.name);
-                  const alreadyPurchased = purchasedCardIndices.includes(index);
-                  const canAfford = gameState.gold >= cardPrice;
-
-                  return (
-                    <div key={index} className="relative">
-                      <CardCompact
-                        card={card}
-                        onClick={() => !alreadyOwned && !alreadyPurchased && canAfford && handleBuyCard(card, index)}
-                        disabled={!canAfford || alreadyOwned || alreadyPurchased}
-                        owned={alreadyOwned}
-                      />
-
-                      {alreadyPurchased && !alreadyOwned && (
-                        <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
-                          <div className="bg-gray-600 text-white px-4 py-2 rounded-full font-bold text-lg flex items-center gap-2 shadow-lg border-2 border-white">
-                            ✓ Purchased
-                          </div>
-                        </div>
-                      )}
-
-                      {!alreadyOwned && !alreadyPurchased && (
-                        <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
-                          <div className={`
-                            ${canAfford ? 'bg-green-600' : 'bg-red-600'}
-                            text-white px-4 py-2 rounded-full font-bold text-lg
-                            flex items-center gap-2 shadow-lg border-2 border-white
-                          `}>
-                            <Coins className="w-5 h-5" />
-                            {cardPrice}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* BUY ITEMS Section */}
-            <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl">
-              <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 flex items-center justify-center gap-2">
-                <Package className="w-6 h-6 text-purple-600" />
-                Buy Items
-              </h2>
-
-              <div className="space-y-4">
-                {shopOffers.items.map((item, index) => {
-                  const alreadyPurchased = purchasedItemIndices.includes(index);
-                  const canAfford = gameState.gold >= item.price;
-
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => !alreadyPurchased && canAfford && handleBuyItem(item, index)}
-                      disabled={!canAfford || alreadyPurchased}
-                      className={`
-                        w-full bg-gradient-to-r from-purple-500 to-indigo-500
-                        p-4 rounded-xl border-4 border-purple-300
-                        ${(canAfford && !alreadyPurchased) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                        transition-all shadow-lg flex items-center gap-4
-                      `}
-                    >
-                      <div className="text-5xl">{item.emoji}</div>
-                      <div className="flex-1 text-left">
-                        <div className="text-white font-bold text-lg">{item.name}</div>
-                        <div className="text-purple-100 text-sm">{item.description}</div>
-                      </div>
-                      <div className={`
-                        ${alreadyPurchased ? 'bg-gray-600' : (canAfford ? 'bg-green-500' : 'bg-red-500')}
-                        px-4 py-2 rounded-full text-white font-bold
-                        flex items-center gap-1
-                      `}>
-                        {alreadyPurchased ? (
-                          <>✓ Purchased</>
-                        ) : (
-                          <>
-                            <Coins className="w-4 h-4" />
-                            {item.price}
-                          </>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* PERMANENT UPGRADES Section */}
-          <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl mb-6">
-            <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 flex items-center justify-center gap-2">
-              <TrendingUp className="w-8 h-8 text-green-600" />
-              Permanent Upgrades
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Max Health Upgrade */}
+          {/* RIGHT PANEL - Content (70%) */}
+          <div className="w-[70%] flex flex-col h-full">
+            {/* Tab Switcher */}
+            <div className="flex gap-3 mb-3">
               <button
-                onClick={handleBuyHealthUpgrade}
-                disabled={gameState.gold < healthUpgradePrice || healthUpgradesPurchased >= maxUpgrades}
+                onClick={() => setActiveTab('buy')}
                 className={`
-                  bg-gradient-to-br from-red-500 to-pink-500
-                  p-6 rounded-xl border-4 border-red-300
-                  ${(gameState.gold >= healthUpgradePrice && healthUpgradesPurchased < maxUpgrades) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                  transition-all shadow-lg relative
+                  flex-1 py-3 font-black text-xl uppercase
+                  nb-border-xl nb-shadow-xl
+                  ${activeTab === 'buy' ? 'nb-bg-green' : 'nb-bg-white'}
+                  nb-hover transition-all
                 `}
               >
-                <Heart className="w-12 h-12 text-white mx-auto mb-2" />
-                <div className="text-white font-bold text-xl mb-1">+10 Max HP</div>
-                <div className="text-red-100 text-sm mb-3">Permanent health increase</div>
-                <div className="text-white text-xs mb-2">({healthUpgradesPurchased}/{maxUpgrades} purchased)</div>
-                {healthUpgradesPurchased >= maxUpgrades ? (
-                  <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
-                    ✓ Maxed Out
-                  </div>
-                ) : (
-                  <div className={`
-                    ${gameState.gold >= healthUpgradePrice ? 'bg-green-600' : 'bg-gray-600'}
-                    px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
-                  `}>
-                    <Coins className="w-4 h-4" />
-                    {healthUpgradePrice}
-                  </div>
-                )}
+                🛒 BUY ITEMS
               </button>
-
-              {/* Max Energy Upgrade */}
               <button
-                onClick={handleBuyEnergyUpgrade}
-                disabled={gameState.gold < energyUpgradePrice || energyUpgradesPurchased >= maxUpgrades}
+                onClick={() => setActiveTab('sell')}
                 className={`
-                  bg-gradient-to-br from-blue-500 to-cyan-500
-                  p-6 rounded-xl border-4 border-blue-300
-                  ${(gameState.gold >= energyUpgradePrice && energyUpgradesPurchased < maxUpgrades) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                  transition-all shadow-lg relative
+                  flex-1 py-3 font-black text-xl uppercase
+                  nb-border-xl nb-shadow-xl
+                  ${activeTab === 'sell' ? 'nb-bg-orange' : 'nb-bg-white'}
+                  nb-hover transition-all
                 `}
               >
-                <Zap className="w-12 h-12 text-white mx-auto mb-2" />
-                <div className="text-white font-bold text-xl mb-1">+1 Max Energy</div>
-                <div className="text-blue-100 text-sm mb-3">More energy per turn</div>
-                <div className="text-white text-xs mb-2">({energyUpgradesPurchased}/{maxUpgrades} purchased)</div>
-                {energyUpgradesPurchased >= maxUpgrades ? (
-                  <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
-                    ✓ Maxed Out
-                  </div>
-                ) : (
-                  <div className={`
-                    ${gameState.gold >= energyUpgradePrice ? 'bg-green-600' : 'bg-gray-600'}
-                    px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
-                  `}>
-                    <Coins className="w-4 h-4" />
-                    {energyUpgradePrice}
-                  </div>
-                )}
-              </button>
-
-              {/* Hand Size Upgrade */}
-              <button
-                onClick={handleBuyHandSizeUpgrade}
-                disabled={gameState.gold < handSizeUpgradePrice || handSizeUpgradesPurchased >= maxUpgrades}
-                className={`
-                  bg-gradient-to-br from-purple-500 to-indigo-500
-                  p-6 rounded-xl border-4 border-purple-300
-                  ${(gameState.gold >= handSizeUpgradePrice && handSizeUpgradesPurchased < maxUpgrades) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                  transition-all shadow-lg relative
-                `}
-              >
-                <Users className="w-12 h-12 text-white mx-auto mb-2" />
-                <div className="text-white font-bold text-xl mb-1">+1 Hand Size</div>
-                <div className="text-purple-100 text-sm mb-3">Hold more cards</div>
-                <div className="text-white text-xs mb-2">({handSizeUpgradesPurchased}/{maxUpgrades} purchased)</div>
-                {handSizeUpgradesPurchased >= maxUpgrades ? (
-                  <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
-                    ✓ Maxed Out
-                  </div>
-                ) : (
-                  <div className={`
-                    ${gameState.gold >= handSizeUpgradePrice ? 'bg-green-600' : 'bg-gray-600'}
-                    px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
-                  `}>
-                    <Coins className="w-4 h-4" />
-                    {handSizeUpgradePrice}
-                  </div>
-                )}
+                💰 SELL ITEMS
               </button>
             </div>
-          </div>
 
-          {/* BOSS ABILITIES Section */}
-          <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl mb-6">
-            <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 flex items-center justify-center gap-2">
-              👑 Boss Abilities
-              <span className="text-sm font-normal text-gray-600">(Unlocked by defeating bosses)</span>
-            </h2>
+            {/* Tab Content - Fixed Height with Scrolling */}
+            <div className="flex-1 overflow-y-auto space-y-3">
+              {activeTab === 'buy' ? (
+                <>
+                  {/* BUY CARD PACKS Section */}
+                  <div className="nb-bg-white nb-border-xl nb-shadow-xl p-3">
+                    <NBHeading level={2} className="text-center mb-3 text-lg">
+                      🎴 CARD PACKS
+                    </NBHeading>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Draw Card Ability */}
-              <div className={`
-                bg-gradient-to-br from-green-500 to-emerald-500
-                p-6 rounded-xl border-4 border-green-300
-                ${bossesDefeated >= 1 ? '' : 'opacity-50'}
-                transition-all shadow-lg relative
-              `}>
-                {bossesDefeated < 1 && (
-                  <div className="absolute inset-0 bg-black bg-opacity-60 rounded-xl flex items-center justify-center">
-                    <div className="text-white font-bold text-lg">🔒 Defeat Boss 1</div>
-                  </div>
-                )}
-                
-                <div className="text-4xl text-center mb-2">🎴</div>
-                <div className="text-white font-bold text-xl mb-1 text-center">Draw Card Ability</div>
-                <div className="text-green-100 text-sm mb-3 text-center">Draw 1 card for 3 energy</div>
-                
-                {gameState.hasDrawAbility ? (
-                  <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold text-center">
-                    ✓ Unlocked
-                  </div>
-                ) : bossesDefeated >= 1 ? (
-                  <button
-                    onClick={handleBuyDrawAbility}
-                    disabled={gameState.gold < drawAbilityPrice}
-                    className={`
-                      w-full ${gameState.gold >= drawAbilityPrice ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-gray-600'}
-                      px-4 py-2 rounded-full text-white font-bold
-                      flex items-center justify-center gap-1
-                    `}
-                  >
-                    <Coins className="w-4 h-4" />
-                    {drawAbilityPrice}
-                  </button>
-                ) : null}
-              </div>
-
-              {/* Discard Ability */}
-              <div className={`
-                bg-gradient-to-br from-orange-500 to-red-500
-                p-6 rounded-xl border-4 border-orange-300
-                ${bossesDefeated >= 2 ? '' : 'opacity-50'}
-                transition-all shadow-lg relative
-              `}>
-                {bossesDefeated < 2 && (
-                  <div className="absolute inset-0 bg-black bg-opacity-60 rounded-xl flex items-center justify-center">
-                    <div className="text-white font-bold text-lg">🔒 Defeat Boss 2</div>
-                  </div>
-                )}
-                
-                <div className="text-4xl text-center mb-2">🗑️</div>
-                <div className="text-white font-bold text-xl mb-1 text-center">Discard Ability</div>
-                <div className="text-orange-100 text-sm mb-3 text-center">Discard for 1 energy</div>
-                
-                {gameState.hasDiscardAbility ? (
-                  <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold text-center">
-                    ✓ Unlocked
-                  </div>
-                ) : bossesDefeated >= 2 ? (
-                  <button
-                    onClick={handleBuyDiscardAbility}
-                    disabled={gameState.gold < discardAbilityPrice}
-                    className={`
-                      w-full ${gameState.gold >= discardAbilityPrice ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-gray-600'}
-                      px-4 py-2 rounded-full text-white font-bold
-                      flex items-center justify-center gap-1
-                    `}
-                  >
-                    <Coins className="w-4 h-4" />
-                    {discardAbilityPrice}
-                  </button>
-                ) : null}
-              </div>
-            </div>
-          </div>
-
-          {/* INVENTORY UPGRADES Section */}
-          {inventoryUnlocked && (
-            <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl mb-6">
-              <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 flex items-center justify-center gap-2">
-                <Package className="w-8 h-8 text-indigo-600" />
-                Inventory Upgrades
-                <span className="text-sm font-normal text-gray-600">(Unlocked at Floor 15)</span>
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Bag Slot Upgrade */}
-                <button
-                  onClick={handleBuyBagSlot}
-                  disabled={gameState.gold < bagSlotPrice || currentBagSize >= 12}
-                  className={`
-                    bg-gradient-to-br from-amber-500 to-orange-500
-                    p-6 rounded-xl border-4 border-amber-300
-                    ${(gameState.gold >= bagSlotPrice && currentBagSize < 12) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                    transition-all shadow-lg relative
-                  `}
-                >
-                  <Package className="w-12 h-12 text-white mx-auto mb-2" />
-                  <div className="text-white font-bold text-xl mb-1">+1 Bag Slot</div>
-                  <div className="text-amber-100 text-sm mb-3">Carry more items</div>
-                  <div className="text-white text-xs mb-2">Current: {currentBagSize}/12 slots</div>
-                  {currentBagSize >= 12 ? (
-                    <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
-                      ✓ Maxed Out
-                    </div>
-                  ) : (
-                    <div className={`
-                      ${gameState.gold >= bagSlotPrice ? 'bg-green-600' : 'bg-gray-600'}
-                      px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
-                    `}>
-                      <Coins className="w-4 h-4" />
-                      {bagSlotPrice}
-                    </div>
-                  )}
-                </button>
-
-                {/* Consumable Slot Upgrade */}
-                <button
-                  onClick={handleBuyConsumableSlot}
-                  disabled={gameState.gold < consumableSlotPrice || currentConsumableSize >= 8}
-                  className={`
-                    bg-gradient-to-br from-green-500 to-emerald-500
-                    p-6 rounded-xl border-4 border-green-300
-                    ${(gameState.gold >= consumableSlotPrice && currentConsumableSize < 8) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                    transition-all shadow-lg relative
-                  `}
-                >
-                  <Heart className="w-12 h-12 text-white mx-auto mb-2" />
-                  <div className="text-white font-bold text-xl mb-1">+1 Consumable Slot</div>
-                  <div className="text-green-100 text-sm mb-3">Use more consumables</div>
-                  <div className="text-white text-xs mb-2">Current: {currentConsumableSize}/8 slots</div>
-                  {currentConsumableSize >= 8 ? (
-                    <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
-                      ✓ Maxed Out
-                    </div>
-                  ) : (
-                    <div className={`
-                      ${gameState.gold >= consumableSlotPrice ? 'bg-green-600' : 'bg-gray-600'}
-                      px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
-                    `}>
-                      <Coins className="w-4 h-4" />
-                      {consumableSlotPrice}
-                    </div>
-                  )}
-                </button>
-
-                {/* Passive Slot Upgrade */}
-                <button
-                  onClick={handleBuyPassiveSlot}
-                  disabled={gameState.gold < passiveSlotPrice || currentPassiveSize >= 6}
-                  className={`
-                    bg-gradient-to-br from-purple-500 to-indigo-500
-                    p-6 rounded-xl border-4 border-purple-300
-                    ${(gameState.gold >= passiveSlotPrice && currentPassiveSize < 6) ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-                    transition-all shadow-lg relative
-                  `}
-                >
-                  <Zap className="w-12 h-12 text-white mx-auto mb-2" />
-                  <div className="text-white font-bold text-xl mb-1">+1 Passive Slot</div>
-                  <div className="text-purple-100 text-sm mb-3">Equip more passives</div>
-                  <div className="text-white text-xs mb-2">Current: {currentPassiveSize}/6 slots</div>
-                  {currentPassiveSize >= 6 ? (
-                    <div className="bg-gray-700 px-4 py-2 rounded-full text-white font-bold">
-                      ✓ Maxed Out
-                    </div>
-                  ) : (
-                    <div className={`
-                      ${gameState.gold >= passiveSlotPrice ? 'bg-green-600' : 'bg-gray-600'}
-                      px-4 py-2 rounded-full text-white font-bold inline-flex items-center gap-1
-                    `}>
-                      <Coins className="w-4 h-4" />
-                      {passiveSlotPrice}
-                    </div>
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* REMOVE CARDS Section */}
-            <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl">
-              <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 flex items-center justify-center gap-2">
-                <Trash2 className="w-6 h-6 text-red-600" />
-                Remove Cards
-                <span className="text-sm font-normal text-gray-600">({cardRemovalRefund} gold each)</span>
-              </h2>
-
-              {gameState.unlockedCards && gameState.unlockedCards.length > 3 ? (
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {gameState.unlockedCards.map((card, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleRemoveCard(card)}
-                      className="w-full bg-gradient-to-r from-red-500 to-orange-500 p-3 rounded-lg border-2 border-red-300 hover:scale-105 transition-all shadow-lg flex items-center justify-between group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <CreditCard className="w-8 h-8 text-white" />
-                        <div className="text-left">
-                          <div className="text-white font-bold">{card.name}</div>
-                          <div className="text-red-100 text-sm">{card.description}</div>
-                        </div>
-                      </div>
-                      <div className="bg-green-500 px-3 py-1 rounded-full text-white font-bold text-sm flex items-center gap-1">
-                        <Coins className="w-4 h-4" />
-                        +{cardRemovalRefund}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <p>You need at least 3 cards!</p>
-                </div>
-              )}
-            </div>
-
-            {/* SELL ITEMS Section */}
-            <div className="bg-white bg-opacity-95 p-6 rounded-xl shadow-2xl">
-              <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 flex items-center justify-center gap-2">
-                <Coins className="w-6 h-6 text-green-600" />
-                Sell Items
-                <span className="text-sm font-normal text-gray-600">(50% refund)</span>
-              </h2>
-
-              {playerItems.length > 0 ? (
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {playerItems.map((item, index) => {
-                    const sellPrice = Math.floor(item.price * 0.5);
-
-                    return (
+                    <div className="grid grid-cols-4 gap-3">
+                      {/* Bronze Pack */}
                       <button
-                        key={index}
-                        onClick={() => handleSellItem(item)}
-                        className="w-full bg-gradient-to-r from-green-500 to-teal-500 p-3 rounded-lg border-2 border-green-300 hover:scale-105 transition-all shadow-lg flex items-center justify-between"
+                        onClick={() => handleBuyPack('bronze')}
+                        disabled={gameState.gold < packPrices.bronze}
+                        className={`
+                          relative group
+                          ${gameState.gold >= packPrices.bronze ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                          transition-all duration-300
+                          ${gameState.gold >= packPrices.bronze ? 'hover:scale-105 hover:-translate-y-1' : ''}
+                        `}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="text-3xl">{item.emoji}</div>
-                          <div className="text-left">
-                            <div className="text-white font-bold">{item.name}</div>
-                            <div className="text-green-100 text-sm">{item.description}</div>
+                        {/* Pack Container - Vertical Rectangle like real booster */}
+                        <div className="relative nb-border-xl nb-shadow-xl overflow-hidden"
+                          style={{
+                            background: 'linear-gradient(135deg, #f97316 0%, #ea580c 50%, #c2410c 100%)',
+                            aspectRatio: '2/3'
+                          }}
+                        >
+                          {/* Shine Effect */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent opacity-60"></div>
+                          <div className="absolute top-0 right-0 w-16 h-16 bg-white/30 blur-2xl rounded-full"></div>
+
+                          {/* Pack Content */}
+                          <div className="relative h-full flex flex-col items-center justify-between p-3">
+                            {/* Top Section - Icon */}
+                            <div className="text-5xl drop-shadow-lg">🥉</div>
+
+                            {/* Middle Section - Pack Name */}
+                            <div className="text-center">
+                              <div className="text-white font-black text-xl uppercase tracking-wide drop-shadow-lg mb-1"
+                                style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
+                              >
+                                BRONZE
+                              </div>
+                              <div className="text-white text-xs font-bold bg-black/30 px-2 py-1 rounded">
+                                3 CARDS
+                              </div>
+                            </div>
+
+                            {/* Bottom Section - Price */}
+                            <div className="w-full">
+                              <div className={`
+                                ${gameState.gold >= packPrices.bronze ? 'nb-bg-yellow' : 'nb-bg-white'}
+                                nb-border nb-shadow px-2 py-1 text-center
+                              `}>
+                                <div className="flex items-center justify-center gap-1">
+                                  <Coins className="w-4 h-4" />
+                                  <span className="font-black text-sm">{packPrices.bronze}</span>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                        <div className="bg-yellow-500 px-3 py-1 rounded-full text-black font-bold text-sm flex items-center gap-1">
-                          <Coins className="w-4 h-4" />
-                          +{sellPrice}
+
+                          {/* Foil Pattern Overlay */}
+                          <div className="absolute inset-0 opacity-20 bg-gradient-to-br from-transparent via-white/50 to-transparent animate-pulse"></div>
                         </div>
                       </button>
-                    );
-                  })}
-                </div>
+
+                      {/* Silver Pack */}
+                      <button
+                        onClick={() => handleBuyPack('silver')}
+                        disabled={gameState.gold < packPrices.silver}
+                        className={`
+                          relative group
+                          ${gameState.gold >= packPrices.silver ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                          transition-all duration-300
+                          ${gameState.gold >= packPrices.silver ? 'hover:scale-105 hover:-translate-y-1' : ''}
+                        `}
+                      >
+                        {/* Pack Container */}
+                        <div className="relative nb-border-xl nb-shadow-xl overflow-hidden"
+                          style={{
+                            background: 'linear-gradient(135deg, #e0e0e0 0%, #b8b8b8 50%, #909090 100%)',
+                            aspectRatio: '2/3'
+                          }}
+                        >
+                          {/* Metallic Shine Effect */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-black/20"></div>
+                          <div className="absolute top-0 left-0 w-20 h-20 bg-white/40 blur-2xl rounded-full"></div>
+                          <div className="absolute bottom-0 right-0 w-16 h-16 bg-black/20 blur-xl rounded-full"></div>
+
+                          {/* Pack Content */}
+                          <div className="relative h-full flex flex-col items-center justify-between p-3">
+                            <div className="text-5xl drop-shadow-lg">🥈</div>
+
+                            <div className="text-center">
+                              <div className="text-black font-black text-xl uppercase tracking-wide drop-shadow-lg mb-1"
+                                style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.5)' }}
+                              >
+                                SILVER
+                              </div>
+                              <div className="text-black text-xs font-bold bg-white/40 px-2 py-1 rounded">
+                                3 CARDS
+                              </div>
+                            </div>
+
+                            <div className="w-full">
+                              <div className={`
+                                ${gameState.gold >= packPrices.silver ? 'nb-bg-yellow' : 'nb-bg-white'}
+                                nb-border nb-shadow px-2 py-1 text-center
+                              `}>
+                                <div className="flex items-center justify-center gap-1">
+                                  <Coins className="w-4 h-4" />
+                                  <span className="font-black text-sm">{packPrices.silver}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Metallic Pattern */}
+                          <div className="absolute inset-0 opacity-30 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-pulse"></div>
+                        </div>
+                      </button>
+
+                      {/* Gold Pack */}
+                      <button
+                        onClick={() => handleBuyPack('gold')}
+                        disabled={gameState.gold < packPrices.gold}
+                        className={`
+                          relative group
+                          ${gameState.gold >= packPrices.gold ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                          transition-all duration-300
+                          ${gameState.gold >= packPrices.gold ? 'hover:scale-105 hover:-translate-y-1' : ''}
+                        `}
+                      >
+                        {/* Pack Container */}
+                        <div className="relative nb-border-xl nb-shadow-xl overflow-hidden"
+                          style={{
+                            background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+                            aspectRatio: '2/3'
+                          }}
+                        >
+                          {/* Golden Shine */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-yellow-200/60 via-transparent to-amber-900/20"></div>
+                          <div className="absolute top-1/4 right-0 w-24 h-24 bg-yellow-200/40 blur-3xl rounded-full"></div>
+                          <div className="absolute bottom-1/4 left-0 w-20 h-20 bg-amber-600/30 blur-2xl rounded-full"></div>
+
+                          {/* Pack Content */}
+                          <div className="relative h-full flex flex-col items-center justify-between p-3">
+                            <div className="text-5xl drop-shadow-lg">🥇</div>
+
+                            <div className="text-center">
+                              <div className="text-black font-black text-xl uppercase tracking-wide drop-shadow-lg mb-1"
+                                style={{ textShadow: '2px 2px 4px rgba(255,215,0,0.5)' }}
+                              >
+                                GOLD
+                              </div>
+                              <div className="text-black text-xs font-bold bg-yellow-900/30 px-2 py-1 rounded text-white">
+                                3 CARDS
+                              </div>
+                            </div>
+
+                            <div className="w-full">
+                              <div className={`
+                                ${gameState.gold >= packPrices.gold ? 'nb-bg-green' : 'nb-bg-white'}
+                                nb-border nb-shadow px-2 py-1 text-center
+                              `}>
+                                <div className="flex items-center justify-center gap-1">
+                                  <Coins className="w-4 h-4" />
+                                  <span className="font-black text-sm">{packPrices.gold}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Gold Sparkle Effect */}
+                          <div className="absolute inset-0 opacity-40 bg-gradient-to-tl from-yellow-300/50 via-transparent to-yellow-400/50 animate-pulse"
+                            style={{ animationDuration: '2s' }}
+                          ></div>
+                        </div>
+                      </button>
+
+                      {/* Diamond Pack */}
+                      <button
+                        onClick={() => handleBuyPack('diamond')}
+                        disabled={gameState.gold < packPrices.diamond}
+                        className={`
+                          relative group
+                          ${gameState.gold >= packPrices.diamond ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                          transition-all duration-300
+                          ${gameState.gold >= packPrices.diamond ? 'hover:scale-105 hover:-translate-y-1' : ''}
+                        `}
+                      >
+                        {/* Pack Container */}
+                        <div className="relative nb-border-xl nb-shadow-xl overflow-hidden"
+                          style={{
+                            background: 'linear-gradient(135deg, #a855f7 0%, #9333ea 30%, #7e22ce 60%, #6b21a8 100%)',
+                            aspectRatio: '2/3'
+                          }}
+                        >
+                          {/* Rainbow Holographic Effect */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-pink-300/40 via-purple-300/40 to-blue-300/40 opacity-60"></div>
+                          <div className="absolute top-0 right-0 w-20 h-20 bg-pink-400/40 blur-2xl rounded-full"></div>
+                          <div className="absolute bottom-0 left-0 w-16 h-16 bg-blue-400/40 blur-xl rounded-full"></div>
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-white/20 blur-3xl rounded-full"></div>
+
+                          {/* Pack Content */}
+                          <div className="relative h-full flex flex-col items-center justify-between p-3">
+                            <div className="text-5xl drop-shadow-lg animate-pulse">💎</div>
+
+                            <div className="text-center">
+                              <div className="text-white font-black text-xl uppercase tracking-wide drop-shadow-lg mb-1"
+                                style={{ textShadow: '2px 2px 6px rgba(168,85,247,0.8), 0 0 10px rgba(236,72,153,0.5)' }}
+                              >
+                                DIAMOND
+                              </div>
+                              <div className="text-white text-xs font-bold bg-purple-900/40 px-2 py-1 rounded">
+                                3 CARDS
+                              </div>
+                            </div>
+
+                            <div className="w-full">
+                              <div className={`
+                                ${gameState.gold >= packPrices.diamond ? 'nb-bg-green' : 'nb-bg-white'}
+                                nb-border nb-shadow px-2 py-1 text-center
+                              `}>
+                                <div className="flex items-center justify-center gap-1">
+                                  <Coins className="w-4 h-4" />
+                                  <span className="font-black text-sm">{packPrices.diamond}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Holographic Rainbow Shimmer */}
+                          <div className="absolute inset-0 opacity-50"
+                            style={{
+                              background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%)',
+                              animation: 'shimmer 3s infinite'
+                            }}
+                          ></div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* BUY ITEMS Section */}
+                  <div className="nb-bg-white nb-border-xl nb-shadow-xl p-3">
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <Package className="w-6 h-6 text-black" />
+                      <NBHeading level={2} className="text-center text-lg">
+                        BUY ITEMS
+                      </NBHeading>
+                    </div>
+
+                    <div className="space-y-2">
+                      {shopOffers.items.map((item, index) => {
+                        const alreadyPurchased = purchasedItemIndices.includes(index);
+                        const canAfford = gameState.gold >= item.price;
+
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => !alreadyPurchased && canAfford && handleBuyItem(item, index)}
+                            disabled={!canAfford || alreadyPurchased}
+                            className={`
+                              w-full nb-bg-purple nb-border-xl nb-shadow-lg
+                              p-4 flex items-center gap-4
+                              ${(canAfford && !alreadyPurchased) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                              transition-all
+                            `}
+                          >
+                            <div className="text-5xl">{item.emoji}</div>
+                            <div className="flex-1 text-left">
+                              <div className="text-black font-black text-lg uppercase">{item.name}</div>
+                              <div className="text-gray-700 text-sm font-semibold">{item.description}</div>
+                            </div>
+                            <div className={`
+                              ${alreadyPurchased ? 'bg-gray-600' : (canAfford ? 'nb-bg-green' : 'nb-bg-red')}
+                              nb-border nb-shadow px-4 py-2 text-white font-bold uppercase tracking-wide
+                              flex items-center gap-1
+                            `}>
+                              {alreadyPurchased ? (
+                                <>✓ PURCHASED</>
+                              ) : (
+                                <>
+                                  <Coins className="w-4 h-4" />
+                                  {item.price}
+                                </>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* PERMANENT UPGRADES Section */}
+                  <div className="nb-bg-white nb-border-xl nb-shadow-xl p-3">
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <TrendingUp className="w-6 h-6 text-black" />
+                      <NBHeading level={2} className="text-center text-lg">
+                        UPGRADES
+                      </NBHeading>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      {/* Max Health Upgrade */}
+                      <button
+                        onClick={handleBuyHealthUpgrade}
+                        disabled={gameState.gold < healthUpgradePrice || healthUpgradesPurchased >= maxUpgrades}
+                        className={`
+                          nb-bg-red nb-border-xl nb-shadow-lg
+                          p-2 relative
+                          ${(gameState.gold >= healthUpgradePrice && healthUpgradesPurchased < maxUpgrades) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                          transition-all
+                        `}
+                      >
+                        <Heart className="w-8 h-8 text-black mx-auto mb-1" />
+                        <div className="text-black font-black text-sm mb-1 uppercase">+10 HP</div>
+                        <div className="text-gray-800 text-xs mb-2 font-bold">({healthUpgradesPurchased}/{maxUpgrades})</div>
+                        {healthUpgradesPurchased >= maxUpgrades ? (
+                          <NBBadge color="white" className="px-2 py-0.5 text-xs">
+                            MAX
+                          </NBBadge>
+                        ) : (
+                          <NBBadge
+                            color={gameState.gold >= healthUpgradePrice ? 'green' : 'white'}
+                            className="px-2 py-0.5 text-xs inline-flex items-center gap-1"
+                          >
+                            <Coins className="w-3 h-3" />
+                            {healthUpgradePrice}
+                          </NBBadge>
+                        )}
+                      </button>
+
+                      {/* Max Energy Upgrade */}
+                      <button
+                        onClick={handleBuyEnergyUpgrade}
+                        disabled={gameState.gold < energyUpgradePrice || energyUpgradesPurchased >= maxUpgrades}
+                        className={`
+                          nb-bg-cyan nb-border-xl nb-shadow-lg
+                          p-2 relative
+                          ${(gameState.gold >= energyUpgradePrice && energyUpgradesPurchased < maxUpgrades) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                          transition-all
+                        `}
+                      >
+                        <Zap className="w-8 h-8 text-black mx-auto mb-1" />
+                        <div className="text-black font-black text-sm mb-1 uppercase">+1 ⚡</div>
+                        <div className="text-gray-800 text-xs mb-2 font-bold">({energyUpgradesPurchased}/{maxUpgrades})</div>
+                        {energyUpgradesPurchased >= maxUpgrades ? (
+                          <NBBadge color="white" className="px-2 py-0.5 text-xs">
+                            MAX
+                          </NBBadge>
+                        ) : (
+                          <NBBadge
+                            color={gameState.gold >= energyUpgradePrice ? 'green' : 'white'}
+                            className="px-2 py-0.5 text-xs inline-flex items-center gap-1"
+                          >
+                            <Coins className="w-3 h-3" />
+                            {energyUpgradePrice}
+                          </NBBadge>
+                        )}
+                      </button>
+
+                      {/* Hand Size Upgrade */}
+                      <button
+                        onClick={handleBuyHandSizeUpgrade}
+                        disabled={gameState.gold < handSizeUpgradePrice || handSizeUpgradesPurchased >= maxUpgrades}
+                        className={`
+                          nb-bg-purple nb-border-xl nb-shadow-lg
+                          p-2 relative
+                          ${(gameState.gold >= handSizeUpgradePrice && handSizeUpgradesPurchased < maxUpgrades) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                          transition-all
+                        `}
+                      >
+                        <Users className="w-8 h-8 text-black mx-auto mb-1" />
+                        <div className="text-black font-black text-sm mb-1 uppercase">+1 Hand</div>
+                        <div className="text-gray-800 text-xs mb-2 font-bold">({handSizeUpgradesPurchased}/{maxUpgrades})</div>
+                        {handSizeUpgradesPurchased >= maxUpgrades ? (
+                          <NBBadge color="white" className="px-2 py-0.5 text-xs">
+                            MAX
+                          </NBBadge>
+                        ) : (
+                          <NBBadge
+                            color={gameState.gold >= handSizeUpgradePrice ? 'green' : 'white'}
+                            className="px-2 py-0.5 text-xs inline-flex items-center gap-1"
+                          >
+                            <Coins className="w-3 h-3" />
+                            {handSizeUpgradePrice}
+                          </NBBadge>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* BOSS ABILITIES Section */}
+                  <div className="nb-bg-white nb-border-xl nb-shadow-xl p-3">
+                    <div className="flex flex-col items-center gap-2 mb-3">
+                      <NBHeading level={2} className="text-center text-lg">
+                        BOSS ABILITIES
+                      </NBHeading>
+                      <NBBadge color="orange" className="text-xs px-3 py-1">
+                        DEFEAT BOSSES TO UNLOCK
+                      </NBBadge>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* Draw Card Ability */}
+                      <div className={`
+                        nb-bg-green nb-border-xl nb-shadow-lg
+                        p-6 relative
+                        ${bossesDefeated >= 1 ? '' : 'opacity-50'}
+                        transition-all
+                      `}>
+                        {bossesDefeated < 1 && (
+                          <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center nb-border-xl">
+                            <NBBadge color="white" className="text-sm px-4 py-2">
+                              LOCKED
+                            </NBBadge>
+                          </div>
+                        )}
+
+                        <div className="text-black font-black text-lg mb-2 text-center uppercase">Draw Card</div>
+                        <div className="text-gray-800 text-xs mb-4 text-center font-bold">Draw 1 for 3 energy</div>
+
+                        {gameState.hasDrawAbility ? (
+                          <NBBadge color="white" className="w-full text-center px-3 py-2 text-sm">
+                            ✓ UNLOCKED
+                          </NBBadge>
+                        ) : bossesDefeated >= 1 ? (
+                          <NBButton
+                            onClick={handleBuyDrawAbility}
+                            disabled={gameState.gold < drawAbilityPrice}
+                            variant={gameState.gold >= drawAbilityPrice ? 'yellow' : 'white'}
+                            size="sm"
+                            className="w-full flex items-center justify-center gap-2"
+                          >
+                            <Coins className="w-4 h-4" />
+                            {drawAbilityPrice}
+                          </NBButton>
+                        ) : null}
+                      </div>
+
+                      {/* Discard Ability */}
+                      <div className={`
+                        nb-bg-orange nb-border-xl nb-shadow-lg
+                        p-6 relative
+                        ${bossesDefeated >= 2 ? '' : 'opacity-50'}
+                        transition-all
+                      `}>
+                        {bossesDefeated < 2 && (
+                          <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center nb-border-xl">
+                            <NBBadge color="white" className="text-sm px-4 py-2">
+                              LOCKED
+                            </NBBadge>
+                          </div>
+                        )}
+
+                        <div className="text-black font-black text-lg mb-2 text-center uppercase">Discard</div>
+                        <div className="text-gray-800 text-xs mb-4 text-center font-bold">Discard for 1 energy</div>
+
+                        {gameState.hasDiscardAbility ? (
+                          <NBBadge color="white" className="w-full text-center px-3 py-2 text-sm">
+                            ✓ UNLOCKED
+                          </NBBadge>
+                        ) : bossesDefeated >= 2 ? (
+                          <NBButton
+                            onClick={handleBuyDiscardAbility}
+                            disabled={gameState.gold < discardAbilityPrice}
+                            variant={gameState.gold >= discardAbilityPrice ? 'yellow' : 'white'}
+                            size="sm"
+                            className="w-full flex items-center justify-center gap-2"
+                          >
+                            <Coins className="w-4 h-4" />
+                            {discardAbilityPrice}
+                          </NBButton>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* INVENTORY UPGRADES Section */}
+                  {inventoryUnlocked && (
+                    <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
+                      <div className="flex flex-col items-center gap-3 mb-6">
+                        <div className="flex items-center gap-3">
+                          <Package className="w-10 h-10 text-black" />
+                          <NBHeading level={2} className="text-center">
+                            INVENTORY UPGRADES
+                          </NBHeading>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-4">
+                        {/* Bag Slot Upgrade */}
+                        <button
+                          onClick={handleBuyBagSlot}
+                          disabled={gameState.gold < bagSlotPrice || currentBagSize >= 12}
+                          className={`
+                            nb-bg-orange nb-border-xl nb-shadow-lg
+                            p-6 relative
+                            ${(gameState.gold >= bagSlotPrice && currentBagSize < 12) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                            transition-all
+                          `}
+                        >
+                          <Package className="w-12 h-12 text-black mx-auto mb-3" />
+                          <div className="text-black font-black text-lg mb-2 uppercase">+1 Bag</div>
+                          <div className="text-gray-800 text-xs mb-3 font-bold">{currentBagSize}/12</div>
+                          {currentBagSize >= 12 ? (
+                            <NBBadge color="white" className="px-3 py-1 text-sm">
+                              MAXED
+                            </NBBadge>
+                          ) : (
+                            <NBBadge
+                              color={gameState.gold >= bagSlotPrice ? 'green' : 'white'}
+                              className="px-3 py-1 text-sm inline-flex items-center gap-1"
+                            >
+                              <Coins className="w-3 h-3" />
+                              {bagSlotPrice}
+                            </NBBadge>
+                          )}
+                        </button>
+
+                        {/* Consumable Slot Upgrade */}
+                        <button
+                          onClick={handleBuyConsumableSlot}
+                          disabled={gameState.gold < consumableSlotPrice || currentConsumableSize >= 8}
+                          className={`
+                            nb-bg-green nb-border-xl nb-shadow-lg
+                            p-6 relative
+                            ${(gameState.gold >= consumableSlotPrice && currentConsumableSize < 8) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                            transition-all
+                          `}
+                        >
+                          <Heart className="w-12 h-12 text-black mx-auto mb-3" />
+                          <div className="text-black font-black text-lg mb-2 uppercase">+1 Item</div>
+                          <div className="text-gray-800 text-xs mb-3 font-bold">{currentConsumableSize}/8</div>
+                          {currentConsumableSize >= 8 ? (
+                            <NBBadge color="white" className="px-3 py-1 text-sm">
+                              MAXED
+                            </NBBadge>
+                          ) : (
+                            <NBBadge
+                              color={gameState.gold >= consumableSlotPrice ? 'green' : 'white'}
+                              className="px-3 py-1 text-sm inline-flex items-center gap-1"
+                            >
+                              <Coins className="w-3 h-3" />
+                              {consumableSlotPrice}
+                            </NBBadge>
+                          )}
+                        </button>
+
+                        {/* Passive Slot Upgrade */}
+                        <button
+                          onClick={handleBuyPassiveSlot}
+                          disabled={gameState.gold < passiveSlotPrice || currentPassiveSize >= 6}
+                          className={`
+                            nb-bg-blue nb-border-xl nb-shadow-lg
+                            p-6 relative
+                            ${(gameState.gold >= passiveSlotPrice && currentPassiveSize < 6) ? 'nb-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+                            transition-all
+                          `}
+                        >
+                          <Zap className="w-12 h-12 text-black mx-auto mb-3" />
+                          <div className="text-black font-black text-lg mb-2 uppercase">+1 Passive</div>
+                          <div className="text-gray-800 text-xs mb-3 font-bold">{currentPassiveSize}/6</div>
+                          {currentPassiveSize >= 6 ? (
+                            <NBBadge color="white" className="px-3 py-1 text-sm">
+                              MAXED
+                            </NBBadge>
+                          ) : (
+                            <NBBadge
+                              color={gameState.gold >= passiveSlotPrice ? 'green' : 'white'}
+                              className="px-3 py-1 text-sm inline-flex items-center gap-1"
+                            >
+                              <Coins className="w-3 h-3" />
+                              {passiveSlotPrice}
+                            </NBBadge>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <p>Your inventory is empty!</p>
-                </div>
+                <>
+                  {/* SELL TAB - Remove Cards and Sell Items */}
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* REMOVE CARDS Section */}
+                    <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
+                      <div className="flex items-center justify-center gap-3 mb-4">
+                        <Trash2 className="w-8 h-8 text-black" />
+                        <NBHeading level={2} className="text-center">
+                          REMOVE CARDS
+                        </NBHeading>
+                      </div>
+                      <div className="flex items-center justify-center mb-4">
+                        <NBBadge color="red" className="text-sm px-4 py-2">
+                          +{cardRemovalRefund}g EACH
+                        </NBBadge>
+                      </div>
+
+                      {gameState.unlockedCards && gameState.unlockedCards.length > 3 ? (
+                        <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                          {gameState.unlockedCards.map((card, index) => (
+                            <button
+                              key={index}
+                              onClick={() => handleRemoveCard(card)}
+                              className="w-full nb-bg-red nb-border-lg nb-shadow p-3 nb-hover transition-all flex items-center justify-between"
+                            >
+                              <div className="text-left">
+                                <div className="text-black font-black text-sm uppercase">{card.name}</div>
+                              </div>
+                              <NBBadge color="green" className="px-3 py-1 text-sm flex items-center gap-1">
+                                <Coins className="w-4 h-4" />
+                                +{cardRemovalRefund}
+                              </NBBadge>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 nb-bg-white nb-border-lg p-4">
+                          <p className="text-gray-700 font-bold">You need at least 3 cards!</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* SELL ITEMS Section */}
+                    <div className="nb-bg-white nb-border-xl nb-shadow-xl p-6">
+                      <div className="flex items-center justify-center gap-3 mb-4">
+                        <Coins className="w-8 h-8 text-black" />
+                        <NBHeading level={2} className="text-center">
+                          SELL ITEMS
+                        </NBHeading>
+                      </div>
+                      <div className="flex items-center justify-center mb-4">
+                        <NBBadge color="yellow" className="text-sm px-4 py-2">
+                          50% REFUND
+                        </NBBadge>
+                      </div>
+
+                      {playerItems.length > 0 ? (
+                        <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                          {playerItems.map((item, index) => {
+                            const sellPrice = Math.floor(item.price * 0.5);
+
+                            return (
+                              <button
+                                key={index}
+                                onClick={() => handleSellItem(item)}
+                                className="w-full nb-bg-green nb-border-lg nb-shadow p-3 nb-hover transition-all flex items-center justify-between"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="text-3xl">{item.emoji}</div>
+                                  <div className="text-left">
+                                    <div className="text-black font-black text-sm uppercase">{item.name}</div>
+                                  </div>
+                                </div>
+                                <NBBadge color="yellow" className="px-3 py-1 text-sm flex items-center gap-1">
+                                  <Coins className="w-4 h-4" />
+                                  +{sellPrice}
+                                </NBBadge>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 nb-bg-white nb-border-lg p-4">
+                          <p className="text-gray-700 font-bold">Your inventory is empty!</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
               )}
             </div>
-          </div>
-
-          {/* Leave Button */}
-          <div className="text-center">
-            <button
-              onClick={handleLeaveShop}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-lg font-bold text-xl transition-all transform hover:scale-105 shadow-lg flex items-center gap-2 mx-auto"
-            >
-              <ArrowLeft className="w-6 h-6" />
-              Leave Shop
-            </button>
           </div>
         </div>
       </div>
+
+      {/* Pack Opening Overlay */}
+      {showPackOpening && (
+        <PackOpening
+          packType={selectedPackType}
+          onComplete={handlePackOpeningComplete}
+        />
+      )}
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog />
     </PageTransition>
   );
 };

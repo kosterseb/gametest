@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useGame } from '../../context/GameContext';
-import { CardCompact } from '../Cards/Card';
+import { Card } from '../Cards/Card';
 import { BookOpen, Check, X } from 'lucide-react';
+import { NBButton, NBHeading, NBBadge } from '../UI/NeoBrutalUI';
 
 export const DeckView = () => {
   const { gameState, dispatch } = useGame();
@@ -36,52 +37,49 @@ export const DeckView = () => {
     : unlockedCards.filter(card => card.type === filterType);
 
   const cardTypes = [
-    { id: 'all', label: 'All', color: 'bg-gray-600' },
-    { id: 'damage', label: 'Damage', color: 'bg-red-600' },
-    { id: 'heal', label: 'Heal', color: 'bg-green-600' },
-    { id: 'utility', label: 'Utility', color: 'bg-blue-600' },
-    { id: 'cleanse', label: 'Cleanse', color: 'bg-purple-600' },
+    { id: 'all', label: 'All', color: 'white' },
+    { id: 'damage', label: 'Damage', color: 'red' },
+    { id: 'heal', label: 'Heal', color: 'green' },
+    { id: 'utility', label: 'Utility', color: 'blue' },
+    { id: 'cleanse', label: 'Cleanse', color: 'purple' },
   ];
 
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-700 to-indigo-700 p-6 rounded-t-xl -mt-6 -mx-6 mb-6">
+      <div className="nb-bg-purple nb-border-xl nb-shadow-lg p-6 -mt-6 -mx-6 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <BookOpen className="w-8 h-8 text-white" />
+            <BookOpen className="w-8 h-8 text-black" />
             <div>
-              <h2 className="text-3xl font-bold text-white">Your Deck</h2>
-              <p className="text-purple-200">
-                {selectedCardNames.length} / {gameState.maxSelectedCards} cards selected
-              </p>
+              <NBHeading level={2} className="text-black mb-2">YOUR DECK</NBHeading>
+              <NBBadge color="yellow" className="px-4 py-2">
+                {selectedCardNames.length} / {gameState.maxSelectedCards} CARDS SELECTED
+              </NBBadge>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filter Buttons */}
-      <div className="flex gap-2 mb-6 flex-wrap">
+      <div className="flex gap-3 mb-6 flex-wrap">
         {cardTypes.map(type => (
-          <button
+          <NBButton
             key={type.id}
             onClick={() => setFilterType(type.id)}
-            className={`
-              ${filterType === type.id ? type.color : 'bg-gray-700'}
-              text-white px-4 py-2 rounded-lg font-semibold transition-all
-              hover:scale-105
-            `}
+            variant={filterType === type.id ? type.color : 'white'}
+            size="md"
           >
             {type.label}
-          </button>
+          </NBButton>
         ))}
       </div>
 
       {/* Cards Grid */}
       {filteredCards.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          <p className="text-lg mb-2">No cards unlocked yet</p>
-          <p className="text-sm">Defeat enemies to earn card rewards!</p>
+        <div className="text-center py-12 nb-bg-white nb-border-xl nb-shadow-lg p-8">
+          <p className="text-lg mb-2 font-black text-black uppercase">No cards unlocked yet</p>
+          <p className="text-sm text-black font-bold">Defeat enemies to earn card rewards!</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -91,26 +89,28 @@ export const DeckView = () => {
             return (
               <div key={index} className="relative">
                 {/* Card Component */}
-                <CardCompact
+                <Card
                   card={card}
                   onClick={() => handleToggleCard(card)}
                   disabled={false}
-                  owned={false}
+                  compact={true}
+                  draggable={false}
+                  showCost={false}
                 />
-                
+
                 {/* Selection Indicator Overlay */}
-                <div 
+                <div
                   className="absolute -top-2 -right-2 pointer-events-none z-20"
                 >
                   <div className={`
-                    w-10 h-10 rounded-full border-4 border-white shadow-lg
+                    w-10 h-10 nb-border-xl nb-shadow
                     flex items-center justify-center transition-all
-                    ${isSelected ? 'bg-green-500' : 'bg-gray-400'}
+                    ${isSelected ? 'nb-bg-green' : 'nb-bg-white'}
                   `}>
                     {isSelected ? (
-                      <Check className="w-6 h-6 text-white" />
+                      <Check className="w-6 h-6 text-black" />
                     ) : (
-                      <X className="w-6 h-6 text-white" />
+                      <X className="w-6 h-6 text-black" />
                     )}
                   </div>
                 </div>
@@ -121,9 +121,11 @@ export const DeckView = () => {
       )}
 
       {/* Helper Text */}
-      <div className="mt-6 text-center text-sm text-gray-600">
-        <p>Click cards to add/remove them from your battle deck</p>
-        <p className="mt-1">Minimum: 3 cards • Maximum: {gameState.maxSelectedCards} cards</p>
+      <div className="mt-6 nb-bg-cyan nb-border-xl nb-shadow-lg p-6">
+        <div className="nb-bg-white nb-border-lg nb-shadow p-4 text-center">
+          <p className="text-black font-bold uppercase mb-2">Click cards to add/remove them from your battle deck</p>
+          <p className="text-black font-bold">Minimum: 3 cards • Maximum: {gameState.maxSelectedCards} cards</p>
+        </div>
       </div>
     </div>
   );

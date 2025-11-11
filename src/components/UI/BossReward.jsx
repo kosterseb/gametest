@@ -4,6 +4,7 @@ import { useGame } from '../../context/GameContext';
 import { useRouter } from '../../hooks/useRouter';
 import { PageTransition } from './PageTransition';
 import { getRandomItemReward, createItemInstance } from '../../data/items';
+import { NBButton, NBHeading, NBBadge } from './NeoBrutalUI';
 
 const BOSS_REWARDS = [
   {
@@ -11,8 +12,7 @@ const BOSS_REWARDS = [
     name: 'Greater Vitality',
     description: '+30 Max Health',
     icon: Heart,
-    color: 'bg-red-600',
-    hoverColor: 'hover:bg-red-700',
+    color: 'nb-bg-red',
     effect: (dispatch) => {
       dispatch({ type: 'UPGRADE_HEALTH', amount: 30 });
     }
@@ -22,8 +22,7 @@ const BOSS_REWARDS = [
     name: 'Energy Mastery',
     description: '+3 Max Energy',
     icon: Zap,
-    color: 'bg-blue-600',
-    hoverColor: 'hover:bg-blue-700',
+    color: 'nb-bg-blue',
     effect: (dispatch) => {
       dispatch({ type: 'UPGRADE_MAX_ENERGY', amount: 3 });
     }
@@ -33,8 +32,7 @@ const BOSS_REWARDS = [
     name: 'Strategic Mind',
     description: '+1 Hand Size',
     icon: Plus,
-    color: 'bg-purple-600',
-    hoverColor: 'hover:bg-purple-700',
+    color: 'nb-bg-purple',
     effect: (dispatch) => {
       dispatch({ type: 'UPGRADE_HAND_SIZE', amount: 1 });
     }
@@ -44,8 +42,7 @@ const BOSS_REWARDS = [
     name: 'Treasure Hoard',
     description: '+50 Gold',
     icon: Coins,
-    color: 'bg-yellow-600',
-    hoverColor: 'hover:bg-yellow-700',
+    color: 'nb-bg-yellow',
     effect: (dispatch) => {
       dispatch({ type: 'ADD_GOLD', amount: 50 });
     }
@@ -55,8 +52,7 @@ const BOSS_REWARDS = [
     name: 'Full Restoration',
     description: 'Full Heal',
     icon: Heart,
-    color: 'bg-green-600',
-    hoverColor: 'hover:bg-green-700',
+    color: 'nb-bg-green',
     effect: (dispatch, gameState) => {
       dispatch({ type: 'HEAL_PLAYER', amount: gameState.maxPlayerHealth });
     }
@@ -182,36 +178,42 @@ export const BossReward = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-red-900 to-black flex items-center justify-center p-4">
+      <div className="min-h-screen nb-bg-purple flex items-center justify-center p-8">
         <div className="max-w-6xl mx-auto">
-          <div className="bg-white bg-opacity-95 p-8 rounded-xl">
+          <div className="nb-bg-white nb-border-xl nb-shadow-xl p-8">
             <div className="text-center mb-8">
-              <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-4 animate-pulse" />
-              <h1 className="text-5xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-600">
+              <div className="nb-bg-yellow nb-border-xl nb-shadow-lg p-8 mb-6 inline-block animate-pulse">
+                <Trophy className="w-20 h-20 text-black mx-auto" />
+              </div>
+              <NBHeading level={1} className="text-black mb-6">
                 BOSS DEFEATED!
-              </h1>
-              <p className="text-xl text-gray-600 mt-4">
-                Choose your stat upgrade
-              </p>
+              </NBHeading>
+              <div className="nb-bg-cyan nb-border-lg nb-shadow px-6 py-3 inline-block">
+                <p className="text-black font-bold text-sm uppercase">
+                  Choose your stat upgrade
+                </p>
+              </div>
             </div>
 
             {showAbilityUnlock && unlockedAbility && (
-              <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-8 rounded-xl text-center max-w-md transform scale-100 animate-pulse border-4 border-yellow-400">
-                  <div className="flex justify-center mb-4">
-                    <unlockedAbility.icon className="w-20 h-20 text-yellow-300" />
+              <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-8">
+                <div className="nb-bg-purple nb-border-xl nb-shadow-xl p-8 text-center max-w-md animate-pulse">
+                  <div className="flex justify-center mb-6">
+                    <unlockedAbility.icon className="w-20 h-20 text-black" />
                   </div>
-                  <h2 className="text-4xl font-bold text-white mb-4">
+                  <NBHeading level={2} className="text-black mb-6">
                     🎉 NEW ABILITY UNLOCKED! 🎉
-                  </h2>
-                  <h3 className="text-2xl font-bold text-yellow-300 mb-3">
+                  </NBHeading>
+                  <NBHeading level={3} className="text-black mb-4">
                     {unlockedAbility.name}
-                  </h3>
-                  <p className="text-lg text-white opacity-90">
+                  </NBHeading>
+                  <p className="text-lg text-black font-bold mb-6">
                     {unlockedAbility.description}
                   </p>
-                  <div className="mt-6 text-sm text-yellow-200">
-                    Visit the shop to purchase this powerful ability!
+                  <div className="nb-bg-yellow nb-border-lg nb-shadow px-4 py-2 inline-block">
+                    <p className="text-sm text-black font-bold uppercase">
+                      Visit the shop to purchase this powerful ability!
+                    </p>
                   </div>
                 </div>
               </div>
@@ -220,31 +222,34 @@ export const BossReward = () => {
             {/* Stat Rewards Section */}
             {!selectedReward ? (
               <div className="mb-8">
-                <h2 className="text-2xl font-bold mb-4 text-center">⚡ Choose a Stat Upgrade</h2>
+                <div className="text-center mb-6">
+                  <NBHeading level={2} className="text-black">⚡ CHOOSE A STAT UPGRADE</NBHeading>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {rewardOptions.map((reward) => {
                     const Icon = reward.icon;
-                    
+
                     return (
                       <button
                         key={reward.id}
                         onClick={() => handleSelectStatReward(reward)}
                         className={`
-                          ${reward.color} ${reward.hoverColor}
-                          text-white p-8 rounded-lg border-4 border-yellow-400
-                          transition-all duration-200 transform hover:scale-105
-                          cursor-pointer shadow-2xl
+                          ${reward.color}
+                          nb-border-xl nb-shadow-lg nb-hover
+                          p-8 cursor-pointer transition-all duration-200
                         `}
                       >
                         <div className="flex justify-center mb-4">
-                          <Icon className="w-16 h-16" />
+                          <Icon className="w-16 h-16 text-black" />
                         </div>
 
-                        <h3 className="text-2xl font-bold mb-3">{reward.name}</h3>
-                        <p className="text-lg opacity-90">{reward.description}</p>
+                        <h3 className="text-2xl font-black text-black mb-3 uppercase">{reward.name}</h3>
+                        <p className="text-lg text-black font-bold">{reward.description}</p>
 
-                        <div className="mt-4 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-bold inline-block">
-                          FREE
+                        <div className="mt-4">
+                          <NBBadge color="green" className="px-4 py-2 text-sm">
+                            FREE
+                          </NBBadge>
                         </div>
                       </button>
                     );
@@ -253,12 +258,16 @@ export const BossReward = () => {
               </div>
             ) : (
               <div className="text-center py-8">
-                <div className="text-3xl font-bold text-green-600 mb-4">
-                  ✓ {selectedReward.name} Claimed!
+                <div className="nb-bg-green nb-border-xl nb-shadow-lg p-6 mb-4 inline-block">
+                  <NBHeading level={3} className="text-black">
+                    ✓ {selectedReward.name} CLAIMED!
+                  </NBHeading>
                 </div>
-                <p className="text-gray-600">
-                  {showAbilityUnlock ? 'New ability unlocked!' : 'Proceeding to item selection...'}
-                </p>
+                <div className="nb-bg-cyan nb-border-lg nb-shadow px-6 py-3 inline-block">
+                  <p className="text-black font-bold text-sm uppercase">
+                    {showAbilityUnlock ? 'New ability unlocked!' : 'Proceeding to item selection...'}
+                  </p>
+                </div>
               </div>
             )}
           </div>

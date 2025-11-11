@@ -3,6 +3,7 @@ import { useGame } from '../../context/GameContext';
 import { useRouter } from '../../hooks/useRouter';
 import { PageTransition } from './PageTransition';
 import { Skull, RotateCcw, Crown, Star, TrendingUp, Target, Coins, Zap, Heart, Swords } from 'lucide-react';
+import { NBButton, NBHeading, NBBadge, NBCard } from './NeoBrutalUI';
 
 export const DefeatScreen = () => {
   const { gameState, dispatch } = useGame();
@@ -48,8 +49,10 @@ export const DefeatScreen = () => {
   if (!gameState.profile) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-gradient-to-br from-gray-800 via-red-900 to-black flex items-center justify-center">
-          <div className="text-white text-2xl">Loading...</div>
+        <div className="min-h-screen nb-bg-red flex items-center justify-center">
+          <div className="nb-bg-white nb-border-xl nb-shadow-xl p-8">
+            <div className="text-black text-2xl font-black uppercase">Loading...</div>
+          </div>
         </div>
       </PageTransition>
     );
@@ -61,40 +64,44 @@ export const DefeatScreen = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-to-br from-gray-800 via-red-900 to-black p-8 flex items-center justify-center">
+      <div className="min-h-screen nb-bg-red p-8 flex items-center justify-center">
         <div className="max-w-4xl w-full">
           {/* Defeat Banner */}
           <div className="text-center mb-8">
-            <Skull className="w-32 h-32 text-red-400 mx-auto mb-4 drop-shadow-2xl animate-pulse" />
-            <h1 className="text-6xl font-bold text-red-500 mb-4 drop-shadow-lg">
+            <div className="nb-bg-white nb-border-xl nb-shadow-xl p-8 mb-6 inline-block animate-pulse">
+              <Skull className="w-32 h-32 text-black mx-auto" />
+            </div>
+            <NBHeading level={1} className="text-black mb-4">
               DEFEATED
-            </h1>
-            <p className="text-2xl text-gray-300 drop-shadow">
-              You reached Floor {floorReached}
-            </p>
+            </NBHeading>
+            <div className="nb-bg-white nb-border-lg nb-shadow-lg px-6 py-3 inline-block">
+              <p className="text-black font-black text-xl uppercase">
+                You reached Floor {floorReached}
+              </p>
+            </div>
           </div>
 
           {/* Main Stats Card */}
-          <div className="bg-white bg-opacity-95 rounded-2xl shadow-2xl p-8 mb-6">
+          <div className="nb-bg-white nb-border-xl nb-shadow-xl p-8 mb-6">
             {/* Profile Section */}
-            <div className="flex items-center gap-4 mb-6 pb-6 border-b-2 border-gray-200">
+            <div className="flex items-center gap-4 mb-6 pb-6 nb-border-b-xl">
               <img
                 src={`https://api.dicebear.com/9.x/notionists/svg?seed=${gameState.profile.avatarSeed}`}
                 alt={gameState.profile.profileName}
-                className="w-20 h-20 rounded-full border-4 border-red-400"
+                className="w-20 h-20 nb-border-xl"
               />
               <div className="flex-1">
-                <h2 className="text-3xl font-bold text-gray-800">{gameState.profile.profileName}</h2>
-                <div className="flex items-center gap-4 mt-2">
-                  <div className="flex items-center gap-1 text-purple-600">
+                <NBHeading level={2} className="text-black mb-2">{gameState.profile.profileName}</NBHeading>
+                <div className="flex items-center gap-3">
+                  <NBBadge color="purple" className="flex items-center gap-1 px-3 py-1">
                     <Crown className="w-5 h-5" />
-                    <span className="font-bold">Level {gameState.profile.level}</span>
-                  </div>
+                    <span>LEVEL {gameState.profile.level}</span>
+                  </NBBadge>
                   {gameState.profile.talentPoints > 0 && (
-                    <div className="flex items-center gap-1 text-yellow-600">
+                    <NBBadge color="yellow" className="flex items-center gap-1 px-3 py-1">
                       <Star className="w-5 h-5" />
-                      <span className="font-bold">{gameState.profile.talentPoints} Talent Points</span>
-                    </div>
+                      <span>{gameState.profile.talentPoints} TALENT POINTS</span>
+                    </NBBadge>
                   )}
                 </div>
               </div>
@@ -102,136 +109,144 @@ export const DefeatScreen = () => {
 
             {/* Level Up Notification */}
             {levelUps > 0 && (
-              <div className="bg-gradient-to-r from-purple-100 to-indigo-100 border-4 border-purple-400 rounded-xl p-6 mb-6">
+              <div className="nb-bg-purple nb-border-xl nb-shadow-xl p-6 mb-6">
                 <div className="text-center">
-                  <TrendingUp className="w-12 h-12 text-purple-600 mx-auto mb-2" />
-                  <h3 className="text-2xl font-bold text-purple-800 mb-2">
-                    Level Up! {levelUps > 1 && `x${levelUps}`}
-                  </h3>
-                  <p className="text-purple-700 mb-3">
+                  <TrendingUp className="w-12 h-12 text-black mx-auto mb-3" />
+                  <NBHeading level={3} className="text-black mb-3">
+                    LEVEL UP! {levelUps > 1 && `x${levelUps}`}
+                  </NBHeading>
+                  <p className="text-black font-bold text-lg mb-4 uppercase">
                     Despite defeat, you gained {levelUps} talent {levelUps === 1 ? 'point' : 'points'}!
                   </p>
-                  <button
+                  <NBButton
                     onClick={handleViewTalents}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-bold transition-all transform hover:scale-105"
+                    variant="primary"
+                    size="md"
                   >
-                    View Talent Tree
-                  </button>
+                    VIEW TALENT TREE
+                  </NBButton>
                 </div>
               </div>
             )}
 
             {/* Encouragement Message */}
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-6 text-center">
-              <p className="text-blue-800 font-semibold">
-                💪 Your progress is saved! Use your XP and talents to grow stronger for the next run!
+            <div className="nb-bg-cyan nb-border-xl nb-shadow-lg p-4 mb-6 text-center">
+              <p className="text-black font-bold text-sm uppercase">
+                Your progress is saved! Use your XP and talents to grow stronger for the next run!
               </p>
             </div>
 
             {/* Run Stats */}
             <div className="mb-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Target className="w-6 h-6 text-purple-600" />
-                This Run
-              </h3>
+              <div className="flex items-center gap-2 mb-4">
+                <Target className="w-6 h-6 text-black" />
+                <NBHeading level={3} className="text-black">THIS RUN</NBHeading>
+              </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-red-50 p-4 rounded-lg border-2 border-red-200">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Swords className="w-5 h-5 text-red-600" />
-                    <span className="text-sm text-gray-600">Enemies Killed</span>
+                <div className="nb-bg-red nb-border-lg nb-shadow p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Swords className="w-5 h-5 text-black" />
+                    <span className="text-xs text-black font-bold uppercase">Enemies</span>
                   </div>
-                  <div className="text-2xl font-bold text-red-600">{runStats.enemiesKilled || 0}</div>
+                  <div className="text-2xl font-black text-black">{runStats.enemiesKilled || 0}</div>
                 </div>
 
-                <div className="bg-orange-50 p-4 rounded-lg border-2 border-orange-200">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Zap className="w-5 h-5 text-orange-600" />
-                    <span className="text-sm text-gray-600">Damage Dealt</span>
+                <div className="nb-bg-orange nb-border-lg nb-shadow p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Zap className="w-5 h-5 text-black" />
+                    <span className="text-xs text-black font-bold uppercase">Damage</span>
                   </div>
-                  <div className="text-2xl font-bold text-orange-600">{runStats.damageDealt || 0}</div>
+                  <div className="text-2xl font-black text-black">{runStats.damageDealt || 0}</div>
                 </div>
 
-                <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-200">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Coins className="w-5 h-5 text-yellow-600" />
-                    <span className="text-sm text-gray-600">Gold Earned</span>
+                <div className="nb-bg-yellow nb-border-lg nb-shadow p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Coins className="w-5 h-5 text-black" />
+                    <span className="text-xs text-black font-bold uppercase">Gold</span>
                   </div>
-                  <div className="text-2xl font-bold text-yellow-600">{runStats.goldEarned || 0}</div>
+                  <div className="text-2xl font-black text-black">{runStats.goldEarned || 0}</div>
                 </div>
 
-                <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Heart className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm text-gray-600">Cards Played</span>
+                <div className="nb-bg-blue nb-border-lg nb-shadow p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Heart className="w-5 h-5 text-black" />
+                    <span className="text-xs text-black font-bold uppercase">Cards</span>
                   </div>
-                  <div className="text-2xl font-bold text-blue-600">{runStats.cardsPlayed || 0}</div>
+                  <div className="text-2xl font-black text-black">{runStats.cardsPlayed || 0}</div>
                 </div>
               </div>
             </div>
 
             {/* Lifetime Stats */}
-            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-xl border-2 border-purple-200">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Lifetime Stats</h3>
+            <div className="nb-bg-purple nb-border-xl nb-shadow-lg p-6">
+              <NBHeading level={3} className="text-black mb-4">LIFETIME STATS</NBHeading>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">Total Runs:</span>
-                  <span className="font-bold text-gray-800 ml-2">{lifetimeStats.totalRuns}</span>
+                <div className="nb-bg-white nb-border nb-shadow px-3 py-2">
+                  <span className="text-gray-700 font-bold uppercase text-xs">Total Runs:</span>
+                  <span className="font-black text-black ml-2 text-lg">{lifetimeStats.totalRuns}</span>
                 </div>
-                <div>
-                  <span className="text-gray-600">Total Wins:</span>
-                  <span className="font-bold text-green-600 ml-2">{lifetimeStats.totalWins}</span>
+                <div className="nb-bg-green nb-border nb-shadow px-3 py-2">
+                  <span className="text-gray-800 font-bold uppercase text-xs">Wins:</span>
+                  <span className="font-black text-black ml-2 text-lg">{lifetimeStats.totalWins}</span>
                 </div>
-                <div>
-                  <span className="text-gray-600">Total Deaths:</span>
-                  <span className="font-bold text-red-600 ml-2">{lifetimeStats.totalDeaths}</span>
+                <div className="nb-bg-red nb-border nb-shadow px-3 py-2">
+                  <span className="text-gray-800 font-bold uppercase text-xs">Deaths:</span>
+                  <span className="font-black text-black ml-2 text-lg">{lifetimeStats.totalDeaths}</span>
                 </div>
-                <div>
-                  <span className="text-gray-600">Best Floor:</span>
-                  <span className="font-bold text-purple-600 ml-2">{lifetimeStats.bestFloor}</span>
+                <div className="nb-bg-cyan nb-border nb-shadow px-3 py-2">
+                  <span className="text-gray-800 font-bold uppercase text-xs">Best Floor:</span>
+                  <span className="font-black text-black ml-2 text-lg">{lifetimeStats.bestFloor}</span>
                 </div>
-                <div>
-                  <span className="text-gray-600">Total Enemies:</span>
-                  <span className="font-bold text-orange-600 ml-2">{lifetimeStats.totalEnemiesKilled}</span>
+                <div className="nb-bg-orange nb-border nb-shadow px-3 py-2">
+                  <span className="text-gray-800 font-bold uppercase text-xs">Enemies:</span>
+                  <span className="font-black text-black ml-2 text-lg">{lifetimeStats.totalEnemiesKilled}</span>
                 </div>
-                <div>
-                  <span className="text-gray-600">Total Damage:</span>
-                  <span className="font-bold text-red-600 ml-2">{lifetimeStats.totalDamageDealt}</span>
+                <div className="nb-bg-pink nb-border nb-shadow px-3 py-2">
+                  <span className="text-gray-800 font-bold uppercase text-xs">Damage:</span>
+                  <span className="font-black text-black ml-2 text-lg">{lifetimeStats.totalDamageDealt}</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 justify-center">
-            <button
+          <div className="flex gap-4 justify-center flex-wrap">
+            <NBButton
               onClick={handleTryAgain}
-              className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg font-bold text-xl transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
+              variant="danger"
+              size="xl"
+              className="flex items-center gap-2"
             >
               <RotateCcw className="w-6 h-6" />
-              Try Again
-            </button>
+              <span>TRY AGAIN</span>
+            </NBButton>
 
-            <button
+            <NBButton
               onClick={handleViewTalents}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-lg font-bold text-xl transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
+              variant="purple"
+              size="xl"
+              className="flex items-center gap-2"
             >
               <Star className="w-6 h-6" />
-              Talent Tree
-            </button>
+              <span>TALENT TREE</span>
+            </NBButton>
 
-            <button
+            <NBButton
               onClick={handleMainMenu}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-4 rounded-lg font-bold text-xl transition-all transform hover:scale-105 shadow-lg"
+              variant="white"
+              size="xl"
             >
-              Main Menu
-            </button>
+              MAIN MENU
+            </NBButton>
           </div>
 
           {/* Motivational Quote */}
           <div className="text-center mt-8">
-            <p className="text-gray-300 text-lg italic drop-shadow">
-              "Every defeat makes you stronger. Rise again, champion!"
-            </p>
+            <div className="nb-bg-white nb-border-lg nb-shadow px-8 py-4 inline-block">
+              <p className="text-black font-black text-lg uppercase">
+                Every defeat makes you stronger. Rise again, champion!
+              </p>
+            </div>
           </div>
         </div>
       </div>

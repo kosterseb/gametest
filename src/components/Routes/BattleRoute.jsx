@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useReducer } from 'react';
 import { useGame } from '../../context/GameContext';
 import { useRouter } from '../../hooks/useRouter';
+import { useSettings } from '../../context/SettingsContext';
 
 // OPTION 1: If Card.jsx is at src/components/Cards/Card.jsx
 import { Card } from '../Cards/Card';
@@ -14,7 +15,12 @@ import { PageTransition } from '../UI/PageTransition';
 import { ItemButton } from '../Cards/ItemButton';
 import { DiceRoll } from '../Battle/DiceRoll';
 import { CoinFlip } from '../Battle/CoinFlip';
+import { TurnBanner } from '../Battle/TurnBanner';
 import { TorusTunnelBackground } from '../Battle/TorusTunnelBackground';
+import { CardHand } from '../Cards/CardHand';
+import { CardPlayParticles } from '../Effects/CardPlayParticles';
+import { NBButton, NBDropdown, useNBConfirm } from '../UI/NeoBrutalUI';
+import { BattleMenu } from '../UI/BattleMenu';
 import {
   applyStatus,
   tickStatuses,
@@ -138,6 +144,11 @@ const cardStateReducer = (state, action) => {
 export const BattleRoute = () => {
   const { gameState, dispatch } = useGame();
   const { navigate } = useRouter();
+  const { settings } = useSettings();
+  const { confirm, ConfirmDialog } = useNBConfirm();
+
+  // Menu state
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Get current enemy from context
   const currentEnemy = gameState.currentEnemyData;
@@ -154,6 +165,9 @@ export const BattleRoute = () => {
   // ✅ Ref to store performEnemyTurn to avoid circular dependencies
   const performEnemyTurnRef = useRef();
 
+  // ✅ Store battle start stats once
+  const battleStartStatsStored = useRef(false);
+
   // ✅ Initialize battle state correctly (BEFORE any early returns!)
   const [playerHealth, setPlayerHealth] = useState(gameState.playerHealth || 100);
   const [maxPlayerHealth] = useState(gameState.maxPlayerHealth || 100);
@@ -167,8 +181,28 @@ export const BattleRoute = () => {
     }
   }, [gameState.playerHealth]);
 
+  // ✅ Store battle start stats ONCE when battle begins
+  useEffect(() => {
+    if (!battleStartStatsStored.current && gameState.profile) {
+      dispatch({
+        type: 'STORE_BATTLE_START_STATS',
+        stats: {
+          gold: gameState.gold,
+          experience: gameState.profile.experience || 0,
+          level: gameState.profile.level || 1,
+          health: gameState.playerHealth || 100
+        }
+      });
+      battleStartStatsStored.current = true;
+    }
+  }, [gameState.profile, gameState.gold, gameState.playerHealth, dispatch]);
+
   const [playerEnergy, setPlayerEnergy] = useState(gameState.maxEnergy || 10);
   const [maxEnergy] = useState(gameState.maxEnergy || 10);
+
+  // Enemy energy state
+  const [enemyEnergy, setEnemyEnergy] = useState(currentEnemy?.actionPoints || 10);
+  const [maxEnemyEnergy] = useState(currentEnemy?.actionPoints || 10);
 
   // ✅ Use reducer for atomic card state updates
   const [cardState, dispatchCardState] = useReducer(cardStateReducer, {
@@ -203,6 +237,9 @@ export const BattleRoute = () => {
   const [showCoinFlip, setShowCoinFlip] = useState(false);
   const [turnOrderDecided, setTurnOrderDecided] = useState(false);
 
+  // ✅ Track particle effects
+  const [particleEffect, setParticleEffect] = useState(null);
+
   // ✅ Track attack animation pause
   const [isAttackAnimationPlaying, setIsAttackAnimationPlaying] = useState(false);
 
@@ -218,6 +255,99 @@ export const BattleRoute = () => {
 
   // ✅ Track consumable belt expansion
   const [consumablesBeltExpanded, setConsumablesBeltExpanded] = useState(false);
+
+  // ⏱️ Chess-style battle timer (2 minutes per player)
+  const [playerTime, setPlayerTime] = useState(120); // 2 minutes in seconds
+  const [enemyTime, setEnemyTime] = useState(120);
+
+  // 🎭 Turn banner state
+  const [showTurnBanner, setShowTurnBanner] = useState(false);
+  const [isTurnStarting, setIsTurnStarting] = useState(false); // 3-second delay after banner
+  const prevIsEnemyTurnRef = useRef(isEnemyTurn);
+  const bannerCooldownRef = useRef(false); // Prevent banner from showing multiple times
+  const pendingEnemyTurnRef = useRef(false); // Track if enemy turn should start after delay
+
+  // 🎭 Show turn banner when turn changes
+  useEffect(() => {
+    // Only show banner after turn order is decided, when turn actually changes, and not on cooldown
+    if (turnOrderDecided && prevIsEnemyTurnRef.current !== isEnemyTurn && !bannerCooldownRef.current) {
+      prevIsEnemyTurnRef.current = isEnemyTurn;
+      bannerCooldownRef.current = true; // Set cooldown
+      setShowTurnBanner(true);
+      setIsTurnStarting(true); // Start the 3-second delay
+
+      // Release cooldown after banner completes (2 seconds)
+      setTimeout(() => {
+        bannerCooldownRef.current = false;
+      }, 2500);
+    }
+  }, [isEnemyTurn, turnOrderDecided]);
+
+  // 🎭 Handle banner completion and 1-second delay
+  const handleBannerComplete = useCallback(() => {
+    setShowTurnBanner(false);
+
+    // Wait 1 second before allowing turn actions
+    setTimeout(() => {
+      setIsTurnStarting(false);
+
+      // If it's enemy turn, trigger their actions now
+      if (isEnemyTurn && pendingEnemyTurnRef.current) {
+        pendingEnemyTurnRef.current = false;
+        setTimeout(() => {
+          performEnemyTurnRef.current?.();
+        }, 100);
+      }
+    }, 1000);
+  }, [isEnemyTurn]);
+
+  // ⏱️ Timer countdown - only counts down for active player
+  useEffect(() => {
+    // Don't count down if battle is over, turn order not decided, or during animations/banner/turn starting
+    if (isBattleOver || !turnOrderDecided || isAttackAnimationPlaying || showCoinFlip || showDiceRoll || showTurnBanner || isTurnStarting) {
+      return;
+    }
+
+    const timerInterval = setInterval(() => {
+      if (isEnemyTurn) {
+        setEnemyTime(prev => {
+          if (prev <= 0) {
+            // Enemy time ran out - PLAYER WINS!
+            console.log('⏰ Enemy time ran out! Player wins!');
+            setBattleLog(prevLog => [...prevLog, '⏰ Enemy ran out of time! Victory!']);
+            clearInterval(timerInterval);
+
+            // Trigger victory
+            setIsBattleOver(true);
+            setEnemyHealth(0);
+            handleVictory();
+
+            return 0;
+          }
+          return prev - 1;
+        });
+      } else {
+        setPlayerTime(prev => {
+          if (prev <= 0) {
+            // Player time ran out - PLAYER LOSES!
+            console.log('⏰ Player time ran out! Defeat!');
+            setBattleLog(prevLog => [...prevLog, '⏰ Time ran out! You lose!']);
+            clearInterval(timerInterval);
+
+            // Trigger defeat
+            setIsBattleOver(true);
+            setPlayerHealth(0);
+            handleDefeat();
+
+            return 0;
+          }
+          return prev - 1;
+        });
+      }
+    }, 1000); // Count down every second
+
+    return () => clearInterval(timerInterval);
+  }, [isEnemyTurn, isBattleOver, turnOrderDecided, isAttackAnimationPlaying, showCoinFlip, showDiceRoll, showTurnBanner, isTurnStarting]);
 
   // If no enemy, redirect to map
   useEffect(() => {
@@ -575,6 +705,24 @@ export const BattleRoute = () => {
 
     console.log('✋ Hand after:', hand.length - 1, 'cards');
 
+    // Trigger particle effect
+    const getCardColor = (type) => {
+      switch (type) {
+        case 'damage': return 'red';
+        case 'heal': return 'green';
+        case 'utility': return 'blue';
+        case 'cleanse': return 'purple';
+        case 'status': return 'yellow';
+        default: return 'blue';
+      }
+    };
+
+    setParticleEffect({
+      x: window.innerWidth / 2,
+      y: window.innerHeight * 0.4, // Upper-middle of screen
+      color: getCardColor(card.type)
+    });
+
     // Check if card requires dice roll
     if (card.diceRoll) {
       setPendingDiceCard(card);
@@ -604,16 +752,23 @@ export const BattleRoute = () => {
     if (winner === 'enemy') {
       setBattleLog(prev => [...prev, '🪙 Enemy won the coin flip and attacks first!']);
       setIsEnemyTurn(true);
-      // Trigger enemy turn after a delay
-      setTimeout(() => {
-        if (performEnemyTurnRef.current) {
-          performEnemyTurnRef.current();
-        }
-      }, 1000);
+      // Mark that enemy turn is pending (will be triggered after banner + 1s delay)
+      pendingEnemyTurnRef.current = true;
     } else {
       setBattleLog(prev => [...prev, '🪙 You won the coin flip! Your turn to attack!']);
       setIsEnemyTurn(false);
     }
+
+    // Show banner for first turn (for both player and enemy)
+    setTimeout(() => {
+      setShowTurnBanner(true);
+      setIsTurnStarting(true);
+      bannerCooldownRef.current = true;
+
+      setTimeout(() => {
+        bannerCooldownRef.current = false;
+      }, 2500);
+    }, 500);
   }, []);
 
   // ✅ Item usage
@@ -648,7 +803,7 @@ export const BattleRoute = () => {
 
   // ✅ Handle end turn
   const handleEndTurn = useCallback(() => {
-    if (isEnemyTurn) return;
+    if (isEnemyTurn || isTurnStarting) return;
 
     console.log('🔄 Ending turn...');
     setBattleLog(prev => [...prev, '--- Turn Ended ---']);
@@ -673,12 +828,14 @@ export const BattleRoute = () => {
     dispatchCardState({ type: 'DISCARD_HAND' });
 
     setTurnCount(prev => prev + 1);
-    setIsEnemyTurn(true);
 
+    // Delay enemy turn to let status effects fully process
     setTrackedTimeout(() => {
-      performEnemyTurnRef.current?.();
-    }, 1000);
-  }, [isEnemyTurn, playerStatuses, enemyStatuses, hand, setTrackedTimeout]);
+      setIsEnemyTurn(true);
+      // Mark that enemy turn is pending (will be triggered after banner + 3s delay)
+      pendingEnemyTurnRef.current = true;
+    }, 400);
+  }, [isEnemyTurn, isTurnStarting, playerStatuses, enemyStatuses, hand, setTrackedTimeout]);
 
   const performEnemyTurn = useCallback(() => {
     if (shouldSkipTurn(enemyStatuses)) {
@@ -687,142 +844,208 @@ export const BattleRoute = () => {
       setTrackedTimeout(() => {
         console.log('🔄 Refilling hand and energy...');
         setPlayerEnergy(maxEnergy);
+        setEnemyEnergy(maxEnemyEnergy); // Refill enemy energy
         drawMultipleCards(gameState.maxHandSize || 6);
         setIsEnemyTurn(false);
       }, 1500);
       return;
     }
 
-    const roll = Math.random() * 100;
-    let cumulativeChance = 0;
-    let selectedAbility = currentEnemy.abilities[0];
+    // Refill enemy energy at start of turn
+    let currentEnemyEnergy = maxEnemyEnergy;
+    setEnemyEnergy(currentEnemyEnergy);
 
-    for (const ability of currentEnemy.abilities) {
-      cumulativeChance += ability.chance;
-      if (roll <= cumulativeChance) {
-        selectedAbility = ability;
-        break;
-      }
-    }
+    // Helper function to execute a single ability
+    const executeAbility = (selectedAbility, energyCost) => {
+      setBattleLog(prev => [...prev, `${currentEnemy.name} ${selectedAbility.message} (${energyCost} AP)`]);
 
-    setBattleLog(prev => [...prev, `${currentEnemy.name} ${selectedAbility.message}`]);
+      switch (selectedAbility.type) {
+        case 'damage':
+          const damageRange = selectedAbility.damage;
+          const baseDamage = Math.floor(Math.random() * (damageRange[1] - damageRange[0] + 1)) + damageRange[0];
+          const modifiedDamage = getModifiedDamage(baseDamage, enemyStatuses, playerStatuses);
 
-    switch (selectedAbility.type) {
-      case 'damage':
-        const damageRange = selectedAbility.damage;
-        const baseDamage = Math.floor(Math.random() * (damageRange[1] - damageRange[0] + 1)) + damageRange[0];
-        const modifiedDamage = getModifiedDamage(baseDamage, enemyStatuses, playerStatuses);
+          // ✅ Apply shield blocking
+          const shieldResult = applyShieldBlock(playerStatuses, modifiedDamage);
+          const finalDamage = shieldResult.damage;
 
-        // ✅ Apply shield blocking
-        const shieldResult = applyShieldBlock(playerStatuses, modifiedDamage);
-        const finalDamage = shieldResult.damage;
+          setPlayerHealth(prev => Math.max(0, prev - finalDamage));
+          setPlayerStatuses(shieldResult.newStatuses);
 
-        setPlayerHealth(prev => Math.max(0, prev - finalDamage));
-        setPlayerStatuses(shieldResult.newStatuses);
-        dispatch({ type: 'DAMAGE_PLAYER', amount: finalDamage });
+          // Dispatch asynchronously to avoid render conflicts
+          setTimeout(() => {
+            dispatch({ type: 'DAMAGE_PLAYER', amount: finalDamage });
+          }, 0);
 
-        if (shieldResult.blocked > 0) {
-          setBattleLog(prev => [...prev, `🛡️ Blocked ${shieldResult.blocked} damage!`]);
-          setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} dealt ${finalDamage} damage!`]);
-        } else {
-          setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} dealt ${finalDamage} damage!`]);
-        }
-        break;
-
-      case 'status':
-        const status = typeof selectedAbility.status === 'function' 
-          ? selectedAbility.status() 
-          : selectedAbility.status;
-        
-        if (status) {
-          setPlayerStatuses(prev => applyStatus(prev, status));
-          setBattleLog(prev => [...prev, `${status.emoji || '⚠️'} ${status.name || 'Status'} applied!`]);
-        }
-        break;
-
-      case 'buff':
-        if (selectedAbility.healing) {
-          setEnemyHealth(prev => Math.min(maxEnemyHealth, prev + selectedAbility.healing));
-          setBattleLog(prev => [...prev, `💚 ${currentEnemy.name} healed ${selectedAbility.healing} HP!`]);
-        }
-        break;
-
-      case 'multi_action':
-        selectedAbility.actions.forEach(action => {
-          if (action.type === 'damage') {
-            const dmg = Math.floor(Math.random() * (action.damage[1] - action.damage[0] + 1)) + action.damage[0];
-            const modDmg = getModifiedDamage(dmg, enemyStatuses, playerStatuses);
-
-            // ✅ Apply shield blocking
-            setPlayerStatuses(prev => {
-              const shieldResult = applyShieldBlock(prev, modDmg);
-              setPlayerHealth(h => Math.max(0, h - shieldResult.damage));
-              dispatch({ type: 'DAMAGE_PLAYER', amount: shieldResult.damage });
-
-              if (shieldResult.blocked > 0) {
-                setBattleLog(log => [...log, `🛡️ Blocked ${shieldResult.blocked} damage!`]);
-              }
-              setBattleLog(log => [...log, `💥 ${shieldResult.damage} damage!`]);
-
-              return shieldResult.newStatuses;
-            });
-          } else if (action.type === 'status') {
-            const actionStatus = typeof action.status === 'function' 
-              ? action.status() 
-              : action.status;
-            
-            if (actionStatus) {
-              setPlayerStatuses(prev => applyStatus(prev, actionStatus));
-              setBattleLog(prev => [...prev, `${actionStatus.emoji || '⚠️'} ${actionStatus.name || 'Status'} applied!`]);
-            }
-          } else if (action.type === 'rest') {
-            setEnemyHealth(prev => Math.min(maxEnemyHealth, prev + action.healing));
-            setBattleLog(prev => [...prev, `💚 Healed ${action.healing} HP!`]);
+          if (shieldResult.blocked > 0) {
+            setBattleLog(prev => [...prev, `🛡️ Blocked ${shieldResult.blocked} damage!`]);
+            setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} dealt ${finalDamage} damage!`]);
+          } else {
+            setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} dealt ${finalDamage} damage!`]);
           }
-        });
-        break;
+          break;
 
-      case 'multi_hit':
-        const hitDamage = Math.floor(Math.random() * (selectedAbility.damage[1] - selectedAbility.damage[0] + 1)) + selectedAbility.damage[0];
-        const totalMultiDamage = hitDamage * selectedAbility.hits;
-        const modMultiDamage = getModifiedDamage(totalMultiDamage, enemyStatuses, playerStatuses);
+        case 'status':
+          const status = typeof selectedAbility.status === 'function'
+            ? selectedAbility.status()
+            : selectedAbility.status;
 
-        // ✅ Apply shield blocking
-        const multiHitShieldResult = applyShieldBlock(playerStatuses, modMultiDamage);
-        const finalMultiDamage = multiHitShieldResult.damage;
+          if (status) {
+            setPlayerStatuses(prev => applyStatus(prev, status));
+            setBattleLog(prev => [...prev, `${status.emoji || '⚠️'} ${status.name || 'Status'} applied!`]);
+          }
+          break;
 
-        setPlayerHealth(prev => Math.max(0, prev - finalMultiDamage));
-        setPlayerStatuses(multiHitShieldResult.newStatuses);
-        dispatch({ type: 'DAMAGE_PLAYER', amount: finalMultiDamage });
+        case 'buff':
+          if (selectedAbility.healing) {
+            setEnemyHealth(prev => Math.min(maxEnemyHealth, prev + selectedAbility.healing));
+            setBattleLog(prev => [...prev, `💚 ${currentEnemy.name} healed ${selectedAbility.healing} HP!`]);
+          }
+          break;
 
-        if (multiHitShieldResult.blocked > 0) {
-          setBattleLog(prev => [...prev, `🛡️ Blocked ${multiHitShieldResult.blocked} damage!`]);
+        case 'multi_action':
+          selectedAbility.actions.forEach(action => {
+            if (action.type === 'damage') {
+              const dmg = Math.floor(Math.random() * (action.damage[1] - action.damage[0] + 1)) + action.damage[0];
+              const modDmg = getModifiedDamage(dmg, enemyStatuses, playerStatuses);
+
+              // ✅ Apply shield blocking
+              const multiShieldResult = applyShieldBlock(playerStatuses, modDmg);
+              setPlayerHealth(h => Math.max(0, h - multiShieldResult.damage));
+              setPlayerStatuses(multiShieldResult.newStatuses);
+
+              // Dispatch asynchronously
+              setTimeout(() => {
+                dispatch({ type: 'DAMAGE_PLAYER', amount: multiShieldResult.damage });
+              }, 0);
+
+              if (multiShieldResult.blocked > 0) {
+                setBattleLog(log => [...log, `🛡️ Blocked ${multiShieldResult.blocked} damage!`]);
+              }
+              setBattleLog(log => [...log, `💥 ${multiShieldResult.damage} damage!`]);
+            } else if (action.type === 'status') {
+              const actionStatus = typeof action.status === 'function'
+                ? action.status()
+                : action.status;
+
+              if (actionStatus) {
+                setPlayerStatuses(prev => applyStatus(prev, actionStatus));
+                setBattleLog(prev => [...prev, `${actionStatus.emoji || '⚠️'} ${actionStatus.name || 'Status'} applied!`]);
+              }
+            } else if (action.type === 'rest') {
+              setEnemyHealth(prev => Math.min(maxEnemyHealth, prev + action.healing));
+              setBattleLog(prev => [...prev, `💚 Healed ${action.healing} HP!`]);
+            }
+          });
+          break;
+
+        case 'multi_hit':
+          const hitDamage = Math.floor(Math.random() * (selectedAbility.damage[1] - selectedAbility.damage[0] + 1)) + selectedAbility.damage[0];
+          const totalMultiDamage = hitDamage * selectedAbility.hits;
+          const modMultiDamage = getModifiedDamage(totalMultiDamage, enemyStatuses, playerStatuses);
+
+          // ✅ Apply shield blocking
+          const multiHitShieldResult = applyShieldBlock(playerStatuses, modMultiDamage);
+          const finalMultiDamage = multiHitShieldResult.damage;
+
+          setPlayerHealth(prev => Math.max(0, prev - finalMultiDamage));
+          setPlayerStatuses(multiHitShieldResult.newStatuses);
+
+          // Dispatch asynchronously
+          setTimeout(() => {
+            dispatch({ type: 'DAMAGE_PLAYER', amount: finalMultiDamage });
+          }, 0);
+
+          if (multiHitShieldResult.blocked > 0) {
+            setBattleLog(prev => [...prev, `🛡️ Blocked ${multiHitShieldResult.blocked} damage!`]);
+          }
+          setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} hit ${selectedAbility.hits} times for ${finalMultiDamage} total damage!`]);
+          break;
+
+        case 'rest':
+          setEnemyHealth(prev => Math.min(maxEnemyHealth, prev + selectedAbility.healing));
+          setBattleLog(prev => [...prev, `💚 ${currentEnemy.name} rested and healed ${selectedAbility.healing} HP!`]);
+          break;
+
+        case 'skip':
+          break;
+
+        default:
+          setBattleLog(prev => [...prev, `${currentEnemy.name} did something unknown!`]);
+      }
+    };
+
+    // Recursive function to perform actions sequentially with delays
+    const performNextAction = (remainingEnergy, actionCount) => {
+      const maxActions = 10; // Safety limit
+
+      if (remainingEnergy <= 0 || actionCount >= maxActions) {
+        // End turn after final action
+        setTrackedTimeout(() => {
+          console.log('🔄 Refilling hand and energy...');
+          setPlayerEnergy(maxEnergy);
+          setEnemyEnergy(maxEnemyEnergy);
+          drawMultipleCards(gameState.maxHandSize || 6);
+          setIsEnemyTurn(false);
+          setIsAttackAnimationPlaying(false); // Reset animation lock
+          setHasUsedDrawAbility(false);
+          setHasUsedDiscardAbility(false);
+        }, 4000); // Increased to 4 seconds to prevent animation overwriting
+        return;
+      }
+
+      // Find affordable abilities
+      const affordableAbilities = currentEnemy.abilities.filter(ability =>
+        (ability.cost || 0) <= remainingEnergy
+      );
+
+      if (affordableAbilities.length === 0) {
+        setBattleLog(prev => [...prev, `${currentEnemy.name} doesn't have enough energy for more actions!`]);
+        // End turn
+        setTrackedTimeout(() => {
+          console.log('🔄 Refilling hand and energy...');
+          setPlayerEnergy(maxEnergy);
+          setEnemyEnergy(maxEnemyEnergy);
+          drawMultipleCards(gameState.maxHandSize || 6);
+          setIsEnemyTurn(false);
+          setIsAttackAnimationPlaying(false); // Reset animation lock
+          setHasUsedDrawAbility(false);
+          setHasUsedDiscardAbility(false);
+        }, 4000); // Increased to 4 seconds to prevent animation overwriting
+        return;
+      }
+
+      // Select random ability using weighted chance
+      const roll = Math.random() * 100;
+      let cumulativeChance = 0;
+      let selectedAbility = affordableAbilities[0];
+
+      for (const ability of affordableAbilities) {
+        cumulativeChance += ability.chance;
+        if (roll <= cumulativeChance) {
+          selectedAbility = ability;
+          break;
         }
-        setBattleLog(prev => [...prev, `💥 ${currentEnemy.name} hit ${selectedAbility.hits} times for ${finalMultiDamage} total damage!`]);
-        break;
+      }
 
-      case 'rest':
-        setEnemyHealth(prev => Math.min(maxEnemyHealth, prev + selectedAbility.healing));
-        setBattleLog(prev => [...prev, `💚 ${currentEnemy.name} rested and healed ${selectedAbility.healing} HP!`]);
-        break;
+      const abilityCost = selectedAbility.cost || 0;
 
-      case 'skip':
-        break;
+      // Execute the ability
+      executeAbility(selectedAbility, abilityCost);
 
-      default:
-        setBattleLog(prev => [...prev, `${currentEnemy.name} did something unknown!`]);
-    }
+      // Update energy display
+      const newEnergy = remainingEnergy - abilityCost;
+      setEnemyEnergy(newEnergy);
 
-    setTrackedTimeout(() => {
-      console.log('🔄 Refilling hand and energy...');
-      setPlayerEnergy(maxEnergy);
-      drawMultipleCards(gameState.maxHandSize || 6);
-      setIsEnemyTurn(false);
-      // Reset boss ability usage for new turn
-      setHasUsedDrawAbility(false);
-      setHasUsedDiscardAbility(false);
-    }, 1500);
-  }, [currentEnemy, enemyStatuses, maxEnergy, playerStatuses, gameState.maxHandSize, drawMultipleCards, setTrackedTimeout, dispatch]);
+      // Schedule next action after animation delay
+      setTrackedTimeout(() => {
+        performNextAction(newEnergy, actionCount + 1);
+      }, 4000); // 4 second delay between actions to prevent animation overwriting
+    };
+
+    // Start the action sequence
+    performNextAction(currentEnemyEnergy, 0);
+  }, [currentEnemy, enemyStatuses, maxEnergy, maxEnemyEnergy, playerStatuses, gameState.maxHandSize, drawMultipleCards, setTrackedTimeout, dispatch, maxEnemyHealth]);
 
   // ✅ Keep ref updated
   useEffect(() => {
@@ -860,6 +1083,12 @@ export const BattleRoute = () => {
     }
 
     console.log(`💰 Victory! Awarded ${goldReward} gold and ✨ ${xpReward} XP`);
+
+    // Store last battle rewards for display on reward screen
+    dispatch({
+      type: 'SET_LAST_BATTLE_REWARDS',
+      rewards: { gold: goldReward, exp: xpReward }
+    });
 
     // Update game state
     dispatch({ type: 'UPDATE_HEALTH', health: playerHealth });
@@ -933,8 +1162,17 @@ export const BattleRoute = () => {
     }
   }, [playerHealth, handleDefeat]);
 
-  const handleForfeit = () => {
-    if (window.confirm('Are you sure you want to forfeit this battle? Your run will end.')) {
+  const handleForfeit = async () => {
+    const confirmed = await confirm({
+      title: 'Forfeit Battle?',
+      message: 'Are you sure you want to forfeit this battle? Your run will end.',
+      confirmText: 'Forfeit',
+      cancelText: 'Continue Fighting',
+      confirmColor: 'danger',
+      cancelColor: 'green'
+    });
+
+    if (confirmed) {
       navigate('/defeat');
     }
   };
@@ -952,20 +1190,25 @@ export const BattleRoute = () => {
   return (
     <PageTransition>
       {/* Torus Tunnel Background */}
-      <TorusTunnelBackground
-        baseSpeed={2}
-        baseRotation={0}
-      />
+      {settings.animatedBackground ? (
+        <TorusTunnelBackground
+          baseSpeed={1}
+          baseRotation={1.9}
+        />
+      ) : (
+        <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900" />
+      )}
 
       <div className="h-screen overflow-hidden relative z-10">
         <div className="max-w-7xl mx-auto h-full flex flex-col gap-2 p-2">
           {/* Header - 10% */}
-          <div className="h-[10%] bg-white bg-opacity-45 rounded-xl shadow-lg flex justify-between items-center px-4 py-2">
+          <div className="h-[10%] flex justify-between items-center px-4 py-2">
             <GameHeader
               battleNumber={gameState.currentFloor}
               gold={gameState.gold}
               turnCount={turnCount}
               onForfeit={handleForfeit}
+              onMenuClick={() => setIsMenuOpen(true)}
             />
           </div>
 
@@ -984,63 +1227,71 @@ export const BattleRoute = () => {
               playerStatuses={playerStatuses}
               enemyStatuses={enemyStatuses}
               avatarSeed={gameState.profile?.avatarSeed || 'default'}
+              playerName={gameState.profile?.profileName || 'Player'}
+              enemyEnergy={enemyEnergy}
+              maxEnemyEnergy={maxEnemyEnergy}
+              playerTime={playerTime}
+              enemyTime={enemyTime}
               onAttackAnimationChange={setIsAttackAnimationPlaying}
               onCombatStateChange={setCombatStates}
             />
 
             {equippedConsumables.length > 0 && (
-              <div className="bg-white bg-opacity-45 p-2 rounded-xl shadow-lg">
-                <div className="flex justify-between items-center mb-1">
-                  <h3 className="text-xs font-bold">⚡ Battle Items ({equippedConsumables.length})</h3>
-                  <button
-                    onClick={() => setConsumablesBeltExpanded(!consumablesBeltExpanded)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-semibold transition-all"
-                  >
-                    {consumablesBeltExpanded ? '▲ Collapse' : '▼ Expand'}
-                  </button>
-                </div>
-                {consumablesBeltExpanded && (
-                  <div className="flex gap-2 flex-wrap">
+              <div className="absolute top-1/2 -translate-y-1/2 left-2 z-40">
+                <NBDropdown
+                  isOpen={consumablesBeltExpanded}
+                  onToggle={() => setConsumablesBeltExpanded(!consumablesBeltExpanded)}
+                  triggerLabel={`ITEMS (${equippedConsumables.length})`}
+                  triggerIcon="⚡"
+                  color="orange"
+                  position="right"
+                  contentClassName="max-w-xs"
+                >
+                  <h3 className="text-xs font-black uppercase mb-3 text-center">⚡ BATTLE ITEMS</h3>
+                  <div className="grid grid-cols-2 gap-2">
                     {equippedConsumables.map((item, index) => (
                       <ItemButton
                         key={index}
                         item={item}
                         onUse={handleUseItem}
-                        disabled={isEnemyTurn || isAttackAnimationPlaying}
+                        disabled={isEnemyTurn || isAttackAnimationPlaying || isTurnStarting}
                         isUsed={usedConsumables.includes(item.instanceId)}
                       />
                     ))}
                   </div>
-                )}
+                </NBDropdown>
               </div>
             )}
           </div>
 
           {/* Cards Area - 28% */}
-          <div className="h-[28%] bg-white bg-opacity-45 px-3 py-2 rounded-xl shadow-lg flex flex-col overflow-hidden">
+          <div className="h-[28%] px-3 py-2 flex flex-col overflow-hidden relative">
+            {/* End Turn Button - Floating on Right Side */}
+            <NBButton
+              onClick={handleEndTurn}
+              disabled={isEnemyTurn || isAttackAnimationPlaying || isTurnStarting}
+              variant={isEnemyTurn || isAttackAnimationPlaying || isTurnStarting ? 'white' : 'danger'}
+              size="lg"
+              className={`
+                absolute top-4 right-4 z-50
+                px-8 py-4 text-xl
+                ${isEnemyTurn || isAttackAnimationPlaying || isTurnStarting ? 'opacity-50 cursor-not-allowed' : ''}
+              `}
+            >
+              {isEnemyTurn ? 'ENEMY TURN...' : isTurnStarting ? 'STARTING...' : 'END TURN'}
+            </NBButton>
+
             <div className="flex justify-between items-center mb-2">
               <div>
-                <h2 className="text-lg font-bold">Your Hand ({hand.length}/{gameState.maxHandSize})</h2>
+                <h2 className="text-lg font-bold text-white drop-shadow-lg">Your Hand ({hand.length}/{gameState.maxHandSize})</h2>
               </div>
-              <button
-                onClick={handleEndTurn}
-                disabled={isEnemyTurn || isAttackAnimationPlaying}
-                className={`
-                  px-4 py-2 rounded-lg font-bold text-sm transition-all
-                  ${isEnemyTurn || isAttackAnimationPlaying
-                    ? 'bg-gray-400 cursor-not-allowed text-gray-600'
-                    : 'bg-red-600 hover:bg-red-700 text-white shadow-lg hover:scale-105'}
-                `}
-              >
-                {isEnemyTurn ? 'Enemy Turn...' : 'End Turn'}
-              </button>
             </div>
 
             {/* Boss Abilities */}
             {(gameState.hasDrawAbility || gameState.hasDiscardAbility) && (
               <div className="mb-2 flex gap-2">
                 {gameState.hasDrawAbility && (
-                  <button
+                  <NBButton
                     onClick={() => {
                       if (hasUsedDrawAbility) {
                         setBattleLog(prev => [...prev, '⚠️ Already used Draw Card this turn!']);
@@ -1053,21 +1304,18 @@ export const BattleRoute = () => {
                         setBattleLog(prev => [...prev, '⚠️ Not enough energy to draw!']);
                       }
                     }}
-                    disabled={isEnemyTurn || isBattleOver || playerEnergy < 3 || hasUsedDrawAbility || isAttackAnimationPlaying}
-                    className={`
-                      px-3 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1 transition-all
-                      ${playerEnergy >= 3 && !isEnemyTurn && !isBattleOver && !hasUsedDrawAbility && !isAttackAnimationPlaying
-                        ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
-                        : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'}
-                    `}
+                    disabled={isEnemyTurn || isBattleOver || playerEnergy < 3 || hasUsedDrawAbility || isAttackAnimationPlaying || isTurnStarting}
+                    variant={playerEnergy >= 3 && !isEnemyTurn && !isBattleOver && !hasUsedDrawAbility && !isAttackAnimationPlaying && !isTurnStarting ? 'success' : 'white'}
+                    size="sm"
+                    className="flex items-center gap-1"
                   >
                     <span className="text-sm">🎴</span>
-                    Draw (3⚡) {hasUsedDrawAbility && '✓'}
-                  </button>
+                    DRAW (3⚡) {hasUsedDrawAbility && '✓'}
+                  </NBButton>
                 )}
 
                 {gameState.hasDiscardAbility && (
-                  <button
+                  <NBButton
                     onClick={() => {
                       if (hasUsedDiscardAbility) {
                         setBattleLog(prev => [...prev, '⚠️ Already used Discard this turn!']);
@@ -1081,40 +1329,27 @@ export const BattleRoute = () => {
                         setBattleLog(prev => [...prev, '⚠️ No cards to discard!']);
                       }
                     }}
-                    disabled={isEnemyTurn || isBattleOver || hand.length === 0 || hasUsedDiscardAbility || isAttackAnimationPlaying}
-                    className={`
-                      px-3 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1 transition-all
-                      ${hand.length > 0 && !isEnemyTurn && !isBattleOver && !hasUsedDiscardAbility && !isAttackAnimationPlaying
-                        ? 'bg-orange-600 hover:bg-orange-700 text-white cursor-pointer'
-                        : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'}
-                    `}
+                    disabled={isEnemyTurn || isBattleOver || hand.length === 0 || hasUsedDiscardAbility || isAttackAnimationPlaying || isTurnStarting}
+                    variant={hand.length > 0 && !isEnemyTurn && !isBattleOver && !hasUsedDiscardAbility && !isAttackAnimationPlaying && !isTurnStarting ? 'orange' : 'white'}
+                    size="sm"
+                    className="flex items-center gap-1"
                   >
                     <span className="text-sm">🗑️</span>
-                    Discard {hasUsedDiscardAbility && '✓'}
-                  </button>
+                    DISCARD {hasUsedDiscardAbility && '✓'}
+                  </NBButton>
                 )}
               </div>
             )}
 
-            <div className="flex gap-2 overflow-x-auto pb-1 flex-shrink-0">
-              {hand.map((card) => (
-                <Card
-                  key={card.id}
-                  card={card}
-                  onClick={() => !isEnemyTurn && !isBattleOver && !isAttackAnimationPlaying && handleCardPlay(card)}
-                  disabled={isEnemyTurn || isBattleOver || isAttackAnimationPlaying}
-                  playerEnergy={playerEnergy}
-                  playerStatuses={playerStatuses}
-                  compact={true}
-                />
-              ))}
-            </div>
-
-            {hand.length === 0 && (
-              <div className="text-center text-gray-500 py-4 text-sm">
-                No cards in hand. End your turn to draw new cards!
-              </div>
-            )}
+            <CardHand
+              hand={hand}
+              onCardClick={(card) => !isEnemyTurn && !isBattleOver && !isAttackAnimationPlaying && !isTurnStarting && handleCardPlay(card)}
+              disabled={isEnemyTurn || isBattleOver || isAttackAnimationPlaying || isTurnStarting}
+              playerEnergy={playerEnergy}
+              playerStatuses={playerStatuses}
+              compact={false}
+              enableAnimations={settings.cardAnimations}
+            />
           </div>
         </div>
       </div>
@@ -1128,6 +1363,13 @@ export const BattleRoute = () => {
         />
       )}
 
+      {/* Turn Banner */}
+      <TurnBanner
+        isEnemyTurn={isEnemyTurn}
+        show={showTurnBanner}
+        onComplete={handleBannerComplete}
+      />
+
       {/* Dice Roll Overlay */}
       {showDiceRoll && (
         <DiceRoll
@@ -1136,6 +1378,26 @@ export const BattleRoute = () => {
           maxValue={6}
         />
       )}
+
+      {/* Card Play Particles */}
+      {settings.particleEffects && particleEffect && (
+        <CardPlayParticles
+          x={particleEffect.x}
+          y={particleEffect.y}
+          color={particleEffect.color}
+          onComplete={() => setParticleEffect(null)}
+        />
+      )}
+
+      {/* Battle Menu */}
+      <BattleMenu
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        gameState={gameState}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog />
     </PageTransition>
   );
 };

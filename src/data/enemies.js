@@ -12,19 +12,22 @@ export const ENEMY_TIERS = {
 export const basicEnemies = [
   {
     name: "Goblin Scout",
-    health: 35,
+    health: 70,
     goldReward: [8, 15],
+    actionPoints: 15, // Reduced by 25% from 20
     abilities: [
       {
         name: "Quick Slash",
         type: "damage",
         damage: [4, 7],
+        cost: 5,
         chance: 60,
         message: "slashes at you!"
       },
       {
         name: "Dodge",
         type: "skip",
+        cost: 3,
         chance: 20,
         message: "dodges your attack!"
       },
@@ -32,6 +35,7 @@ export const basicEnemies = [
         name: "Rally",
         type: "buff",
         healing: 5,
+        cost: 4,
         chance: 20,
         message: "rallies and recovers!"
       }
@@ -39,13 +43,15 @@ export const basicEnemies = [
   },
   {
     name: "Bandit",
-    health: 40,
+    health: 80,
     goldReward: [10, 18],
+    actionPoints: 15, // Reduced by 25% from 20
     abilities: [
       {
         name: "Dagger Strike",
         type: "damage",
         damage: [6, 10],
+        cost: 5,
         chance: 50,
         message: "strikes with a dagger!"
       },
@@ -53,12 +59,14 @@ export const basicEnemies = [
         name: "Poison Blade",
         type: "status",
         status: () => createStatus('poison', 2),
+        cost: 4,
         chance: 30,
         message: "coats their blade in poison!"
       },
       {
         name: "Steal",
         type: "skip",
+        cost: 2,
         chance: 20,
         message: "attempts to steal but misses!"
       }
@@ -66,13 +74,15 @@ export const basicEnemies = [
   },
   {
     name: "Wild Wolf",
-    health: 45,
+    health: 90,
     goldReward: [8, 12],
+    actionPoints: 15, // Reduced by 25% from 20
     abilities: [
       {
         name: "Bite",
         type: "damage",
         damage: [8, 12],
+        cost: 6,
         chance: 60,
         message: "bites ferociously!"
       },
@@ -80,6 +90,7 @@ export const basicEnemies = [
         name: "Howl",
         type: "status",
         status: () => createStatus('weak', 1, 2),
+        cost: 4,
         chance: 25,
         message: "howls, weakening you!"
       },
@@ -87,6 +98,7 @@ export const basicEnemies = [
         name: "Pounce",
         type: "damage",
         damage: [5, 8],
+        cost: 4,
         chance: 15,
         message: "pounces quickly!"
       }
@@ -94,13 +106,15 @@ export const basicEnemies = [
   },
   {
     name: "Skeleton Warrior",
-    health: 50,
+    health: 100,
     goldReward: [12, 20],
+    actionPoints: 15, // Reduced by 25% from 20
     abilities: [
       {
         name: "Bone Sword",
         type: "damage",
         damage: [7, 11],
+        cost: 5,
         chance: 50,
         message: "swings a bone sword!"
       },
@@ -108,12 +122,14 @@ export const basicEnemies = [
         name: "Rattle",
         type: "status",
         status: () => createStatus('dazed', 1, 2),
+        cost: 4,
         chance: 30,
         message: "rattles its bones, dazing you!"
       },
       {
         name: "Bone Shield",
         type: "buff",
+        cost: 3,
         chance: 20,
         message: "raises a bone shield!"
       }
@@ -121,13 +137,15 @@ export const basicEnemies = [
   },
   {
     name: "Dark Cultist",
-    health: 42,
+    health: 84,
     goldReward: [15, 22],
+    actionPoints: 15, // Reduced by 25% from 20
     abilities: [
       {
         name: "Dark Bolt",
         type: "damage",
         damage: [9, 13],
+        cost: 6,
         chance: 50,
         message: "fires a dark bolt!"
       },
@@ -144,12 +162,14 @@ export const basicEnemies = [
             status: () => createStatus('cursed', 1)
           }
         ],
+        cost: 7,
         chance: 35,
         message: "casts a cursing spell!"
       },
       {
         name: "Shadow Step",
         type: "skip",
+        cost: 2,
         chance: 15,
         message: "steps into shadows!"
       }
@@ -157,13 +177,15 @@ export const basicEnemies = [
   },
   {
     name: "Flame Imp",
-    health: 38,
+    health: 76,
     goldReward: [10, 16],
+    actionPoints: 15, // Reduced by 25% from 20
     abilities: [
       {
         name: "Fireball",
         type: "damage",
         damage: [10, 14],
+        cost: 6,
         chance: 50,
         message: "hurls a fireball!"
       },
@@ -171,6 +193,7 @@ export const basicEnemies = [
         name: "Burning Touch",
         type: "status",
         status: () => createStatus('burn', 3),
+        cost: 5,
         chance: 35,
         message: "ignites you with burning flames!"
       },
@@ -178,6 +201,7 @@ export const basicEnemies = [
         name: "Ember Shield",
         type: "rest",
         healing: 8,
+        cost: 4,
         chance: 15,
         message: "creates an ember shield and recovers!"
       }
@@ -185,13 +209,15 @@ export const basicEnemies = [
   },
   {
     name: "Ice Sprite",
-    health: 36,
+    health: 72,
     goldReward: [12, 18],
+    actionPoints: 15, // Reduced by 25% from 20
     abilities: [
       {
         name: "Frost Bite",
         type: "damage",
         damage: [6, 10],
+        cost: 5,
         chance: 50,
         message: "attacks with frost!"
       },
@@ -199,6 +225,7 @@ export const basicEnemies = [
         name: "Freeze",
         type: "status",
         status: () => createStatus('freeze', 1),
+        cost: 4,
         chance: 30,
         message: "attempts to freeze you!"
       },
@@ -206,6 +233,7 @@ export const basicEnemies = [
         name: "Ice Armor",
         type: "rest",
         healing: 10,
+        cost: 4,
         chance: 20,
         message: "forms ice armor and heals!"
       }
@@ -213,8 +241,9 @@ export const basicEnemies = [
   },
   {
     name: "Poison Spider",
-    health: 32,
+    health: 64,
     goldReward: [8, 14],
+    actionPoints: 15, // Reduced by 25% from 20
     abilities: [
       {
         name: "Venomous Bite",
@@ -229,6 +258,7 @@ export const basicEnemies = [
             status: () => createStatus('poison', 3)
           }
         ],
+        cost: 6,
         chance: 60,
         message: "bites with venomous fangs!"
       },
@@ -236,12 +266,14 @@ export const basicEnemies = [
         name: "Web Trap",
         type: "status",
         status: () => createStatus('slow', 2),
+        cost: 4,
         chance: 25,
         message: "traps you in webbing!"
       },
       {
         name: "Scurry",
         type: "skip",
+        cost: 2,
         chance: 15,
         message: "scurries away!"
       }
@@ -253,14 +285,16 @@ export const basicEnemies = [
 export const eliteEnemies = [
   {
     name: "Ogre Brute",
-    health: 80,
+    health: 160,
     goldReward: [30, 50],
     isElite: true,
+    actionPoints: 21, // Reduced by 25% from 28
     abilities: [
       {
         name: "Club Smash",
         type: "damage",
         damage: [15, 22],
+        cost: 8,
         chance: 50,
         message: "smashes with a massive club!"
       },
@@ -277,6 +311,7 @@ export const eliteEnemies = [
             status: () => createStatus('stun', 1)
           }
         ],
+        cost: 9,
         chance: 30,
         message: "slams the ground, stunning you!"
       },
@@ -284,6 +319,7 @@ export const eliteEnemies = [
         name: "Berserker Rage",
         type: "buff",
         healing: 15,
+        cost: 5,
         chance: 20,
         message: "enters a berserker rage!"
       }
@@ -291,14 +327,16 @@ export const eliteEnemies = [
   },
   {
     name: "Shadow Assassin",
-    health: 65,
+    health: 130,
     goldReward: [35, 55],
     isElite: true,
+    actionPoints: 22, // Reduced by 25% from 30 (rounded from 22.5)
     abilities: [
       {
         name: "Backstab",
         type: "damage",
         damage: [20, 28],
+        cost: 10,
         chance: 40,
         message: "backstabs with deadly precision!"
       },
@@ -307,12 +345,14 @@ export const eliteEnemies = [
         type: "multi_hit",
         damage: [8, 12],
         hits: 3,
+        cost: 9,
         chance: 35,
         message: "strikes from the shadows multiple times!"
       },
       {
         name: "Smoke Bomb",
         type: "skip",
+        cost: 3,
         chance: 25,
         message: "vanishes in smoke!"
       }
@@ -320,14 +360,16 @@ export const eliteEnemies = [
   },
   {
     name: "Corrupted Knight",
-    health: 90,
+    health: 180,
     goldReward: [40, 60],
     isElite: true,
+    actionPoints: 22, // Reduced by 25% from 30 (rounded from 22.5)
     abilities: [
       {
         name: "Dark Slash",
         type: "damage",
         damage: [12, 18],
+        cost: 7,
         chance: 45,
         message: "slashes with a corrupted blade!"
       },
@@ -344,6 +386,7 @@ export const eliteEnemies = [
             status: () => createStatus('weak', 1, 3)
           }
         ],
+        cost: 8,
         chance: 35,
         message: "strikes with cursed energy!"
       },
@@ -351,6 +394,7 @@ export const eliteEnemies = [
         name: "Dark Recovery",
         type: "rest",
         healing: 20,
+        cost: 6,
         chance: 20,
         message: "recovers with dark magic!"
       }
@@ -358,14 +402,16 @@ export const eliteEnemies = [
   },
   {
     name: "Flame Golem",
-    health: 95,
+    health: 190,
     goldReward: [45, 65],
     isElite: true,
+    actionPoints: 21, // Reduced by 25% from 28
     abilities: [
       {
         name: "Molten Punch",
         type: "damage",
         damage: [18, 24],
+        cost: 9,
         chance: 45,
         message: "punches with molten fists!"
       },
@@ -382,6 +428,7 @@ export const eliteEnemies = [
             status: () => createStatus('burn', 5)
           }
         ],
+        cost: 10,
         chance: 40,
         message: "unleashes an inferno!"
       },
@@ -389,6 +436,7 @@ export const eliteEnemies = [
         name: "Magma Shield",
         type: "rest",
         healing: 18,
+        cost: 5,
         chance: 15,
         message: "creates a magma shield and heals!"
       }
@@ -400,9 +448,10 @@ export const eliteEnemies = [
 export const bossEnemies = [
   {
     name: "Reed",
-    health: 120,
+    health: 240,
     goldReward: [60, 100],
     isBoss: true,
+    actionPoints: 24, // Reduced by 25% from 32
     avatarParams: {
       body: 'variant07',
       beard: 'variant08',
@@ -418,6 +467,7 @@ export const bossEnemies = [
         name: "Royal Strike",
         type: "damage",
         damage: [20, 28],
+        cost: 10,
         chance: 40,
         message: "strikes with royal authority!"
       },
@@ -434,6 +484,7 @@ export const bossEnemies = [
             status: () => createStatus('vulnerable', 1, 3)
           }
         ],
+        cost: 11,
         chance: 35,
         message: "summons minions to attack!"
       },
@@ -441,6 +492,7 @@ export const bossEnemies = [
         name: "Crown's Blessing",
         type: "rest",
         healing: 25,
+        cost: 7,
         chance: 25,
         message: "the crown's magic heals the king!"
       }
@@ -448,14 +500,16 @@ export const bossEnemies = [
   },
   {
     name: "Ancient Lich",
-    health: 150,
+    health: 300,
     goldReward: [80, 120],
     isBoss: true,
+    actionPoints: 26, // Reduced by 25% from 34 (rounded from 25.5)
     abilities: [
       {
         name: "Death Ray",
         type: "damage",
         damage: [25, 35],
+        cost: 12,
         chance: 35,
         message: "fires a death ray!"
       },
@@ -472,6 +526,7 @@ export const bossEnemies = [
             healing: 20
           }
         ],
+        cost: 13,
         chance: 35,
         message: "uses necromancy to damage and heal!"
       },
@@ -488,6 +543,7 @@ export const bossEnemies = [
             status: () => createStatus('weak', 1, 3)
           }
         ],
+        cost: 11,
         chance: 30,
         message: "drains your life force!"
       }
@@ -495,9 +551,10 @@ export const bossEnemies = [
   },
   {
     name: "Dragon Lord",
-    health: 180,
+    health: 360,
     goldReward: [100, 150],
     isBoss: true,
+    actionPoints: 27, // Reduced by 25% from 36
     abilities: [
       {
         name: "Dragon Breath",
@@ -512,6 +569,7 @@ export const bossEnemies = [
             status: () => createStatus('burn', 6)
           }
         ],
+        cost: 15,
         chance: 40,
         message: "breathes scorching fire!"
       },
@@ -520,6 +578,7 @@ export const bossEnemies = [
         type: "multi_hit",
         damage: [15, 20],
         hits: 2,
+        cost: 10,
         chance: 35,
         message: "swipes with its massive tail!"
       },
@@ -527,6 +586,7 @@ export const bossEnemies = [
         name: "Intimidating Roar",
         type: "status",
         status: () => createStatus('weak', 1, 4),
+        cost: 7,
         chance: 25,
         message: "roars with terrifying might!"
       }
@@ -537,15 +597,17 @@ export const bossEnemies = [
 // Final boss (floor 25)
 export const finalBoss = {
   name: "Shadow Demon",
-  health: 200,
+  health: 400,
   goldReward: [150, 200],
   isBoss: true,
   isFinalBoss: true,
+  actionPoints: 30, // Reduced by 25% from 40
   abilities: [
     {
       name: "Shadow Claw",
       type: "damage",
       damage: [28, 38],
+      cost: 12,
       chance: 30,
       message: "slashes with shadow claws!"
     },
@@ -566,6 +628,7 @@ export const finalBoss = {
           status: () => createStatus('weak', 1, 3)
         }
       ],
+      cost: 15,
       chance: 30,
       message: "performs a dark ritual!"
     },
@@ -574,6 +637,7 @@ export const finalBoss = {
       type: "multi_hit",
       damage: [18, 25],
       hits: 2,
+      cost: 11,
       chance: 25,
       message: "strikes from the void!"
     },
@@ -581,6 +645,7 @@ export const finalBoss = {
       name: "Demon's Recovery",
       type: "rest",
       healing: 30,
+      cost: 8,
       chance: 15,
       message: "recovers with demonic energy!"
     }

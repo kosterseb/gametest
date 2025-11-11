@@ -4,6 +4,7 @@ import { useRouter } from '../../hooks/useRouter';
 import { PageTransition } from './PageTransition';
 import { HelpCircle, Sparkles, Package } from 'lucide-react';
 import { getRandomItemReward, createItemInstance } from '../../data/items';
+import { NBButton, NBHeading, NBBadge } from './NeoBrutalUI';
 
 // Placeholder joker effects - simple, non-run-defining buffs
 const jokerEffects = [
@@ -91,55 +92,62 @@ export const JokerNode = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-red-600 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-xl text-center max-w-md">
-          <HelpCircle className="w-16 h-16 mx-auto mb-4 text-purple-600" />
-          <h1 className="text-3xl font-bold mb-4">Mystery Node</h1>
-          
+      <div className="min-h-screen nb-bg-cyan flex items-center justify-center p-8">
+        <div className="nb-bg-white nb-border-xl nb-shadow-xl p-8 text-center max-w-md">
+          <div className="nb-bg-cyan nb-border-xl nb-shadow-lg p-6 mb-6 inline-block">
+            <HelpCircle className="w-16 h-16 mx-auto text-black" />
+          </div>
+          <NBHeading level={1} className="text-black mb-6">MYSTERY NODE</NBHeading>
+
           {!isRevealed ? (
             <>
-              <p className="text-gray-600 mb-6">
-                Something mysterious awaits... will fortune favor you?
-              </p>
-              <button
+              <div className="nb-bg-purple nb-border-lg nb-shadow px-6 py-3 mb-6 inline-block">
+                <p className="text-black font-bold text-sm uppercase">
+                  Something mysterious awaits... will fortune favor you?
+                </p>
+              </div>
+              <NBButton
                 onClick={handleReveal}
-                className="bg-purple-600 text-white px-8 py-4 rounded-lg font-bold text-xl hover:bg-purple-700 transition-all transform hover:scale-105 flex items-center justify-center space-x-2 mx-auto"
+                variant="purple"
+                size="xl"
+                className="flex items-center justify-center gap-2 mx-auto"
               >
                 <Sparkles className="w-6 h-6" />
-                <span>Reveal</span>
-              </button>
+                <span>REVEAL</span>
+              </NBButton>
             </>
           ) : (
             <>
               {/* Joker Effect Result */}
-              <div className={`mb-6 p-4 rounded-lg ${selectedEffect?.name === 'Minor Setback' ? 'bg-red-100' : 'bg-green-100'}`}>
-                <h2 className="text-2xl font-bold mb-2">{selectedEffect?.name}</h2>
-                <p className="text-gray-700">{selectedEffect?.description}</p>
+              <div className={`mb-6 nb-border-xl nb-shadow-lg p-6 ${selectedEffect?.name === 'Minor Setback' ? 'nb-bg-red' : 'nb-bg-green'}`}>
+                <NBHeading level={2} className="text-black mb-3">{selectedEffect?.name}</NBHeading>
+                <p className="text-black font-bold uppercase">{selectedEffect?.description}</p>
               </div>
 
               {/* Item Drop Notification */}
               {hasItemDrop && itemReward && (
-                <div className="mb-6 bg-purple-100 border-2 border-purple-400 rounded-lg p-4 animate-pulse">
-                  <div className="flex items-center justify-center gap-2 mb-3">
-                    <Package className="w-6 h-6 text-purple-600" />
-                    <h3 className="text-xl font-bold text-purple-800">Item Found!</h3>
+                <div className="mb-6 nb-bg-purple nb-border-xl nb-shadow-lg p-6 animate-pulse">
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <Package className="w-6 h-6 text-black" />
+                    <NBHeading level={3} className="text-black">ITEM FOUND!</NBHeading>
                   </div>
-                  <div className="text-5xl mb-2">{itemReward.emoji}</div>
-                  <div className="font-bold text-lg text-purple-800">{itemReward.name}</div>
-                  <div className="text-sm text-purple-700">{itemReward.description}</div>
-                  <div className="mt-2 text-xs bg-purple-500 text-white px-3 py-1 rounded-full inline-block font-bold">
+                  <div className="text-5xl mb-3">{itemReward.emoji}</div>
+                  <div className="font-black text-lg text-black uppercase mb-2">{itemReward.name}</div>
+                  <div className="text-sm text-black font-bold mb-3">{itemReward.description}</div>
+                  <NBBadge color="yellow" className="px-3 py-1">
                     {itemReward.type === 'consumable' ? 'CONSUMABLE' : 'PASSIVE'} • {itemReward.rarity.toUpperCase()}
-                  </div>
+                  </NBBadge>
                 </div>
               )}
 
               {/* Continue Button */}
-              <button
+              <NBButton
                 onClick={handleContinue}
-                className="bg-green-600 text-white px-8 py-4 rounded-lg font-bold text-xl hover:bg-green-700 transition-all transform hover:scale-105"
+                variant="success"
+                size="xl"
               >
-                {hasItemDrop ? 'Claim Item' : 'Continue'}
-              </button>
+                {hasItemDrop ? 'CLAIM ITEM' : 'CONTINUE'}
+              </NBButton>
             </>
           )}
         </div>

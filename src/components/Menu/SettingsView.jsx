@@ -1,12 +1,16 @@
 import React from 'react';
 import { useGame } from '../../context/GameContext';
-import { Settings, Volume2, Eye } from 'lucide-react';
+import { Settings, Volume2, Eye, Box } from 'lucide-react';
 
 export const SettingsView = () => {
   const { gameState, dispatch } = useGame();
 
   const handleTogglePreBattleLoadout = () => {
     dispatch({ type: 'TOGGLE_PRE_BATTLE_LOADOUT' });
+  };
+
+  const handleToggle3DView = () => {
+    dispatch({ type: 'TOGGLE_3D_VIEW' });
   };
 
   return (
@@ -24,6 +28,35 @@ export const SettingsView = () => {
 
       {/* Settings Options */}
       <div className="space-y-4 max-w-2xl mx-auto">
+        {/* 3D Map View Toggle */}
+        <div className="bg-gray-800 p-4 rounded-lg border-2 border-gray-700">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Box className="w-6 h-6 text-purple-400" />
+              <div>
+                <h3 className="text-lg font-bold text-white">3D Map View</h3>
+                <p className="text-sm text-gray-400">
+                  Use 3D view for the progression map (toggle available on map screen)
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleToggle3DView}
+              className={`
+                relative inline-flex h-8 w-14 items-center rounded-full transition-colors
+                ${gameState.prefer3DView ? 'bg-green-500' : 'bg-gray-600'}
+              `}
+            >
+              <span
+                className={`
+                  inline-block h-6 w-6 transform rounded-full bg-white transition-transform
+                  ${gameState.prefer3DView ? 'translate-x-7' : 'translate-x-1'}
+                `}
+              />
+            </button>
+          </div>
+        </div>
+
         {/* Pre-Battle Loadout Toggle */}
         <div className="bg-gray-800 p-4 rounded-lg border-2 border-gray-700">
           <div className="flex items-center justify-between">
@@ -103,7 +136,7 @@ export const SettingsView = () => {
 
         {/* Game Info */}
         <div className="bg-gray-800 p-4 rounded-lg border-2 border-gray-700 text-center mt-8">
-          <p className="text-gray-400 text-sm mb-1">Card Quest</p>
+          <p className="text-gray-400 text-sm mb-1">RETENTA</p>
           <p className="text-gray-500 text-xs">A Roguelike Card Adventure</p>
         </div>
       </div>

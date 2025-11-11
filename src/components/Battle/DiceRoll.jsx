@@ -69,23 +69,27 @@ export const DiceRoll = ({ onRollComplete, minValue = 1, maxValue = 6 }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 backdrop-blur-sm">
-      <div className="bg-gradient-to-br from-purple-900 to-indigo-900 p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 border-4 border-yellow-400">
-        <h2 className="text-3xl font-bold text-center text-white mb-6 flex items-center justify-center gap-3">
-          <Dices className="w-10 h-10 text-yellow-400" />
-          Roll the Dice!
-        </h2>
+      <div className="bg-gradient-to-br from-purple-400 to-indigo-400 p-8 nb-border-xl nb-shadow-xl max-w-md w-full mx-4">
+        <div className="text-center mb-6">
+          <div className="nb-bg-yellow nb-border-lg nb-shadow px-6 py-3 inline-flex items-center gap-3">
+            <Dices className="w-10 h-10 text-black" />
+            <h2 className="text-3xl font-black text-black uppercase">
+              Roll the Dice!
+            </h2>
+          </div>
+        </div>
 
         {/* Dice Display */}
         <div className="flex justify-center mb-8">
           <div
             className={`
-              w-40 h-40 rounded-3xl
+              w-40 h-40
               bg-gradient-to-br ${getDiceColor()}
-              shadow-2xl border-4 border-white
+              nb-border-xl nb-shadow-xl
               flex items-center justify-center
               transition-all duration-200
               ${isRolling ? 'animate-spin' : 'animate-bounce'}
-              ${currentValue === maxValue ? 'ring-8 ring-yellow-300' : ''}
+              ${currentValue === maxValue ? 'ring-8 ring-yellow-400' : ''}
             `}
           >
             {currentValue ? (
@@ -102,14 +106,21 @@ export const DiceRoll = ({ onRollComplete, minValue = 1, maxValue = 6 }) => {
         {currentValue && (
           <div className="text-center mb-6">
             <div className={`
-              text-6xl font-bold
-              ${currentValue === maxValue ? 'text-yellow-300 animate-pulse' : 'text-white'}
+              nb-bg-white nb-border-xl nb-shadow-xl
+              px-8 py-4 inline-block
             `}>
-              {currentValue}
+              <div className={`
+                text-6xl font-black
+                ${currentValue === maxValue ? 'text-yellow-600 animate-pulse' : 'text-black'}
+              `}>
+                {currentValue}
+              </div>
             </div>
             {currentValue === maxValue && (
-              <div className="text-yellow-300 font-bold text-xl mt-2 animate-pulse">
-                ✨ MAXIMUM ROLL! ✨
+              <div className="mt-4 nb-bg-yellow nb-border-lg nb-shadow px-4 py-2 inline-block animate-bounce">
+                <div className="text-black font-black text-xl uppercase">
+                  ✨ MAXIMUM ROLL! ✨
+                </div>
               </div>
             )}
           </div>
@@ -119,15 +130,17 @@ export const DiceRoll = ({ onRollComplete, minValue = 1, maxValue = 6 }) => {
         {!hasRolled && (
           <button
             onClick={handleRoll}
-            className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-gray-900 font-bold text-xl py-4 rounded-xl shadow-lg transform hover:scale-105 transition-all border-2 border-yellow-300"
+            className="w-full nb-bg-yellow nb-border-xl nb-shadow-xl nb-hover-lg nb-active text-black font-black text-xl py-4 uppercase transition-all"
           >
             🎲 Click to Roll! 🎲
           </button>
         )}
 
         {hasRolled && !isRolling && (
-          <div className="text-center text-white text-sm animate-pulse">
-            Applying result...
+          <div className="nb-bg-white nb-border-lg nb-shadow p-4 text-center">
+            <div className="text-black font-black text-sm uppercase animate-pulse">
+              Applying result...
+            </div>
           </div>
         )}
       </div>
