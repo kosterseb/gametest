@@ -17,105 +17,115 @@ const COLORS = ['#4062BB', '#52489C', '#59C3C3', '#F45B69'];
 const getRandomFloat = (min, max) => Math.random() * (max - min) + min;
 const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-// WindLine Component - Creates animated flowing lines using tubes for visibility
-const WindLine = ({ color, speed = 0.003, nbrOfPoints = 5, length = 6 }) => {
+// Card Component - Creates small flying card-like shapes
+const FlyingCard = ({ color, speed = 0.05 }) => {
   const meshRef = useRef();
   const materialRef = useRef();
-  const dashOffsetRef = useRef(0);
-  const opacityRef = useRef(0);
+  const lifeTimeRef = useRef(0);
+  const maxLifeTime = useRef(getRandomFloat(2, 4)); // seconds
 
-  // Create the curved tube geometry (visible unlike lines)
+  // Card-like rectangle geometry (like a playing card)
   const geometry = useMemo(() => {
-    const points = [];
-    const segmentLength = length / nbrOfPoints;
+    return new THREE.PlaneGeometry(0.3, 0.5); // Card proportions (width, height)
+  }, []);
 
-    points.push(new THREE.Vector3(0, 0, 0));
-    for (let i = 0; i < nbrOfPoints; i++) {
-      const pos = segmentLength * i;
-      points.push(
-        new THREE.Vector3(
-          pos - getRandomFloat(-2.1, 2.1),
-          pos + segmentLength * i,
-          0
-        )
-      );
-    }
-
-    const curve = new THREE.CatmullRomCurve3(points);
-    // Use TubeGeometry for visible thick lines
-    return new THREE.TubeGeometry(curve, 50, 0.02, 8, false);
-  }, [nbrOfPoints, length]);
-
-  // Random initial position
-  const position = useMemo(() => [
-    getRandomFloat(-10, 10),
-    getRandomFloat(-6, 5),
-    getRandomFloat(-2, 10),
-  ], []);
+  // Random initial position and velocity
+  const initialData = useMemo(() => ({
+    position: new THREE.Vector3(
+      getRandomFloat(-12, 12),
+      getRandomFloat(-8, 8),
+      getRandomFloat(-5, 5)
+    ),
+    velocity: new THREE.Vector3(
+      getRandomFloat(-0.02, 0.02),
+      getRandomFloat(0.03, 0.08), // Upward bias
+      getRandomFloat(-0.01, 0.01)
+    ),
+    rotation: getRandomFloat(0, Math.PI * 2),
+    rotationSpeed: getRandomFloat(-0.05, 0.05),
+  }), []);
 
   // Animation loop
-  useFrame(() => {
-    if (!materialRef.current) return;
+  useFrame((state, delta) => {
+    if (!meshRef.current || !materialRef.current) return;
 
-    // Animate the offset
-    dashOffsetRef.current -= speed;
+    lifeTimeRef.current += delta;
 
-    // Fade in when line appears, fade out when it's near the end
-    const targetOpacity = dashOffsetRef.current > -3 ? 1 : 0;
-    opacityRef.current += (targetOpacity - opacityRef.current) * 0.08;
+    // Move the card
+    meshRef.current.position.x += initialData.velocity.x;
+    meshRef.current.position.y += initialData.velocity.y;
+    meshRef.current.position.z += initialData.velocity.z;
 
-    materialRef.current.opacity = opacityRef.current;
+    // Rotate the card
+    meshRef.current.rotation.z += initialData.rotationSpeed;
 
-    // Remove line when it's fully faded
-    if (dashOffsetRef.current < -4 && opacityRef.current < 0.01) {
-      if (meshRef.current && meshRef.current.parent) {
+    // Fade in quickly, then fade out at the end
+    const lifeProgress = lifeTimeRef.current / maxLifeTime.current;
+    let opacity;
+    if (lifeProgress < 0.1) {
+      opacity = lifeProgress / 0.1; // Fade in
+    } else if (lifeProgress > 0.8) {
+      opacity = 1 - ((lifeProgress - 0.8) / 0.2); // Fade out
+    } else {
+      opacity = 1;
+    }
+
+    materialRef.current.opacity = opacity;
+
+    // Remove when life is over
+    if (lifeTimeRef.current > maxLifeTime.current) {
+      if (meshRef.current.parent) {
         meshRef.current.parent.remove(meshRef.current);
       }
     }
   });
 
   return (
-    <mesh ref={meshRef} geometry={geometry} position={position}>
+    <mesh
+      ref={meshRef}
+      geometry={geometry}
+      position={initialData.position}
+      rotation={[0, 0, initialData.rotation]}
+    >
       <meshBasicMaterial
         ref={materialRef}
         color={color}
         opacity={0}
         transparent
         depthWrite={false}
+        side={THREE.DoubleSide}
       />
     </mesh>
   );
 };
 
-// Wind Component - Manages multiple wind lines
-const Wind = () => {
-  const [lines, setLines] = React.useState([]);
+// CardField Component - Manages multiple flying cards
+const CardField = () => {
+  const [cards, setCards] = React.useState([]);
 
   useFrame(() => {
-    // Add new lines randomly
-    if (Math.random() < 0.65) {
+    // Add new cards frequently for that "flying cards" effect
+    if (Math.random() < 0.3) { // 30% chance each frame
       const id = Math.random();
       const color = COLORS[getRandomInt(0, COLORS.length - 1)];
-      setLines((prev) => [
+      setCards((prev) => [
         ...prev,
         {
           id,
           color,
-          speed: 0.003,
-          nbrOfPoints: getRandomFloat(3, 5),
-          length: getRandomFloat(5, 8),
+          speed: getRandomFloat(0.03, 0.08),
         },
       ]);
     }
 
-    // Limit total number of lines
-    setLines((prev) => prev.slice(-30));
+    // Limit total number of cards to prevent memory issues
+    setCards((prev) => prev.slice(-50));
   });
 
   return (
     <group>
-      {lines.map((line) => (
-        <WindLine key={line.id} {...line} />
+      {cards.map((card) => (
+        <FlyingCard key={card.id} {...card} />
       ))}
     </group>
   );
@@ -230,13 +240,13 @@ export const NewMainMenuScene = () => {
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-white">
-      {/* Three.js Canvas - Wind Lines Background */}
+      {/* Three.js Canvas - Flying Cards Background */}
       <Canvas
         camera={{ position: [0, 0, 10], fov: 50 }}
         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
       >
         <CameraController />
-        <Wind />
+        <CardField />
       </Canvas>
 
       {/* Foreground Content - Letters and Button */}
