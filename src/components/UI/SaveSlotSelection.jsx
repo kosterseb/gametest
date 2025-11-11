@@ -5,6 +5,7 @@ import { getAllSaveSlots, loadSave, deleteSave, getTimeSinceLastPlayed } from '.
 import { PageTransition } from './PageTransition';
 import { Save, Trash2, Plus, Crown, ArrowLeft } from 'lucide-react';
 import { NBButton, NBHeading, NBBadge } from './NeoBrutalUI';
+import { FlyingCardsBackground } from './FlyingCardsBackground';
 
 export const SaveSlotSelection = () => {
   const { dispatch } = useGame();
@@ -59,7 +60,8 @@ export const SaveSlotSelection = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-black p-8">
+      <FlyingCardsBackground />
+      <div className="min-h-screen p-8 relative">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
