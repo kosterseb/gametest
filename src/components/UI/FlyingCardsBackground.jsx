@@ -16,7 +16,7 @@ const FlyingCard = ({ color }) => {
   const maxLifeTime = useRef(getRandomFloat(2, 4));
 
   const geometry = useMemo(() => {
-    return new THREE.BoxGeometry(0.3, 0.5, 0.02);
+    return new THREE.BoxGeometry(0.21, 0.35, 0.014); // 30% smaller cards
   }, []);
 
   const initialData = useMemo(() => ({
