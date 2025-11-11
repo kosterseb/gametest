@@ -17,14 +17,14 @@ const COLORS = ['#4062BB', '#52489C', '#59C3C3', '#F45B69'];
 const getRandomFloat = (min, max) => Math.random() * (max - min) + min;
 const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-// WindLine Component - Creates animated flowing lines
+// WindLine Component - Creates animated flowing lines using tubes for visibility
 const WindLine = ({ color, speed = 0.003, nbrOfPoints = 5, length = 6 }) => {
   const meshRef = useRef();
   const materialRef = useRef();
-  const dyingPoint = useRef(1.01);
-  const isDead = useRef(false);
+  const dashOffsetRef = useRef(0);
+  const opacityRef = useRef(0);
 
-  // Create the curved line geometry
+  // Create the curved tube geometry (visible unlike lines)
   const geometry = useMemo(() => {
     const points = [];
     const segmentLength = length / nbrOfPoints;
@@ -42,8 +42,8 @@ const WindLine = ({ color, speed = 0.003, nbrOfPoints = 5, length = 6 }) => {
     }
 
     const curve = new THREE.CatmullRomCurve3(points);
-    const curvePoints = curve.getPoints(50);
-    return new THREE.BufferGeometry().setFromPoints(curvePoints);
+    // Use TubeGeometry for visible thick lines
+    return new THREE.TubeGeometry(curve, 50, 0.02, 8, false);
   }, [nbrOfPoints, length]);
 
   // Random initial position
@@ -55,35 +55,35 @@ const WindLine = ({ color, speed = 0.003, nbrOfPoints = 5, length = 6 }) => {
 
   // Animation loop
   useFrame(() => {
-    if (!materialRef.current || isDead.current) return;
+    if (!materialRef.current) return;
 
-    // Animate the dash offset to create flowing effect
-    materialRef.current.dashOffset -= speed;
+    // Animate the offset
+    dashOffsetRef.current -= speed;
 
-    // Fade in/out based on position
-    const targetOpacity = materialRef.current.dashOffset > dyingPoint.current + 0.25 ? 1 : 0;
-    materialRef.current.opacity += (targetOpacity - materialRef.current.opacity) * 0.08;
+    // Fade in when line appears, fade out when it's near the end
+    const targetOpacity = dashOffsetRef.current > -3 ? 1 : 0;
+    opacityRef.current += (targetOpacity - opacityRef.current) * 0.08;
 
-    // Mark as dead when fully animated
-    if (materialRef.current.dashOffset < dyingPoint.current) {
-      isDead.current = true;
+    materialRef.current.opacity = opacityRef.current;
+
+    // Remove line when it's fully faded
+    if (dashOffsetRef.current < -4 && opacityRef.current < 0.01) {
+      if (meshRef.current && meshRef.current.parent) {
+        meshRef.current.parent.remove(meshRef.current);
+      }
     }
   });
 
   return (
-    <line ref={meshRef} geometry={geometry} position={position}>
-      <lineDashedMaterial
+    <mesh ref={meshRef} geometry={geometry} position={position}>
+      <meshBasicMaterial
         ref={materialRef}
         color={color}
-        linewidth={2}
-        dashSize={2}
-        gapSize={0.02}
-        dashOffset={1}
         opacity={0}
         transparent
         depthWrite={false}
       />
-    </line>
+    </mesh>
   );
 };
 
