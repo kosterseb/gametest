@@ -218,8 +218,8 @@ const LetterLogo = ({ src, delay, onComplete, isNorA = false }) => {
 
   if (!isVisible) return null;
 
-  // Base size + extra 5px for N and A (overall smaller)
-  const baseSize = isNorA ? 'w-[70px] h-[70px] md:w-[110px] md:h-[110px]' : 'w-[65px] h-[65px] md:w-[105px] md:h-[105px]';
+  // Base size + extra 10px for N and A (5px more than standard)
+  const baseSize = isNorA ? 'w-[75px] h-[75px] md:w-[115px] md:h-[115px]' : 'w-[65px] h-[65px] md:w-[105px] md:h-[105px]';
 
   return (
     <img
@@ -277,7 +277,7 @@ export const NewMainMenuScene = () => {
       {/* Foreground Content - Letters and Button */}
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
         {/* RETENTA Logo Letters */}
-        <div className="flex items-center justify-center mb-12" style={{ gap: '-5px' }}>
+        <div className="flex items-center justify-center mb-12" style={{ gap: '-8px' }}>
           {letters.map((letter, index) => (
             <LetterLogo
               key={index}
