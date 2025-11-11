@@ -24,9 +24,10 @@ const FlyingCard = ({ color, speed = 0.05 }) => {
   const lifeTimeRef = useRef(0);
   const maxLifeTime = useRef(getRandomFloat(2, 4)); // seconds
 
-  // Card-like rectangle geometry (like a playing card)
+  // Card-like geometry with actual thickness (like a real playing card)
   const geometry = useMemo(() => {
-    return new THREE.PlaneGeometry(0.3, 0.5); // Card proportions (width, height)
+    // Use BoxGeometry for thickness: width, height, depth
+    return new THREE.BoxGeometry(0.3, 0.5, 0.02); // Card proportions with thin depth
   }, []);
 
   // Random initial position and velocity
@@ -102,13 +103,14 @@ const FlyingCard = ({ color, speed = 0.05 }) => {
       position={initialData.position}
       rotation={[initialData.rotation.x, initialData.rotation.y, initialData.rotation.z]}
     >
-      <meshBasicMaterial
+      <meshStandardMaterial
         ref={materialRef}
         color={color}
         opacity={0}
         transparent
         depthWrite={false}
-        side={THREE.DoubleSide}
+        roughness={0.7}
+        metalness={0.1}
       />
     </mesh>
   );
@@ -260,6 +262,11 @@ export const NewMainMenuScene = () => {
         camera={{ position: [0, 0, 10], fov: 50 }}
         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
       >
+        {/* Lighting for depth perception */}
+        <ambientLight intensity={0.6} />
+        <directionalLight position={[5, 5, 5]} intensity={0.5} />
+        <directionalLight position={[-5, -5, -5]} intensity={0.3} />
+
         <CameraController />
         <CardField />
       </Canvas>
@@ -267,7 +274,7 @@ export const NewMainMenuScene = () => {
       {/* Foreground Content - Letters and Button */}
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
         {/* RETENTA Logo Letters */}
-        <div className="flex items-center justify-center gap-2 md:gap-4 mb-12">
+        <div className="flex items-center justify-center gap-1 md:gap-2 mb-12">
           {letters.map((letter, index) => (
             <LetterLogo
               key={index}
