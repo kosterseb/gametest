@@ -2,7 +2,6 @@ import React, { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useRouter } from '../../hooks/useRouter';
-import { NBButton } from './NeoBrutalUI';
 
 // Import letter logos
 import logoR from '../../assets/Logos/logo-R.png';
@@ -255,19 +254,13 @@ export const NewMainMenuScene = () => {
 
         {/* Start Button */}
         {showButton && (
-          <div
-            className="pointer-events-auto animate-bounceIn"
+          <button
+            onClick={handleStart}
+            className="pointer-events-auto animate-bounceIn nb-btn nb-bg-yellow nb-shadow-lg px-10 py-5 text-2xl font-black uppercase tracking-wide cursor-pointer hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all"
             style={{ animationDelay: '0.2s' }}
           >
-            <NBButton
-              onClick={handleStart}
-              variant="yellow"
-              size="xl"
-              className="text-2xl font-black"
-            >
-              START
-            </NBButton>
-          </div>
+            START
+          </button>
         )}
       </div>
 
