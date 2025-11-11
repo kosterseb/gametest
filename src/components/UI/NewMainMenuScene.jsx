@@ -11,7 +11,7 @@ import logoT from '../../assets/Logos/logo-T.png';
 import logoN from '../../assets/Logos/logo-N.png';
 import logoA from '../../assets/Logos/logo-A.png';
 
-const COLORS = ['#4062BB', '#52489C', '#59C3C3', '#F45B69'];
+const COLORS = ['#6B8FDB', '#7B6FBC', '#79D9D9', '#F97F89'];
 
 // Helper functions
 const getRandomFloat = (min, max) => Math.random() * (max - min) + min;
@@ -172,7 +172,7 @@ const CameraController = () => {
 };
 
 // Letter Logo Component with bounce animation
-const LetterLogo = ({ src, delay, onComplete }) => {
+const LetterLogo = ({ src, delay, onComplete, isNorA = false }) => {
   const [isVisible, setIsVisible] = React.useState(false);
   const [scale, setScale] = React.useState(0);
 
@@ -218,11 +218,14 @@ const LetterLogo = ({ src, delay, onComplete }) => {
 
   if (!isVisible) return null;
 
+  // Base size + extra 5px for N and A
+  const baseSize = isNorA ? 'w-[85px] h-[85px] md:w-[133px] md:h-[133px]' : 'w-20 h-20 md:w-32 md:h-32';
+
   return (
     <img
       src={src}
       alt="Letter"
-      className="w-20 h-20 md:w-32 md:h-32 object-contain"
+      className={`${baseSize} object-contain`}
       style={{
         transform: `scale(${scale})`,
         filter: 'drop-shadow(4px 4px 0px rgba(0,0,0,0.3))',
@@ -237,13 +240,13 @@ export const NewMainMenuScene = () => {
   const [showButton, setShowButton] = React.useState(false);
 
   const letters = [
-    { src: logoR, delay: 500 },
-    { src: logoE, delay: 800 },
-    { src: logoT, delay: 1100 },
-    { src: logoE, delay: 1400 },
-    { src: logoN, delay: 1700 },
-    { src: logoT, delay: 2000 },
-    { src: logoA, delay: 2300 },
+    { src: logoR, delay: 500, isNorA: false },
+    { src: logoE, delay: 800, isNorA: false },
+    { src: logoT, delay: 1100, isNorA: false },
+    { src: logoE, delay: 1400, isNorA: false },
+    { src: logoN, delay: 1700, isNorA: true },
+    { src: logoT, delay: 2000, isNorA: false },
+    { src: logoA, delay: 2300, isNorA: true },
   ];
 
   const handleLetterComplete = () => {
@@ -274,12 +277,13 @@ export const NewMainMenuScene = () => {
       {/* Foreground Content - Letters and Button */}
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
         {/* RETENTA Logo Letters */}
-        <div className="flex items-center justify-center gap-1 md:gap-2 mb-12">
+        <div className="flex items-center justify-center mb-12" style={{ gap: '0px' }}>
           {letters.map((letter, index) => (
             <LetterLogo
               key={index}
               src={letter.src}
               delay={letter.delay}
+              isNorA={letter.isNorA}
               onComplete={index === letters.length - 1 ? handleLetterComplete : undefined}
             />
           ))}
