@@ -353,6 +353,163 @@ export const cardTemplates = [
     energyCost: 3,
     weight: 'cleanse',
     rarity: 'rare'
+  },
+
+  // ==================== BUFF CARDS (PLAYER STATUS) ====================
+  {
+    name: "Battle Cry",
+    type: "utility",
+    description: "Gain Strength 3 (deal +3 damage per stack)",
+    effect: "buff_strength",
+    statusEffect: {
+      type: 'strength',
+      stacks: 3
+    },
+    energyCost: 2,
+    weight: 'utility',
+    rarity: 'common'
+  },
+  {
+    name: "Regenerate",
+    type: "utility",
+    description: "Gain Regeneration 2 (heal 4 HP per turn)",
+    effect: "buff_regeneration",
+    statusEffect: {
+      type: 'regeneration',
+      stacks: 2
+    },
+    energyCost: 2,
+    weight: 'utility',
+    rarity: 'common'
+  },
+  {
+    name: "Evasion",
+    type: "utility",
+    description: "Gain Dodge 1 (avoid next attack)",
+    effect: "buff_dodge",
+    statusEffect: {
+      type: 'dodge',
+      stacks: 1
+    },
+    energyCost: 2,
+    weight: 'utility',
+    rarity: 'rare'
+  },
+  {
+    name: "Thorny Armor",
+    type: "utility",
+    description: "Gain Thorns 3 (reflect 6 damage)",
+    effect: "buff_thorns",
+    statusEffect: {
+      type: 'thorns',
+      stacks: 3
+    },
+    energyCost: 2,
+    weight: 'utility',
+    rarity: 'rare'
+  },
+  {
+    name: "Power Surge",
+    type: "utility",
+    description: "Gain Strength 5 (deal +5 damage per stack)",
+    effect: "buff_strength",
+    statusEffect: {
+      type: 'strength',
+      stacks: 5
+    },
+    energyCost: 3,
+    weight: 'utility',
+    rarity: 'epic'
+  },
+  {
+    name: "Divine Protection",
+    type: "utility",
+    description: "Gain Shield 15 and Dodge 1",
+    effect: "buff_shield_dodge",
+    statusEffect: [
+      { type: 'shield', stacks: 15 },
+      { type: 'dodge', stacks: 1 }
+    ],
+    energyCost: 3,
+    weight: 'utility',
+    rarity: 'epic'
+  },
+
+  // ==================== COUNTER CARDS ====================
+  {
+    name: "Perfect Block",
+    type: "counter",
+    description: "COUNTER: Block enemy attack completely",
+    effect: "counter_block",
+    counterEffect: {
+      type: 'block',
+      blockAmount: 'all'
+    },
+    energyCost: 2,
+    weight: 'utility',
+    rarity: 'rare',
+    isCounter: true
+  },
+  {
+    name: "Riposte",
+    type: "counter",
+    description: "COUNTER: Block attack and deal 15 damage back",
+    effect: "counter_riposte",
+    counterEffect: {
+      type: 'block_and_damage',
+      blockAmount: 'all',
+      damageBack: 15
+    },
+    energyCost: 3,
+    weight: 'utility',
+    rarity: 'rare',
+    isCounter: true
+  },
+  {
+    name: "Counter Strike",
+    type: "counter",
+    description: "COUNTER: Reduce damage by 50% and deal 20 damage",
+    effect: "counter_strike",
+    counterEffect: {
+      type: 'reduce_and_damage',
+      reduction: 0.5,
+      damageBack: 20
+    },
+    energyCost: 2,
+    weight: 'utility',
+    rarity: 'common',
+    isCounter: true
+  },
+  {
+    name: "Lucky Counter",
+    type: "counter",
+    description: "COUNTER: Roll dice - on 4+ block attack and deal damage equal to roll × 5",
+    effect: "counter_dice",
+    diceRoll: true,
+    counterEffect: {
+      type: 'dice_counter',
+      threshold: 4,
+      damageMultiplier: 5
+    },
+    energyCost: 2,
+    weight: 'utility',
+    rarity: 'epic',
+    isCounter: true
+  },
+  {
+    name: "Parry",
+    type: "counter",
+    description: "COUNTER: Block attack and gain Shield 10",
+    effect: "counter_parry",
+    counterEffect: {
+      type: 'block_and_shield',
+      blockAmount: 'all',
+      shieldGain: 10
+    },
+    energyCost: 2,
+    weight: 'utility',
+    rarity: 'rare',
+    isCounter: true
   }
 ];
 

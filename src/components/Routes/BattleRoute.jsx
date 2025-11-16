@@ -136,6 +136,17 @@ const cardStateReducer = (state, action) => {
       };
     }
 
+    case 'DISCARD_SINGLE_CARD': {
+      const { card } = action;
+      const newHand = state.hand.filter(c => c.id !== card.id);
+
+      return {
+        deck: state.deck,
+        hand: newHand,
+        discardPile: [...state.discardPile, card]
+      };
+    }
+
     default:
       return state;
   }
@@ -502,7 +513,8 @@ export const BattleRoute = () => {
   useEffect(() => {
     // Guard: Only run if we have cards in deck, empty hand, haven't drawn yet, turn order is decided, AND it's not enemy's turn
     if (deck.length > 0 && hand.length === 0 && !initialHandDrawn.current && turnOrderDecided && !isEnemyTurn) {
-      const handSize = gameState.maxHandSize || 6;
+      // ✅ CHANGED: Max hand size is now 5 (hand persists between turns)
+      const handSize = 5;
       console.log(`✋ Drawing initial hand of ${handSize} cards (deck has ${deck.length} cards)`);
 
       // Set flag IMMEDIATELY to prevent re-entry
@@ -641,6 +653,50 @@ export const BattleRoute = () => {
           setPlayerStatuses(prev => applyStatus(prev, shieldStatus));
           setBattleLog(prev => [...prev, `🛡️ ${card.name}: Gained ${shieldAmount} shield!`]);
         }
+
+        // ✅ NEW BUFF CARD EFFECTS
+        if (card.effect === 'buff_strength') {
+          const statusEffect = Array.isArray(card.statusEffect) ? card.statusEffect[0] : card.statusEffect;
+          const strengthStatus = createStatus('strength', statusEffect.stacks);
+          setPlayerStatuses(prev => applyStatus(prev, strengthStatus));
+          setBattleLog(prev => [...prev, `💪 ${card.name}: Gained Strength ${statusEffect.stacks}!`]);
+        }
+
+        if (card.effect === 'buff_regeneration') {
+          const statusEffect = Array.isArray(card.statusEffect) ? card.statusEffect[0] : card.statusEffect;
+          const regenStatus = createStatus('regeneration', statusEffect.stacks);
+          setPlayerStatuses(prev => applyStatus(prev, regenStatus));
+          setBattleLog(prev => [...prev, `💚 ${card.name}: Gained Regeneration ${statusEffect.stacks}!`]);
+        }
+
+        if (card.effect === 'buff_dodge') {
+          const statusEffect = Array.isArray(card.statusEffect) ? card.statusEffect[0] : card.statusEffect;
+          const dodgeStatus = createStatus('dodge', statusEffect.stacks);
+          setPlayerStatuses(prev => applyStatus(prev, dodgeStatus));
+          setBattleLog(prev => [...prev, `💨 ${card.name}: Gained Dodge ${statusEffect.stacks}!`]);
+        }
+
+        if (card.effect === 'buff_thorns') {
+          const statusEffect = Array.isArray(card.statusEffect) ? card.statusEffect[0] : card.statusEffect;
+          const thornsStatus = createStatus('thorns', statusEffect.stacks);
+          setPlayerStatuses(prev => applyStatus(prev, thornsStatus));
+          setBattleLog(prev => [...prev, `🌹 ${card.name}: Gained Thorns ${statusEffect.stacks}!`]);
+        }
+
+        if (card.effect === 'buff_shield_dodge') {
+          // Combo effect - applies multiple status effects
+          const statusEffects = card.statusEffect;
+          statusEffects.forEach(effect => {
+            if (effect.type === 'shield') {
+              const shieldStatus = createStatus('shield', effect.stacks);
+              setPlayerStatuses(prev => applyStatus(prev, shieldStatus));
+            } else if (effect.type === 'dodge') {
+              const dodgeStatus = createStatus('dodge', effect.stacks);
+              setPlayerStatuses(prev => applyStatus(prev, dodgeStatus));
+            }
+          });
+          setBattleLog(prev => [...prev, `✨ ${card.name}: Gained Shield 15 and Dodge 1!`]);
+        }
         break;
 
       case 'cleanse':
@@ -731,6 +787,22 @@ export const BattleRoute = () => {
       executeCard(card);
     }
   }, [isBattleOver, playerEnergy, playerStatuses, hand.length, executeCard]);
+
+  // ✅ Manual discard handler
+  const handleManualDiscard = useCallback((card) => {
+    if (isEnemyTurn || isBattleOver || isAttackAnimationPlaying || isTurnStarting) {
+      console.warn('⚠️ Cannot discard cards during enemy turn or animations');
+      return;
+    }
+
+    console.log('🗑️ Manually discarding card:', card.name);
+    dispatchCardState({
+      type: 'DISCARD_SINGLE_CARD',
+      card
+    });
+
+    setBattleLog(prev => [...prev, `🗑️ Discarded ${card.name}`]);
+  }, [isEnemyTurn, isBattleOver, isAttackAnimationPlaying, isTurnStarting]);
 
   // ✅ Handle dice roll completion
   const handleDiceComplete = useCallback((diceResult) => {
@@ -824,8 +896,8 @@ export const BattleRoute = () => {
 
     setEnemyStatuses(prev => tickStatuses(prev));
 
-    console.log('🗑️ Discarding hand:', hand.length, 'cards');
-    dispatchCardState({ type: 'DISCARD_HAND' });
+    // ✅ CHANGED: Hand now persists, no discard
+    console.log('✋ Hand persists:', hand.length, 'cards');
 
     setTurnCount(prev => prev + 1);
 
@@ -845,7 +917,17 @@ export const BattleRoute = () => {
         console.log('🔄 Refilling hand and energy...');
         setPlayerEnergy(maxEnergy);
         setEnemyEnergy(maxEnemyEnergy); // Refill enemy energy
-        drawMultipleCards(gameState.maxHandSize || 6);
+
+        // ✅ CHANGED: Draw up to max hand size of 5 (hand persists now)
+        const maxHandSize = 5;
+        const cardsToDraw = Math.max(0, maxHandSize - hand.length);
+        if (cardsToDraw > 0) {
+          console.log(`📥 Drawing ${cardsToDraw} cards to fill hand to ${maxHandSize}`);
+          drawMultipleCards(cardsToDraw);
+        } else {
+          console.log(`✋ Hand full (${hand.length} cards)`);
+        }
+
         setIsEnemyTurn(false);
       }, 1500);
       return;
@@ -985,7 +1067,17 @@ export const BattleRoute = () => {
           console.log('🔄 Refilling hand and energy...');
           setPlayerEnergy(maxEnergy);
           setEnemyEnergy(maxEnemyEnergy);
-          drawMultipleCards(gameState.maxHandSize || 6);
+
+          // ✅ CHANGED: Draw up to max hand size of 5 (hand persists now)
+          const maxHandSize = 5;
+          const cardsToDraw = Math.max(0, maxHandSize - hand.length);
+          if (cardsToDraw > 0) {
+            console.log(`📥 Drawing ${cardsToDraw} cards to fill hand to ${maxHandSize}`);
+            drawMultipleCards(cardsToDraw);
+          } else {
+            console.log(`✋ Hand full (${hand.length} cards)`);
+          }
+
           setIsEnemyTurn(false);
           setIsAttackAnimationPlaying(false); // Reset animation lock
           setHasUsedDrawAbility(false);
@@ -1283,7 +1375,24 @@ export const BattleRoute = () => {
 
             <div className="flex justify-between items-center mb-2">
               <div>
-                <h2 className="text-lg font-bold text-white drop-shadow-lg">Your Hand ({hand.length}/{gameState.maxHandSize})</h2>
+                <h2 className="text-lg font-bold text-white drop-shadow-lg">Your Hand ({hand.length}/5)</h2>
+              </div>
+
+              {/* Discard Area - Right side */}
+              <div
+                className={`
+                  nb-border-md nb-bg-red px-4 py-2
+                  flex items-center gap-2
+                  transition-all duration-200
+                  ${isEnemyTurn || isBattleOver || isAttackAnimationPlaying || isTurnStarting ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'}
+                `}
+                title="Click cards below to discard them"
+              >
+                <span className="text-2xl">🗑️</span>
+                <div className="text-center">
+                  <div className="font-black text-sm uppercase">DISCARD</div>
+                  <div className="text-xs font-bold">Click to Remove</div>
+                </div>
               </div>
             </div>
 
@@ -1343,7 +1452,17 @@ export const BattleRoute = () => {
 
             <CardHand
               hand={hand}
-              onCardClick={(card) => !isEnemyTurn && !isBattleOver && !isAttackAnimationPlaying && !isTurnStarting && handleCardPlay(card)}
+              onCardClick={(card, event) => {
+                if (isEnemyTurn || isBattleOver || isAttackAnimationPlaying || isTurnStarting) return;
+
+                // Shift+Click to discard
+                if (event?.shiftKey) {
+                  handleManualDiscard(card);
+                } else {
+                  handleCardPlay(card);
+                }
+              }}
+              onCardRightClick={handleManualDiscard}
               disabled={isEnemyTurn || isBattleOver || isAttackAnimationPlaying || isTurnStarting}
               playerEnergy={playerEnergy}
               playerStatuses={playerStatuses}

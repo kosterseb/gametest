@@ -4,6 +4,7 @@ import { Card } from './Card';
 export const CardHand = ({
   hand,
   onCardClick,
+  onCardRightClick,
   disabled,
   playerEnergy,
   playerStatuses,
@@ -98,7 +99,8 @@ export const CardHand = ({
               >
                 <Card
                   card={card}
-                  onClick={() => !disabled && onCardClick(card)}
+                  onClick={(event) => !disabled && onCardClick(card, event)}
+                  onRightClick={() => !disabled && onCardRightClick && onCardRightClick(card)}
                   disabled={disabled}
                   playerEnergy={playerEnergy}
                   playerStatuses={playerStatuses}

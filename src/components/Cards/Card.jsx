@@ -8,6 +8,7 @@ import { Zap, Heart, Shield, Sparkles, Sword } from 'lucide-react';
 export const Card = ({
   card,
   onClick,
+  onRightClick,
   disabled = false,
   playerEnergy = 0,
   playerStatuses = [],
@@ -96,7 +97,7 @@ export const Card = ({
       setIsInPlayZone(false);
 
       if (e.clientY < window.innerHeight * 0.6 && onClick) {
-        onClick();
+        onClick(e);
       }
     };
 
@@ -117,6 +118,7 @@ export const Card = ({
       case 'utility': return 'nb-bg-blue';
       case 'cleanse': return 'nb-bg-purple';
       case 'status': return 'nb-bg-orange';
+      case 'counter': return 'nb-bg-yellow'; // Counter cards
       default: return 'nb-bg-white';
     }
   };
@@ -261,7 +263,13 @@ export const Card = ({
       {/* Original card in hand */}
       <button
         ref={cardRef}
-        onClick={!draggable ? onClick : undefined}
+        onClick={!draggable ? (e) => onClick && onClick(e) : undefined}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          if (!disabled && (canAfford || discardMode) && onRightClick) {
+            onRightClick();
+          }
+        }}
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
