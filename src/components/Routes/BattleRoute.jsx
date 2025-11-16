@@ -289,6 +289,10 @@ export const BattleRoute = () => {
   const [currentStage, setCurrentStage] = useState('early'); // 'early', 'mid', 'late'
   const stageBuffsAppliedRef = useRef({ mid: false, late: false });
 
+  // ⚡ Overtime penalty state
+  const [isOvertime, setIsOvertime] = useState(false);
+  const [overtimeRounds, setOvertimeRounds] = useState(0);
+
   // 🎭 Show turn banner when turn changes
   useEffect(() => {
     // Only show banner after turn order is decided, when turn actually changes, and not on cooldown
@@ -441,6 +445,41 @@ export const BattleRoute = () => {
       console.log('🔥💚 Late-game buffs applied');
     }
   }, [playerTime, currentStage]);
+
+  // ⚡ Overtime detection
+  useEffect(() => {
+    if (playerTime <= 0 && !isOvertime) {
+      setIsOvertime(true);
+      setBattleLog(prev => [...prev, '⚡ TIME IS UP! Overtime penalties begin!']);
+      console.log('⚡ Overtime activated');
+    }
+  }, [playerTime, isOvertime]);
+
+  // ⚡ Apply overtime penalty at start of player turn
+  useEffect(() => {
+    if (isOvertime && !isEnemyTurn && turnOrderDecided && !isBattleOver) {
+      // Apply penalty at start of player's turn
+      const penalty = overtimeRounds * 10;
+
+      if (penalty > 0) {
+        console.log(`⚡ Overtime penalty: -${penalty} HP (Round ${overtimeRounds})`);
+        setPlayerHealth(prev => {
+          const newHealth = Math.max(0, prev - penalty);
+          if (newHealth <= 0) {
+            setIsBattleOver(true);
+            setTrackedTimeout(() => handleDefeat(), 500);
+          }
+          return newHealth;
+        });
+
+        dispatch({ type: 'DAMAGE_PLAYER', amount: penalty });
+        setBattleLog(prev => [...prev, `⚡💀 OVERTIME PENALTY: -${penalty} HP!`]);
+      }
+
+      // Increment overtime rounds for next turn
+      setOvertimeRounds(prev => prev + 1);
+    }
+  }, [isEnemyTurn, isOvertime, turnOrderDecided, isBattleOver]);
 
   if (!currentEnemy) {
     return <div className="min-h-screen flex items-center justify-center text-white">Loading battle...</div>;
@@ -1528,14 +1567,24 @@ export const BattleRoute = () => {
             />
 
             {/* Timer Stage Indicator */}
-            <div className={`
-              nb-border-md px-4 py-2 font-black uppercase
-              ${currentStage === 'early' ? 'nb-bg-green' : ''}
-              ${currentStage === 'mid' ? 'nb-bg-orange' : ''}
-              ${currentStage === 'late' ? 'nb-bg-red animate-pulse' : ''}
-            `}>
-              <div className="text-xs">STAGE</div>
-              <div className="text-lg">{currentStage === 'early' ? '⚡ EARLY' : currentStage === 'mid' ? '🔥 MID' : '💀 LATE'}</div>
+            <div className="flex gap-2">
+              <div className={`
+                nb-border-md px-4 py-2 font-black uppercase
+                ${currentStage === 'early' ? 'nb-bg-green' : ''}
+                ${currentStage === 'mid' ? 'nb-bg-orange' : ''}
+                ${currentStage === 'late' ? 'nb-bg-red animate-pulse' : ''}
+              `}>
+                <div className="text-xs">STAGE</div>
+                <div className="text-lg">{currentStage === 'early' ? '⚡ EARLY' : currentStage === 'mid' ? '🔥 MID' : '💀 LATE'}</div>
+              </div>
+
+              {/* Overtime Warning */}
+              {isOvertime && (
+                <div className="nb-bg-red nb-border-md px-4 py-2 font-black uppercase animate-pulse">
+                  <div className="text-xs">OVERTIME</div>
+                  <div className="text-lg">⚡ -{overtimeRounds * 10} HP</div>
+                </div>
+              )}
             </div>
           </div>
 
