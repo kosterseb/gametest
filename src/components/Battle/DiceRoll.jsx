@@ -1,70 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { Dices } from 'lucide-react';
+import './DiceRoll.css';
 
 export const DiceRoll = ({ onRollComplete, minValue = 1, maxValue = 6 }) => {
   const [isRolling, setIsRolling] = useState(false);
-  const [currentValue, setCurrentValue] = useState(null);
-  const [hasRolled, setHasRolled] = useState(false);
+  const [finalValue, setFinalValue] = useState(null);
+  const [showResult, setShowResult] = useState(false);
 
-  const handleRoll = () => {
-    if (hasRolled) return;
+  // Rotation values for each dice face (1-6)
+  // These rotate the cube to show the correct face
+  const perFaceRotation = [
+    'rotate3d(-0.1, 0.3, -1, 180deg)',        // 1
+    'rotate3d(-0.1, 0.6, -0.4, 180deg)',      // 2
+    'rotate3d(-0.85, -0.42, 0.73, 180deg)',   // 3
+    'rotate3d(-0.8, 0.3, -0.75, 180deg)',     // 4
+    'rotate3d(0.3, 0.45, 0.9, 180deg)',       // 5
+    'rotate3d(-0.16, 0.6, 0.18, 180deg)'      // 6
+  ];
 
-    setIsRolling(true);
-    setHasRolled(true);
+  useEffect(() => {
+    // Auto-start the roll when component mounts
+    const startDelay = setTimeout(() => {
+      // Generate random value
+      const value = Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue;
+      setFinalValue(value);
+      setIsRolling(true);
 
-    // Animate the dice rolling
-    let rollCount = 0;
-    const rollInterval = setInterval(() => {
-      setCurrentValue(Math.floor(Math.random() * maxValue) + minValue);
-      rollCount++;
+      // Show dice result after throw animation completes (700ms)
+      setTimeout(() => {
+        setShowResult(true);
+      }, 700);
 
-      if (rollCount >= 15) {
-        clearInterval(rollInterval);
-        const finalValue = Math.floor(Math.random() * maxValue) + minValue;
-        setCurrentValue(finalValue);
-        setIsRolling(false);
+      // Call onRollComplete after showing result (1s total)
+      setTimeout(() => {
+        onRollComplete(value);
+      }, 1700);
+    }, 300);
 
-        setTimeout(() => {
-          onRollComplete(finalValue);
-        }, 1000);
-      }
-    }, 100);
-  };
+    return () => clearTimeout(startDelay);
+  }, [minValue, maxValue, onRollComplete]);
 
-  const getDiceColor = () => {
-    if (!currentValue) return 'from-gray-400 to-gray-600';
-    if (currentValue === maxValue) return 'from-yellow-400 to-amber-600'; // Max roll - gold
-    if (currentValue >= maxValue * 0.7) return 'from-green-400 to-emerald-600'; // Good roll
-    if (currentValue >= maxValue * 0.4) return 'from-blue-400 to-cyan-600'; // Medium roll
-    return 'from-red-400 to-rose-600'; // Low roll
-  };
-
-  const getDiceFace = (value) => {
-    const dotPositions = {
-      1: [[50, 50]],
-      2: [[25, 25], [75, 75]],
-      3: [[25, 25], [50, 50], [75, 75]],
-      4: [[25, 25], [25, 75], [75, 25], [75, 75]],
-      5: [[25, 25], [25, 75], [50, 50], [75, 25], [75, 75]],
-      6: [[25, 25], [25, 50], [25, 75], [75, 25], [75, 50], [75, 75]]
-    };
-
-    const positions = dotPositions[value] || [];
-
-    return (
-      <svg viewBox="0 0 100 100" className="w-full h-full">
-        {positions.map((pos, idx) => (
-          <circle
-            key={idx}
-            cx={pos[0]}
-            cy={pos[1]}
-            r="8"
-            fill="white"
-            className="drop-shadow-lg"
-          />
-        ))}
-      </svg>
-    );
+  // Get the appropriate rotation for the final dice value
+  const getDiceRotation = () => {
+    if (!finalValue) return 'rotate3d(0, 0.9, 0.9, 90deg)';
+    return perFaceRotation[finalValue - 1];
   };
 
   return (
@@ -79,44 +58,75 @@ export const DiceRoll = ({ onRollComplete, minValue = 1, maxValue = 6 }) => {
           </div>
         </div>
 
-        {/* Dice Display */}
-        <div className="flex justify-center mb-8">
-          <div
-            className={`
-              w-40 h-40
-              bg-gradient-to-br ${getDiceColor()}
-              nb-border-xl nb-shadow-xl
-              flex items-center justify-center
-              transition-all duration-200
-              ${isRolling ? 'animate-spin' : 'animate-bounce'}
-              ${currentValue === maxValue ? 'ring-8 ring-yellow-400' : ''}
-            `}
-          >
-            {currentValue ? (
-              <div className="w-32 h-32">
-                {getDiceFace(currentValue)}
+        {/* 3D Dice Container */}
+        <div className="relative w-full h-64 mb-8">
+          <div className="dice-wrap">
+            <div
+              className={`dice ${isRolling ? 'throw' : ''}`}
+              style={{
+                transform: getDiceRotation()
+              }}
+            >
+              {/* Face 1 - Front */}
+              <div className="dice-face front">
+                <div className="dot center"></div>
               </div>
-            ) : (
-              <Dices className="w-24 h-24 text-white opacity-50" />
-            )}
+
+              {/* Face 2 - Up */}
+              <div className="dice-face up">
+                <div className="dot top-left"></div>
+                <div className="dot bottom-right"></div>
+              </div>
+
+              {/* Face 3 - Left */}
+              <div className="dice-face left">
+                <div className="dot top-left"></div>
+                <div className="dot center"></div>
+                <div className="dot bottom-right"></div>
+              </div>
+
+              {/* Face 4 - Right */}
+              <div className="dice-face right">
+                <div className="dot top-left"></div>
+                <div className="dot top-right"></div>
+                <div className="dot bottom-left"></div>
+                <div className="dot bottom-right"></div>
+              </div>
+
+              {/* Face 5 - Bottom */}
+              <div className="dice-face bottom">
+                <div className="dot top-left"></div>
+                <div className="dot top-right"></div>
+                <div className="dot center"></div>
+                <div className="dot bottom-left"></div>
+                <div className="dot bottom-right"></div>
+              </div>
+
+              {/* Face 6 - Back */}
+              <div className="dice-face back">
+                <div className="dot top-left"></div>
+                <div className="dot top-center"></div>
+                <div className="dot top-right"></div>
+                <div className="dot bottom-left"></div>
+                <div className="dot bottom-center"></div>
+                <div className="dot bottom-right"></div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Current Value Display */}
-        {currentValue && (
-          <div className="text-center mb-6">
-            <div className={`
-              nb-bg-white nb-border-xl nb-shadow-xl
-              px-8 py-4 inline-block
-            `}>
+        {/* Result Display */}
+        {showResult && finalValue && (
+          <div className="text-center mb-6 animate-bounceIn">
+            <div className="nb-bg-white nb-border-xl nb-shadow-xl px-8 py-4 inline-block">
               <div className={`
                 text-6xl font-black
-                ${currentValue === maxValue ? 'text-yellow-600 animate-pulse' : 'text-black'}
+                ${finalValue === maxValue ? 'text-yellow-600 animate-pulse' : 'text-black'}
               `}>
-                {currentValue}
+                {finalValue}
               </div>
             </div>
-            {currentValue === maxValue && (
+            {finalValue === maxValue && (
               <div className="mt-4 nb-bg-yellow nb-border-lg nb-shadow px-4 py-2 inline-block animate-bounce">
                 <div className="text-black font-black text-xl uppercase">
                   ✨ MAXIMUM ROLL! ✨
@@ -126,17 +136,15 @@ export const DiceRoll = ({ onRollComplete, minValue = 1, maxValue = 6 }) => {
           </div>
         )}
 
-        {/* Roll Button */}
-        {!hasRolled && (
-          <button
-            onClick={handleRoll}
-            className="w-full nb-bg-yellow nb-border-xl nb-shadow-xl nb-hover-lg nb-active text-black font-black text-xl py-4 uppercase transition-all"
-          >
-            🎲 Click to Roll! 🎲
-          </button>
+        {!showResult && (
+          <div className="nb-bg-white nb-border-lg nb-shadow p-4 text-center">
+            <div className="text-black font-black text-sm uppercase animate-pulse">
+              Rolling...
+            </div>
+          </div>
         )}
 
-        {hasRolled && !isRolling && (
+        {showResult && (
           <div className="nb-bg-white nb-border-lg nb-shadow p-4 text-center">
             <div className="text-black font-black text-sm uppercase animate-pulse">
               Applying result...
