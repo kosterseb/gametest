@@ -313,8 +313,9 @@ export const BattleRoute = () => {
       setTutorialCompleted(true);
       setShowTutorial(false);
       setBattleLog(prev => [...prev, '✅ Tutorial completed!']);
+      dispatch({ type: 'SET_TUTORIAL_COMPLETED', completed: true });
     }
-  }, [currentTutorialStep, tutorialCompleted]);
+  }, [currentTutorialStep, tutorialCompleted, dispatch]);
 
   const handleTutorialNext = useCallback(() => {
     advanceTutorial();
@@ -324,7 +325,8 @@ export const BattleRoute = () => {
     setTutorialCompleted(true);
     setShowTutorial(false);
     setBattleLog(prev => [...prev, '⏭️ Tutorial skipped']);
-  }, []);
+    dispatch({ type: 'SET_TUTORIAL_COMPLETED', completed: true });
+  }, [dispatch]);
 
   // 📚 Tutorial event checker - advances tutorial when condition is met
   const checkTutorialProgress = useCallback((eventType) => {

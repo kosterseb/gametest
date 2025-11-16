@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useGame } from '../../context/GameContext';
 import { useRouter } from '../../hooks/useRouter';
 import { generateMap } from '../../utils/mapGenerator';
@@ -9,12 +9,21 @@ import { ActDivider } from './ActDivider';
 import { Heart, Coins, ArrowDown, CheckCircle } from 'lucide-react';
 import { NBButton, NBHeading, NBBadge, NBProgressBar } from '../UI/NeoBrutalUI';
 import { BattleRecapPopup } from '../UI/BattleRecapPopup';
+import { TutorialOverlay } from '../Tutorial/TutorialOverlay';
+import { MAP_TUTORIAL_STEPS, getNextMapTutorialStep } from '../../data/mapTutorialSteps';
 
 export const ProgressionMapView = () => {
   const { gameState, dispatch } = useGame();
   const { navigate } = useRouter();
   const [selectedNode, setSelectedNode] = useState(null);
   const [showRecap, setShowRecap] = useState(false);
+
+  // 📚 Map Tutorial State
+  const [showMapTutorial, setShowMapTutorial] = useState(false);
+  const [currentMapTutorialStep, setCurrentMapTutorialStep] = useState(null);
+  const [mapTutorialCompleted, setMapTutorialCompleted] = useState(
+    gameState.mapTutorialCompleted || false
+  );
 
   useEffect(() => {
     if (gameState.progressionMap.length === 0) {
@@ -30,9 +39,60 @@ export const ProgressionMapView = () => {
     }
   }, [gameState.showBattleRecap, gameState.lastBattleRewards]);
 
+  // 📚 Start map tutorial after first battle (if tutorial was completed in battle)
+  useEffect(() => {
+    // Check if we should show map tutorial
+    // Show it if: player just finished tutorial battle AND hasn't completed map tutorial yet
+    if (gameState.tutorialCompleted && !mapTutorialCompleted && gameState.currentFloor === 1) {
+      setTimeout(() => {
+        setCurrentMapTutorialStep(MAP_TUTORIAL_STEPS[0]);
+        setShowMapTutorial(true);
+      }, 1000); // Small delay after loading map
+    }
+  }, [gameState.tutorialCompleted, mapTutorialCompleted, gameState.currentFloor]);
+
+  // 📚 Tutorial progression handlers
+  const advanceMapTutorial = useCallback(() => {
+    if (!currentMapTutorialStep || mapTutorialCompleted) return;
+
+    const nextStep = getNextMapTutorialStep(currentMapTutorialStep.id);
+    if (nextStep) {
+      setCurrentMapTutorialStep(nextStep);
+    } else {
+      // Tutorial complete
+      setMapTutorialCompleted(true);
+      setShowMapTutorial(false);
+      dispatch({ type: 'SET_MAP_TUTORIAL_COMPLETED', completed: true });
+    }
+  }, [currentMapTutorialStep, mapTutorialCompleted, dispatch]);
+
+  const handleMapTutorialNext = useCallback(() => {
+    advanceMapTutorial();
+  }, [advanceMapTutorial]);
+
+  const handleMapTutorialSkip = useCallback(() => {
+    setMapTutorialCompleted(true);
+    setShowMapTutorial(false);
+    dispatch({ type: 'SET_MAP_TUTORIAL_COMPLETED', completed: true });
+  }, [dispatch]);
+
+  // 📚 Tutorial event checker
+  const checkMapTutorialProgress = useCallback((eventType) => {
+    if (!showMapTutorial || !currentMapTutorialStep || mapTutorialCompleted) return;
+
+    // Check if current step is waiting for this event
+    if (currentMapTutorialStep.waitFor === eventType && currentMapTutorialStep.autoAdvance) {
+      console.log('📚 Map tutorial event triggered:', eventType);
+      advanceMapTutorial();
+    }
+  }, [showMapTutorial, currentMapTutorialStep, mapTutorialCompleted, advanceMapTutorial]);
+
   const handleNodeSelect = (node) => {
     setSelectedNode(node);
     dispatch({ type: 'SELECT_NODE', nodeId: node.id });
+
+    // 📚 Tutorial: Check if node was selected
+    checkMapTutorialProgress('node_selected');
   };
 
   const handleRecapContinue = () => {
@@ -42,6 +102,9 @@ export const ProgressionMapView = () => {
 
   const handleConfirmSelection = () => {
     if (!selectedNode) return;
+
+    // 📚 Tutorial: Check if node was confirmed
+    checkMapTutorialProgress('node_confirmed');
 
     dispatch({ type: 'COMPLETE_NODE', nodeId: selectedNode.id });
 
@@ -327,6 +390,19 @@ export const ProgressionMapView = () => {
             hpAfter={gameState.playerHealth}
             maxHp={gameState.maxPlayerHealth}
             onContinue={handleRecapContinue}
+          />
+        )}
+
+        {/* Map Tutorial Overlay */}
+        {showMapTutorial && currentMapTutorialStep && (
+          <TutorialOverlay
+            message={currentMapTutorialStep.message}
+            onNext={currentMapTutorialStep.autoAdvance ? null : handleMapTutorialNext}
+            onSkip={handleMapTutorialSkip}
+            showNext={!currentMapTutorialStep.autoAdvance}
+            showSkip={true}
+            highlightArea={currentMapTutorialStep.highlightArea}
+            position={currentMapTutorialStep.position || 'bottom-left'}
           />
         )}
       </div>

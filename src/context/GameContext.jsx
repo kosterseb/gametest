@@ -115,6 +115,10 @@ const initialGameState = {
   showPreBattleLoadout: true,
   prefer3DView: true, // User preference for 3D map view
 
+  // Tutorial completion tracking
+  tutorialCompleted: false, // Battle tutorial
+  mapTutorialCompleted: false, // Map tutorial
+
   // Inventory upgrades purchased
   bagUpgradesPurchased: 0,
   consumableUpgradesPurchased: 0,
@@ -1248,6 +1252,18 @@ const gameReducer = (state, action) => {
       return {
         ...state,
         prefer3DView: !state.prefer3DView
+      };
+
+    case 'SET_TUTORIAL_COMPLETED':
+      return {
+        ...state,
+        tutorialCompleted: action.completed
+      };
+
+    case 'SET_MAP_TUTORIAL_COMPLETED':
+      return {
+        ...state,
+        mapTutorialCompleted: action.completed
       };
 
     case 'OPEN_MENU':
