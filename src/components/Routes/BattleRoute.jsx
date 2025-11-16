@@ -32,7 +32,7 @@ import {
   applyShieldBlock
 } from '../../data/statusEffects';
 import { applyTalentDamageBonus } from '../../utils/talentEffects';
-import { Skull, ArrowLeft, Zap } from 'lucide-react';
+import { Skull, ArrowLeft, Zap, Trash2, Flame, Swords as SwordsIcon } from 'lucide-react';
 
 // ✅ Card state reducer for atomic updates
 const cardStateReducer = (state, action) => {
@@ -1624,14 +1624,11 @@ export const BattleRoute = () => {
 
           {/* Cards Area - 28% */}
           <div className="h-[28%] px-3 py-2 flex flex-col overflow-hidden relative">
-            {/* Discard Zone - Right 20% of screen */}
-            <div className="fixed right-0 top-0 bottom-0 w-[20%] pointer-events-none z-40">
-              <div className="h-full flex items-center justify-center">
-                <div className="nb-border-md border-dashed border-4 border-red-600/50 bg-red-600/10 px-6 py-8 text-center">
-                  <div className="text-6xl mb-2">🗑️</div>
-                  <div className="text-red-200 font-black text-lg uppercase">Discard Zone</div>
-                  <div className="text-red-300 text-sm font-bold mt-2">Drag cards here</div>
-                </div>
+            {/* Discard Zone - Bottom Right Corner */}
+            <div className="fixed right-4 bottom-4 pointer-events-none z-40">
+              <div className="nb-border-md border-dashed border-4 border-red-600/50 bg-red-600/10 px-6 py-4 text-center">
+                <Trash2 className="w-12 h-12 text-red-300 mx-auto mb-2" />
+                <div className="text-red-200 font-black text-sm uppercase">Discard</div>
               </div>
             </div>
 

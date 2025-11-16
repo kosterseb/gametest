@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Heart, Zap, Skull, Swords } from 'lucide-react';
+import { Heart, Zap, Skull, Swords, Flame } from 'lucide-react';
 import { StatusDisplay } from './StatusDisplay';
 import { PlayerAvatar } from './PlayerAvatar';
 import { EnemyAvatar } from './EnemyAvatar';
@@ -341,25 +341,33 @@ export const BattleField = ({
           </div>
         </div>
 
-        {/* VS Indicator */}
-        <div className="flex flex-col items-center justify-center gap-4">
-          {/* Timer Stage Indicator */}
-          <div className="flex gap-2">
+        {/* Timer & Stage Section */}
+        <div className="flex flex-col items-center justify-center gap-2">
+          {/* Timer Stage Indicator - Above everything */}
+          <div className="flex gap-2 mb-2">
             <div className={`
               nb-border-md px-4 py-2 font-black uppercase
               ${currentStage === 'early' ? 'nb-bg-green' : ''}
               ${currentStage === 'mid' ? 'nb-bg-orange' : ''}
               ${currentStage === 'late' ? 'nb-bg-red animate-pulse' : ''}
             `}>
-              <div className="text-xs">STAGE</div>
-              <div className="text-lg">{currentStage === 'early' ? '⚡ EARLY' : currentStage === 'mid' ? '🔥 MID' : '💀 LATE'}</div>
+              <div className="text-xs flex items-center gap-1">
+                {currentStage === 'early' && <Zap className="w-3 h-3" />}
+                {currentStage === 'mid' && <Flame className="w-3 h-3" />}
+                {currentStage === 'late' && <Skull className="w-3 h-3" />}
+                STAGE
+              </div>
+              <div className="text-lg font-black">{currentStage === 'early' ? 'EARLY' : currentStage === 'mid' ? 'MID' : 'LATE'}</div>
             </div>
 
             {/* Overtime Warning */}
             {isOvertime && (
               <div className="nb-bg-red nb-border-md px-4 py-2 font-black uppercase animate-pulse">
-                <div className="text-xs">OVERTIME</div>
-                <div className="text-lg">⚡ -{overtimeRounds * 10} HP</div>
+                <div className="text-xs flex items-center gap-1">
+                  <Zap className="w-3 h-3" />
+                  OVERTIME
+                </div>
+                <div className="text-lg">-{overtimeRounds * 10} HP</div>
               </div>
             )}
           </div>
@@ -373,13 +381,16 @@ export const BattleField = ({
             enemyName={enemy.name || 'Enemy'}
           />
 
-          <Swords className={`w-12 h-12 ${isEnemyTurn ? 'text-red-600 animate-pulse' : 'text-gray-700'}`} />
-          <NBBadge
-            color={isEnemyTurn ? 'red' : 'green'}
-            className="text-sm px-4 py-2"
-          >
-            {isEnemyTurn ? '⚔️ ENEMY TURN' : '✨ YOUR TURN'}
-          </NBBadge>
+          {/* VS Indicator */}
+          <div className="flex flex-col items-center gap-2 mt-2">
+            <Swords className={`w-12 h-12 ${isEnemyTurn ? 'text-red-600 animate-pulse' : 'text-gray-700'}`} />
+            <NBBadge
+              color={isEnemyTurn ? 'red' : 'green'}
+              className="text-sm px-4 py-2"
+            >
+              {isEnemyTurn ? 'ENEMY TURN' : 'YOUR TURN'}
+            </NBBadge>
+          </div>
         </div>
 
         {/* Enemy Side */}

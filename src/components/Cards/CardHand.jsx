@@ -102,7 +102,7 @@ export const CardHand = ({
                   card={card}
                   onClick={(event) => !disabled && onCardClick(card, event)}
                   onRightClick={() => !disabled && onCardRightClick && onCardRightClick(card)}
-                  onDiscard={() => !disabled && onCardDiscard && onCardDiscard(card)}
+                  onDiscard={() => onCardDiscard && onCardDiscard(card)}
                   disabled={disabled}
                   playerEnergy={playerEnergy}
                   playerStatuses={playerStatuses}

@@ -66,7 +66,9 @@ export const Card = ({
 
   // Custom drag handlers using mouse events
   const handleMouseDown = (e) => {
-    if (!draggable || disabled || (!canAfford && !discardMode)) return;
+    // Allow dragging even when disabled (for discarding)
+    // Only block if not draggable at all
+    if (!draggable) return;
 
     e.preventDefault();
 
@@ -107,8 +109,10 @@ export const Card = ({
 
       // Priority: Discard zone > Play zone
       if (inDiscardZone && onDiscard) {
+        // Always allow discarding
         onDiscard();
-      } else if (inPlayZone && onClick) {
+      } else if (inPlayZone && onClick && !disabled && canAfford) {
+        // Only allow playing if not disabled and can afford
         onClick(e);
       }
 
