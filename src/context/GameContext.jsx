@@ -1254,6 +1254,12 @@ const gameReducer = (state, action) => {
         prefer3DView: !state.prefer3DView
       };
 
+    case 'SET_TUTORIAL_ENABLED':
+      return {
+        ...state,
+        tutorialEnabled: action.enabled
+      };
+
     case 'SET_TUTORIAL_COMPLETED':
       return {
         ...state,

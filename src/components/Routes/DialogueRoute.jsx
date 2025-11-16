@@ -61,8 +61,10 @@ export const DialogueRoute = () => {
       switch (choice.action) {
         case 'start_tutorial':
           // Set tutorial enemy and navigate to tutorial battle
+          console.log('📚 Starting tutorial - setting enemy and navigating to battle');
           dispatch({ type: 'SET_TUTORIAL_ENABLED', enabled: true });
           dispatch({ type: 'SET_ENEMY_FOR_BATTLE', enemyData: tutorialEnemy });
+          console.log('📚 Navigating to /battle with isTutorial: true');
           navigate('/battle', { isTutorial: true });
           break;
 

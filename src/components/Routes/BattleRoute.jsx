@@ -301,6 +301,18 @@ export const BattleRoute = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialCompleted, setTutorialCompleted] = useState(false);
 
+  // Debug: Log tutorial state
+  useEffect(() => {
+    console.log('📚 Tutorial state:', {
+      isTutorial,
+      routeParams,
+      currentEnemy: currentEnemy?.name,
+      tutorialCompleted,
+      showTutorial,
+      currentStep: currentTutorialStep?.id
+    });
+  }, [isTutorial, routeParams, currentEnemy, tutorialCompleted, showTutorial, currentTutorialStep]);
+
   // 📚 Tutorial progression handlers
   const advanceTutorial = useCallback(() => {
     if (!currentTutorialStep || tutorialCompleted) return;
@@ -659,7 +671,9 @@ export const BattleRoute = () => {
       drawMultipleCards(handSize);
 
       // 📚 Start tutorial if this is a tutorial battle
+      console.log('📚 Checking tutorial start:', { isTutorial, tutorialCompleted });
       if (isTutorial && !tutorialCompleted) {
+        console.log('📚 Starting tutorial!');
         setTimeout(() => {
           setCurrentTutorialStep(TUTORIAL_STEPS[0]);
           setShowTutorial(true);
