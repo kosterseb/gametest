@@ -21,6 +21,8 @@ import { CardHand } from '../Cards/CardHand';
 import { CardPlayParticles } from '../Effects/CardPlayParticles';
 import { NBButton, NBDropdown, useNBConfirm } from '../UI/NeoBrutalUI';
 import { BattleMenu } from '../UI/BattleMenu';
+import { TutorialOverlay } from '../Tutorial/TutorialOverlay';
+import { TUTORIAL_STEPS, getNextTutorialStep, isTutorialComplete } from '../../data/tutorialSteps';
 import {
   applyStatus,
   tickStatuses,
@@ -154,7 +156,7 @@ const cardStateReducer = (state, action) => {
 
 export const BattleRoute = () => {
   const { gameState, dispatch } = useGame();
-  const { navigate } = useRouter();
+  const { navigate, routeParams } = useRouter();
   const { settings } = useSettings();
   const { confirm, ConfirmDialog } = useNBConfirm();
 
@@ -292,6 +294,48 @@ export const BattleRoute = () => {
   // ⚡ Overtime penalty state
   const [isOvertime, setIsOvertime] = useState(false);
   const [overtimeRounds, setOvertimeRounds] = useState(0);
+
+  // 📚 Tutorial system state
+  const [isTutorial, setIsTutorial] = useState(routeParams?.isTutorial || false);
+  const [currentTutorialStep, setCurrentTutorialStep] = useState(null);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialCompleted, setTutorialCompleted] = useState(false);
+
+  // 📚 Tutorial progression handlers
+  const advanceTutorial = useCallback(() => {
+    if (!currentTutorialStep || tutorialCompleted) return;
+
+    const nextStep = getNextTutorialStep(currentTutorialStep.id);
+    if (nextStep) {
+      setCurrentTutorialStep(nextStep);
+    } else {
+      // Tutorial complete
+      setTutorialCompleted(true);
+      setShowTutorial(false);
+      setBattleLog(prev => [...prev, '✅ Tutorial completed!']);
+    }
+  }, [currentTutorialStep, tutorialCompleted]);
+
+  const handleTutorialNext = useCallback(() => {
+    advanceTutorial();
+  }, [advanceTutorial]);
+
+  const handleTutorialSkip = useCallback(() => {
+    setTutorialCompleted(true);
+    setShowTutorial(false);
+    setBattleLog(prev => [...prev, '⏭️ Tutorial skipped']);
+  }, []);
+
+  // 📚 Tutorial event checker - advances tutorial when condition is met
+  const checkTutorialProgress = useCallback((eventType) => {
+    if (!isTutorial || !currentTutorialStep || tutorialCompleted) return;
+
+    // Check if current step is waiting for this event
+    if (currentTutorialStep.waitFor === eventType && currentTutorialStep.autoAdvance) {
+      console.log('📚 Tutorial event triggered:', eventType);
+      advanceTutorial();
+    }
+  }, [isTutorial, currentTutorialStep, tutorialCompleted, advanceTutorial]);
 
   // 🎭 Show turn banner when turn changes
   useEffect(() => {
@@ -611,9 +655,17 @@ export const BattleRoute = () => {
 
       // Draw cards
       drawMultipleCards(handSize);
+
+      // 📚 Start tutorial if this is a tutorial battle
+      if (isTutorial && !tutorialCompleted) {
+        setTimeout(() => {
+          setCurrentTutorialStep(TUTORIAL_STEPS[0]);
+          setShowTutorial(true);
+        }, 1000); // Give player a moment to see the battle before tutorial starts
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deck.length, turnOrderDecided, isEnemyTurn]); // Trigger when deck, turn order, or enemy turn changes
+  }, [deck.length, turnOrderDecided, isEnemyTurn, isTutorial, tutorialCompleted]); // Trigger when deck, turn order, or enemy turn changes
 
   // Execute card effects
   const executeCard = useCallback((card, diceResult = null) => {
@@ -1000,7 +1052,10 @@ export const BattleRoute = () => {
     } else {
       executeCard(card);
     }
-  }, [isBattleOver, playerEnergy, playerStatuses, hand.length, executeCard, showCounterOpportunity, pendingEnemyAttack]);
+
+    // 📚 Tutorial: Check if we should advance after playing a card
+    checkTutorialProgress('card_played');
+  }, [isBattleOver, playerEnergy, playerStatuses, hand.length, executeCard, showCounterOpportunity, pendingEnemyAttack, checkTutorialProgress]);
 
   // ✅ Manual discard handler
   const handleManualDiscard = useCallback((card) => {
@@ -1016,7 +1071,10 @@ export const BattleRoute = () => {
     });
 
     setBattleLog(prev => [...prev, `🗑️ Discarded ${card.name}`]);
-  }, [isEnemyTurn, isBattleOver, isAttackAnimationPlaying, isTurnStarting]);
+
+    // 📚 Tutorial: Check if we should advance after discarding a card
+    checkTutorialProgress('card_discarded');
+  }, [isEnemyTurn, isBattleOver, isAttackAnimationPlaying, isTurnStarting, checkTutorialProgress]);
 
   // 🛡️ Handle counter skip
   const handleCounterSkip = useCallback(() => {
@@ -1165,13 +1223,16 @@ export const BattleRoute = () => {
 
     setTurnCount(prev => prev + 1);
 
+    // 📚 Tutorial: Check if we should advance after ending turn
+    checkTutorialProgress('turn_ended');
+
     // Delay enemy turn to let status effects fully process
     setTrackedTimeout(() => {
       setIsEnemyTurn(true);
       // Mark that enemy turn is pending (will be triggered after banner + 3s delay)
       pendingEnemyTurnRef.current = true;
     }, 400);
-  }, [isEnemyTurn, isTurnStarting, playerStatuses, enemyStatuses, hand, setTrackedTimeout]);
+  }, [isEnemyTurn, isTurnStarting, playerStatuses, enemyStatuses, hand, setTrackedTimeout, checkTutorialProgress]);
 
   const performEnemyTurn = useCallback(() => {
     if (shouldSkipTurn(enemyStatuses)) {
@@ -1882,6 +1943,19 @@ export const BattleRoute = () => {
 
       {/* Confirmation Dialog */}
       <ConfirmDialog />
+
+      {/* Tutorial Overlay */}
+      {showTutorial && currentTutorialStep && (
+        <TutorialOverlay
+          message={currentTutorialStep.message}
+          onNext={currentTutorialStep.autoAdvance ? null : handleTutorialNext}
+          onSkip={handleTutorialSkip}
+          showNext={!currentTutorialStep.autoAdvance}
+          showSkip={true}
+          highlightArea={currentTutorialStep.highlightArea}
+          position={currentTutorialStep.position || 'bottom-left'}
+        />
+      )}
     </PageTransition>
   );
 };
