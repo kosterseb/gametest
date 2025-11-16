@@ -1,0 +1,25 @@
+<div class="diceWrap">
+    <div class="dice rolling">
+      <div class="diceFace front"></div>
+      <div class="diceFace up"></div>
+      <div class="diceFace left"></div>
+      <div class="diceFace right"></div>
+      <div class="diceFace bottom"></div>
+      <div class="diceFace back"></div>
+    </div>
+  </div>
+  
+  <div class="controller">
+    <button id="rolling">Toggle Rolling Per Face</button><br />
+    <button id="throw">Roll</button> <span id="diceVal"></span><br />
+    x<input type="range" min="0" max="100" id="rx" value='40'><span id="nx">0</span><br />
+    y<input type="range" min="0" max="100" id="ry" value='35'><span id="ny">0</span><br />
+    z<input type="range" min="0" max="100" id="rz" value='15'><span id="nz">0</span>
+    diceType: <select name="diceType" id="diceType">
+      <option value="">default</option>
+      <option value="red">red</option>
+      <option value="blue">blue</option>
+      <option value="black">black</option>
+      <option value="pink">pink</option>
+    </select>
+  </div>
