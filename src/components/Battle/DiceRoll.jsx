@@ -30,15 +30,16 @@ export const DiceRoll = ({ onRollComplete, minValue = 1, maxValue = 6 }) => {
       setTimeout(() => {
         setShowResult(true);
       }, 700);
-
-      // Call onRollComplete after showing result (1s total)
-      setTimeout(() => {
-        onRollComplete(value);
-      }, 1700);
     }, 300);
 
     return () => clearTimeout(startDelay);
-  }, [minValue, maxValue, onRollComplete]);
+  }, [minValue, maxValue]);
+
+  const handleContinue = () => {
+    if (finalValue) {
+      onRollComplete(finalValue);
+    }
+  };
 
   // Get the appropriate rotation for the final dice value
   const getDiceRotation = () => {
@@ -145,11 +146,12 @@ export const DiceRoll = ({ onRollComplete, minValue = 1, maxValue = 6 }) => {
         )}
 
         {showResult && (
-          <div className="nb-bg-white nb-border-lg nb-shadow p-4 text-center">
-            <div className="text-black font-black text-sm uppercase animate-pulse">
-              Applying result...
-            </div>
-          </div>
+          <button
+            onClick={handleContinue}
+            className="w-full nb-bg-green nb-border-xl nb-shadow-xl nb-hover-lg nb-active text-white font-black text-xl py-4 uppercase transition-all"
+          >
+            Continue →
+          </button>
         )}
       </div>
     </div>

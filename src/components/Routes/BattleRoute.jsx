@@ -355,17 +355,8 @@ export const BattleRoute = () => {
       } else {
         setPlayerTime(prev => {
           if (prev <= 0) {
-            // Player time ran out - PLAYER LOSES!
-            console.log('⏰ Player time ran out! Defeat!');
-            setBattleLog(prevLog => [...prevLog, '⏰ Time ran out! You lose!']);
-            clearInterval(timerInterval);
-
-            // Trigger defeat
-            setIsBattleOver(true);
-            setPlayerHealth(0);
-            handleDefeat();
-
-            return 0;
+            // Player time ran out - overtime penalty will handle damage
+            return 0; // Keep at 0, overtime system takes over
           }
           return prev - 1;
         });
