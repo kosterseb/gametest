@@ -8,6 +8,7 @@ import { SaveSlotSelection } from './components/UI/SaveSlotSelection';
 import { ProfileCreation } from './components/UI/ProfileCreation';
 import { GameModeSelection } from './components/UI/GameModeSelection';
 import { BattleRoute } from './components/Routes/BattleRoute';
+import { DialogueRoute } from './components/Routes/DialogueRoute';
 import { VictoryScreen } from './components/UI/VictoryScreen';
 import { DefeatScreen } from './components/UI/DefeatScreen';
 import { Shop } from './components/UI/Shop';
@@ -41,6 +42,8 @@ const GameApp = () => {
         return <ProfileCreation />;
       case '/game-mode-selection':
         return <GameModeSelection />;
+      case '/dialogue':
+        return <DialogueRoute />;
       case '/battle':
         return <BattleRoute />;
       case '/map':
@@ -66,12 +69,13 @@ const GameApp = () => {
     }
   };
 
-  // Show menu buttons on all routes except main menu, save select, profile creation, game mode selection, and battle (battle has its own)
+  // Show menu buttons on all routes except main menu, save select, profile creation, game mode selection, dialogue, and battle (battle has its own)
   const showMenuButtons = ![
     '/',
     '/save-select',
     '/profile-creation',
     '/game-mode-selection',
+    '/dialogue',
     '/battle'
   ].includes(currentRoute);
 

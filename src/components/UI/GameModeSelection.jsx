@@ -52,8 +52,16 @@ export const GameModeSelection = () => {
     // Start new run
     dispatch({ type: 'START_NEW_RUN' });
 
-    // Navigate to map
-    navigate('/map');
+    // If story mode, show story intro dialogue first
+    if (selectedMode === 'story') {
+      navigate('/dialogue', {
+        dialogueId: 'story_intro',
+        nextRoute: '/map'
+      });
+    } else {
+      // Other modes go straight to map
+      navigate('/map');
+    }
   };
 
   return (
