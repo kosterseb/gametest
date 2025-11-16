@@ -1565,27 +1565,6 @@ export const BattleRoute = () => {
               onForfeit={handleForfeit}
               onMenuClick={() => setIsMenuOpen(true)}
             />
-
-            {/* Timer Stage Indicator */}
-            <div className="flex gap-2">
-              <div className={`
-                nb-border-md px-4 py-2 font-black uppercase
-                ${currentStage === 'early' ? 'nb-bg-green' : ''}
-                ${currentStage === 'mid' ? 'nb-bg-orange' : ''}
-                ${currentStage === 'late' ? 'nb-bg-red animate-pulse' : ''}
-              `}>
-                <div className="text-xs">STAGE</div>
-                <div className="text-lg">{currentStage === 'early' ? '⚡ EARLY' : currentStage === 'mid' ? '🔥 MID' : '💀 LATE'}</div>
-              </div>
-
-              {/* Overtime Warning */}
-              {isOvertime && (
-                <div className="nb-bg-red nb-border-md px-4 py-2 font-black uppercase animate-pulse">
-                  <div className="text-xs">OVERTIME</div>
-                  <div className="text-lg">⚡ -{overtimeRounds * 10} HP</div>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Battle Area - 62% */}
@@ -1608,6 +1587,9 @@ export const BattleRoute = () => {
               maxEnemyEnergy={maxEnemyEnergy}
               playerTime={playerTime}
               enemyTime={enemyTime}
+              currentStage={currentStage}
+              isOvertime={isOvertime}
+              overtimeRounds={overtimeRounds}
               onAttackAnimationChange={setIsAttackAnimationPlaying}
               onCombatStateChange={setCombatStates}
             />
@@ -1642,6 +1624,17 @@ export const BattleRoute = () => {
 
           {/* Cards Area - 28% */}
           <div className="h-[28%] px-3 py-2 flex flex-col overflow-hidden relative">
+            {/* Discard Zone - Right 20% of screen */}
+            <div className="fixed right-0 top-0 bottom-0 w-[20%] pointer-events-none z-40">
+              <div className="h-full flex items-center justify-center">
+                <div className="nb-border-md border-dashed border-4 border-red-600/50 bg-red-600/10 px-6 py-8 text-center">
+                  <div className="text-6xl mb-2">🗑️</div>
+                  <div className="text-red-200 font-black text-lg uppercase">Discard Zone</div>
+                  <div className="text-red-300 text-sm font-bold mt-2">Drag cards here</div>
+                </div>
+              </div>
+            </div>
+
             {/* End Turn Button - Floating on Right Side */}
             <NBButton
               onClick={handleEndTurn}
@@ -1660,23 +1653,6 @@ export const BattleRoute = () => {
             <div className="flex justify-between items-center mb-2">
               <div>
                 <h2 className="text-lg font-bold text-white drop-shadow-lg">Your Hand ({hand.length}/5)</h2>
-              </div>
-
-              {/* Discard Area - Right side */}
-              <div
-                className={`
-                  nb-border-md nb-bg-red px-4 py-2
-                  flex items-center gap-2
-                  transition-all duration-200
-                  ${isEnemyTurn || isBattleOver || isAttackAnimationPlaying || isTurnStarting ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'}
-                `}
-                title="Click cards below to discard them"
-              >
-                <span className="text-2xl">🗑️</span>
-                <div className="text-center">
-                  <div className="font-black text-sm uppercase">DISCARD</div>
-                  <div className="text-xs font-bold">Click to Remove</div>
-                </div>
               </div>
             </div>
 
@@ -1738,15 +1714,9 @@ export const BattleRoute = () => {
               hand={hand}
               onCardClick={(card, event) => {
                 if (isEnemyTurn || isBattleOver || isAttackAnimationPlaying || isTurnStarting) return;
-
-                // Shift+Click to discard
-                if (event?.shiftKey) {
-                  handleManualDiscard(card);
-                } else {
-                  handleCardPlay(card);
-                }
+                handleCardPlay(card);
               }}
-              onCardRightClick={handleManualDiscard}
+              onCardDiscard={handleManualDiscard}
               disabled={isEnemyTurn || isBattleOver || isAttackAnimationPlaying || isTurnStarting}
               playerEnergy={playerEnergy}
               playerStatuses={playerStatuses}

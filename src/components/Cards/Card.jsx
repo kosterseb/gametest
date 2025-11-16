@@ -9,6 +9,7 @@ export const Card = ({
   card,
   onClick,
   onRightClick,
+  onDiscard,
   disabled = false,
   playerEnergy = 0,
   playerStatuses = [],
@@ -32,6 +33,7 @@ export const Card = ({
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isInPlayZone, setIsInPlayZone] = useState(false);
+  const [isInDiscardZone, setIsInDiscardZone] = useState(false);
   const cardRef = useRef(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
 
@@ -88,17 +90,30 @@ export const Card = ({
         y: e.clientY - dragOffset.y
       });
 
+      // Check if in play zone (upper 60% of screen)
       const inPlayZone = e.clientY < window.innerHeight * 0.6;
       setIsInPlayZone(inPlayZone);
+
+      // Check if in discard zone (right 20% of screen)
+      const inDiscardZone = e.clientX > window.innerWidth * 0.8;
+      setIsInDiscardZone(inDiscardZone);
     };
 
     const handleMouseUpGlobal = (e) => {
       setIsDragging(false);
-      setIsInPlayZone(false);
 
-      if (e.clientY < window.innerHeight * 0.6 && onClick) {
+      const inPlayZone = e.clientY < window.innerHeight * 0.6;
+      const inDiscardZone = e.clientX > window.innerWidth * 0.8;
+
+      // Priority: Discard zone > Play zone
+      if (inDiscardZone && onDiscard) {
+        onDiscard();
+      } else if (inPlayZone && onClick) {
         onClick(e);
       }
+
+      setIsInPlayZone(false);
+      setIsInDiscardZone(false);
     };
 
     document.addEventListener('mousemove', handleMouseMoveGlobal);
@@ -108,7 +123,7 @@ export const Card = ({
       document.removeEventListener('mousemove', handleMouseMoveGlobal);
       document.removeEventListener('mouseup', handleMouseUpGlobal);
     };
-  }, [isDragging, dragOffset, onClick]);
+  }, [isDragging, dragOffset, onClick, onDiscard]);
 
   // Neo-brutal solid colors based on card type
   const getCardColor = () => {
@@ -303,16 +318,20 @@ export const Card = ({
           className={`
             ${cardSize} ${cardHeight}
             ${getCardColor()}
-            nb-border-xl ${isInPlayZone ? 'nb-shadow-colored-green border-8 border-green-400' : 'nb-shadow-xl'}
-            ${isInPlayZone ? 'animate-pulse' : ''}
+            nb-border-xl ${isInDiscardZone ? 'nb-shadow-colored-red border-8 border-red-600' : isInPlayZone ? 'nb-shadow-colored-green border-8 border-green-400' : 'nb-shadow-xl'}
+            ${isInDiscardZone || isInPlayZone ? 'animate-pulse' : ''}
             relative overflow-hidden
             flex flex-col
             group
           `}
         >
           {cardContent}
+          {/* Discard zone indicator overlay */}
+          {isInDiscardZone && (
+            <div className="absolute inset-0 bg-red-600 opacity-20 pointer-events-none"></div>
+          )}
           {/* Play zone indicator overlay */}
-          {isInPlayZone && (
+          {isInPlayZone && !isInDiscardZone && (
             <div className="absolute inset-0 bg-green-400 opacity-20 pointer-events-none"></div>
           )}
         </div>,

@@ -24,6 +24,9 @@ export const BattleField = ({
   maxEnemyEnergy = 10,
   playerTime = 120,
   enemyTime = 120,
+  currentStage = 'early',
+  isOvertime = false,
+  overtimeRounds = 0,
   onAttackAnimationChange = () => {},
   onCombatStateChange = () => {}
 }) => {
@@ -340,6 +343,27 @@ export const BattleField = ({
 
         {/* VS Indicator */}
         <div className="flex flex-col items-center justify-center gap-4">
+          {/* Timer Stage Indicator */}
+          <div className="flex gap-2">
+            <div className={`
+              nb-border-md px-4 py-2 font-black uppercase
+              ${currentStage === 'early' ? 'nb-bg-green' : ''}
+              ${currentStage === 'mid' ? 'nb-bg-orange' : ''}
+              ${currentStage === 'late' ? 'nb-bg-red animate-pulse' : ''}
+            `}>
+              <div className="text-xs">STAGE</div>
+              <div className="text-lg">{currentStage === 'early' ? '⚡ EARLY' : currentStage === 'mid' ? '🔥 MID' : '💀 LATE'}</div>
+            </div>
+
+            {/* Overtime Warning */}
+            {isOvertime && (
+              <div className="nb-bg-red nb-border-md px-4 py-2 font-black uppercase animate-pulse">
+                <div className="text-xs">OVERTIME</div>
+                <div className="text-lg">⚡ -{overtimeRounds * 10} HP</div>
+              </div>
+            )}
+          </div>
+
           {/* Battle Timer */}
           <BattleTimer
             playerTime={playerTime}
