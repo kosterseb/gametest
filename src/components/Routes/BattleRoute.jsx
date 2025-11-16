@@ -278,6 +278,13 @@ export const BattleRoute = () => {
   const bannerCooldownRef = useRef(false); // Prevent banner from showing multiple times
   const pendingEnemyTurnRef = useRef(false); // Track if enemy turn should start after delay
 
+  // 🛡️ Counter system state
+  const [showCounterOpportunity, setShowCounterOpportunity] = useState(false);
+  const [counterTimeLeft, setCounterTimeLeft] = useState(15);
+  const [pendingEnemyAttack, setPendingEnemyAttack] = useState(null);
+  const [counterUsed, setCounterUsed] = useState(false);
+  const counterTimerRef = useRef(null);
+
   // 🎭 Show turn banner when turn changes
   useEffect(() => {
     // Only show banner after turn order is decided, when turn actually changes, and not on cooldown
@@ -408,6 +415,11 @@ export const BattleRoute = () => {
     cardIdCounter.current += 1;
     return `${cardName}_${extraInfo}_${cardIdCounter.current}_${Math.random().toString(36).substr(2, 9)}`;
   };
+
+  // 🛡️ Check if player has counter cards in hand
+  const hasCounterCards = useCallback(() => {
+    return hand.some(card => card.isCounter === true);
+  }, [hand]);
 
   // ✅ FIXED: Draw single card using reducer
   const drawCard = useCallback(() => {
@@ -728,10 +740,101 @@ export const BattleRoute = () => {
         }
         break;
 
+      case 'counter':
+        // 🛡️ Counter cards can only be played during counter opportunity
+        if (!showCounterOpportunity || !pendingEnemyAttack) {
+          setBattleLog(prev => [...prev, '⚠️ Counter cards can only be used when defending!']);
+          return;
+        }
+
+        // Clear counter timer
+        if (counterTimerRef.current) {
+          clearInterval(counterTimerRef.current);
+          counterTimerRef.current = null;
+        }
+
+        setCounterUsed(true);
+        setShowCounterOpportunity(false);
+
+        const counterEffect = card.counterEffect;
+
+        // Execute counter based on type
+        switch (counterEffect.type) {
+          case 'block':
+            // Perfect block - no damage taken
+            setBattleLog(prev => [...prev, `🛡️ ${card.name}: Blocked attack completely!`]);
+            setPendingEnemyAttack(null);
+            break;
+
+          case 'block_and_damage':
+            // Riposte - block and deal damage back
+            setBattleLog(prev => [...prev, `🛡️ ${card.name}: Blocked attack and countered!`]);
+            setEnemyHealth(prev => Math.max(0, prev - counterEffect.damageBack));
+            setBattleLog(prev => [...prev, `⚔️ Dealt ${counterEffect.damageBack} damage back!`]);
+            setPendingEnemyAttack(null);
+            break;
+
+          case 'reduce_and_damage':
+            // Counter Strike - reduce damage and hit back
+            const reducedDamage = Math.floor(pendingEnemyAttack.modifiedDamage * counterEffect.reduction);
+            const counterShieldResult = applyShieldBlock(playerStatuses, reducedDamage);
+
+            setPlayerHealth(prev => Math.max(0, prev - counterShieldResult.damage));
+            setPlayerStatuses(counterShieldResult.newStatuses);
+            setBattleLog(prev => [...prev, `🛡️ ${card.name}: Reduced damage to ${counterShieldResult.damage}!`]);
+
+            setEnemyHealth(prev => Math.max(0, prev - counterEffect.damageBack));
+            setBattleLog(prev => [...prev, `⚔️ Countered for ${counterEffect.damageBack} damage!`]);
+            setPendingEnemyAttack(null);
+            break;
+
+          case 'dice_counter':
+            // Lucky Counter - dice roll to determine if successful
+            if (card.diceRoll) {
+              // Trigger dice roll overlay
+              setPendingDiceCard(card);
+              setShowDiceRoll(true);
+              return;
+            }
+
+            const roll = diceResult || Math.floor(Math.random() * 6) + 1;
+            setBattleLog(prev => [...prev, `🎲 Rolled a ${roll}!`]);
+
+            if (roll >= counterEffect.threshold) {
+              const counterDamage = roll * counterEffect.damageMultiplier;
+              setBattleLog(prev => [...prev, `🛡️ ${card.name}: SUCCESS! Blocked attack!`]);
+              setEnemyHealth(prev => Math.max(0, prev - counterDamage));
+              setBattleLog(prev => [...prev, `⚔️ Dealt ${counterDamage} counter damage!`]);
+              setPendingEnemyAttack(null);
+            } else {
+              setBattleLog(prev => [...prev, `❌ ${card.name}: FAILED! Attack goes through...`]);
+              // Apply the pending damage
+              const failShieldResult = applyShieldBlock(playerStatuses, pendingEnemyAttack.modifiedDamage);
+              setPlayerHealth(prev => Math.max(0, prev - failShieldResult.damage));
+              setPlayerStatuses(failShieldResult.newStatuses);
+              setBattleLog(prev => [...prev, `💥 Took ${failShieldResult.damage} damage!`]);
+              setPendingEnemyAttack(null);
+            }
+            break;
+
+          case 'block_and_shield':
+            // Parry - block and gain shield
+            setBattleLog(prev => [...prev, `🛡️ ${card.name}: Blocked attack!`]);
+            const parryShieldStatus = createStatus('shield', counterEffect.shieldGain);
+            setPlayerStatuses(prev => applyStatus(prev, parryShieldStatus));
+            setBattleLog(prev => [...prev, `🛡️ Gained ${counterEffect.shieldGain} shield!`]);
+            setPendingEnemyAttack(null);
+            break;
+
+          default:
+            console.warn('Unknown counter effect type:', counterEffect.type);
+        }
+        break;
+
       default:
         setBattleLog(prev => [...prev, `${card.name}: Unknown card type!`]);
     }
-  }, [playerEnergy, playerStatuses, hand.length, enemyHealth, maxEnemyHealth, maxPlayerHealth, gameState, dispatch, drawCard, drawMultipleCards, setTrackedTimeout]);
+  }, [playerEnergy, playerStatuses, hand.length, enemyHealth, maxEnemyHealth, maxPlayerHealth, gameState, dispatch, drawCard, drawMultipleCards, setTrackedTimeout, showCounterOpportunity, pendingEnemyAttack, counterTimerRef]);
 
   // ✅ FIXED: Card playing using reducer
   const handleCardPlay = useCallback((card) => {
@@ -803,6 +906,45 @@ export const BattleRoute = () => {
 
     setBattleLog(prev => [...prev, `🗑️ Discarded ${card.name}`]);
   }, [isEnemyTurn, isBattleOver, isAttackAnimationPlaying, isTurnStarting]);
+
+  // 🛡️ Handle counter skip
+  const handleCounterSkip = useCallback(() => {
+    if (!showCounterOpportunity || !pendingEnemyAttack) return;
+
+    console.log('⏭️ Counter skipped, applying pending damage');
+
+    // Clear counter timer
+    if (counterTimerRef.current) {
+      clearInterval(counterTimerRef.current);
+      counterTimerRef.current = null;
+    }
+
+    setShowCounterOpportunity(false);
+    setCounterUsed(true);
+
+    // Apply the pending damage
+    const shieldResult = applyShieldBlock(playerStatuses, pendingEnemyAttack.modifiedDamage);
+    const finalDamage = shieldResult.damage;
+
+    setPlayerHealth(prev => Math.max(0, prev - finalDamage));
+    setPlayerStatuses(shieldResult.newStatuses);
+    dispatch({ type: 'DAMAGE_PLAYER', amount: finalDamage });
+
+    if (shieldResult.blocked > 0) {
+      setBattleLog(prev => [...prev, `🛡️ Blocked ${shieldResult.blocked} damage!`]);
+    }
+    setBattleLog(prev => [...prev, `💥 Took ${finalDamage} damage!`]);
+
+    setPendingEnemyAttack(null);
+  }, [showCounterOpportunity, pendingEnemyAttack, playerStatuses, dispatch]);
+
+  // 🛡️ Handle counter timeout
+  useEffect(() => {
+    if (counterTimeLeft <= 0 && showCounterOpportunity && pendingEnemyAttack) {
+      console.log('⏰ Counter timed out, applying damage');
+      handleCounterSkip();
+    }
+  }, [counterTimeLeft, showCounterOpportunity, pendingEnemyAttack, handleCounterSkip]);
 
   // ✅ Handle dice roll completion
   const handleDiceComplete = useCallback((diceResult) => {
@@ -946,6 +1088,41 @@ export const BattleRoute = () => {
           const damageRange = selectedAbility.damage;
           const baseDamage = Math.floor(Math.random() * (damageRange[1] - damageRange[0] + 1)) + damageRange[0];
           const modifiedDamage = getModifiedDamage(baseDamage, enemyStatuses, playerStatuses);
+
+          // 🛡️ COUNTER SYSTEM: Check if player has counter cards
+          if (hasCounterCards() && !counterUsed) {
+            console.log('🛡️ Counter opportunity! Player has counter cards');
+            setBattleLog(prev => [...prev, '🛡️ COUNTER OPPORTUNITY!']);
+
+            // Store pending attack data
+            setPendingEnemyAttack({
+              type: 'damage',
+              baseDamage,
+              modifiedDamage,
+              abilityName: selectedAbility.message
+            });
+
+            // Show counter UI
+            setShowCounterOpportunity(true);
+            setCounterTimeLeft(15);
+            setCounterUsed(false);
+
+            // Start countdown timer
+            if (counterTimerRef.current) clearInterval(counterTimerRef.current);
+            counterTimerRef.current = setInterval(() => {
+              setCounterTimeLeft(prev => {
+                if (prev <= 1) {
+                  // Time's up - apply damage
+                  clearInterval(counterTimerRef.current);
+                  setShowCounterOpportunity(false);
+                  return 15;
+                }
+                return prev - 1;
+              });
+            }, 1000);
+
+            return; // Don't apply damage yet - wait for counter or timeout
+          }
 
           // ✅ Apply shield blocking
           const shieldResult = applyShieldBlock(playerStatuses, modifiedDamage);
@@ -1496,6 +1673,71 @@ export const BattleRoute = () => {
           minValue={1}
           maxValue={6}
         />
+      )}
+
+      {/* Counter Opportunity Overlay */}
+      {showCounterOpportunity && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center">
+          <div className="nb-bg-yellow nb-border-xl nb-shadow-xl p-8 max-w-2xl w-full animate-bounceIn">
+            {/* Header */}
+            <div className="text-center mb-6">
+              <h2 className="text-6xl font-black uppercase mb-2 text-black">
+                🛡️ COUNTER!
+              </h2>
+              <p className="text-2xl font-bold text-black">
+                Enemy is attacking! Use a counter card!
+              </p>
+            </div>
+
+            {/* Timer */}
+            <div className="text-center mb-6">
+              <div className={`text-8xl font-black ${counterTimeLeft <= 5 ? 'text-red-600 animate-pulse' : 'text-black'}`}>
+                {counterTimeLeft}
+              </div>
+              <p className="text-lg font-bold text-black mt-2">seconds remaining</p>
+            </div>
+
+            {/* Attack Info */}
+            {pendingEnemyAttack && (
+              <div className="nb-bg-red nb-border-md p-4 mb-6">
+                <p className="text-center font-black text-black text-xl">
+                  Incoming Damage: {pendingEnemyAttack.modifiedDamage} HP
+                </p>
+                <p className="text-center font-bold text-black text-sm mt-1">
+                  {pendingEnemyAttack.abilityName}
+                </p>
+              </div>
+            )}
+
+            {/* Counter Cards */}
+            <div className="mb-6">
+              <p className="text-center font-black text-black mb-3">
+                Your Counter Cards:
+              </p>
+              <div className="flex justify-center gap-3 flex-wrap">
+                {hand.filter(card => card.isCounter).map(card => (
+                  <button
+                    key={card.id}
+                    onClick={() => handleCardPlay(card)}
+                    className="nb-bg-white nb-border-md px-4 py-2 font-black uppercase hover:scale-110 transition-transform"
+                  >
+                    {card.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Skip Button */}
+            <div className="text-center">
+              <button
+                onClick={handleCounterSkip}
+                className="nb-bg-white nb-border-md px-8 py-3 font-black uppercase text-xl hover:nb-bg-red transition-colors"
+              >
+                SKIP (Take Damage)
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Card Play Particles */}
