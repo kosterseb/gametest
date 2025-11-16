@@ -296,10 +296,19 @@ export const BattleRoute = () => {
   const [overtimeRounds, setOvertimeRounds] = useState(0);
 
   // 📚 Tutorial system state
+  console.log('📚 BattleRoute init - routeParams:', routeParams);
   const [isTutorial, setIsTutorial] = useState(routeParams?.isTutorial || false);
   const [currentTutorialStep, setCurrentTutorialStep] = useState(null);
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialCompleted, setTutorialCompleted] = useState(false);
+
+  // Update isTutorial when routeParams changes
+  useEffect(() => {
+    if (routeParams?.isTutorial !== undefined) {
+      console.log('📚 Updating isTutorial from routeParams:', routeParams.isTutorial);
+      setIsTutorial(routeParams.isTutorial);
+    }
+  }, [routeParams?.isTutorial]);
 
   // Debug: Log tutorial state
   useEffect(() => {
