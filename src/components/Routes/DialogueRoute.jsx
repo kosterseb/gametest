@@ -3,6 +3,7 @@ import { useRouter } from '../../hooks/useRouter';
 import { useGame } from '../../context/GameContext';
 import { DialogueBox } from '../Dialogue/DialogueBox';
 import { getDialogue } from '../../data/dialogues';
+import { tutorialEnemy } from '../../data/enemies';
 
 /**
  * DialogueRoute Component
@@ -59,15 +60,16 @@ export const DialogueRoute = () => {
     if (choice.action) {
       switch (choice.action) {
         case 'start_tutorial':
-          // Set flag for tutorial
+          // Set tutorial enemy and navigate to tutorial battle
           dispatch({ type: 'SET_TUTORIAL_ENABLED', enabled: true });
+          dispatch({ type: 'SET_ENEMY_FOR_BATTLE', enemyData: tutorialEnemy });
           navigate('/battle', { isTutorial: true });
           break;
 
         case 'skip_tutorial':
-          // Skip tutorial, go straight to first battle
+          // Skip tutorial, go to map for biome/enemy selection
           dispatch({ type: 'SET_TUTORIAL_ENABLED', enabled: false });
-          navigate('/battle');
+          navigate('/map');
           break;
 
         case 'accept_deal':

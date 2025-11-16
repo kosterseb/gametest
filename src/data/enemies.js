@@ -5,7 +5,42 @@ import { createStatus } from './statusEffects';
 export const ENEMY_TIERS = {
   BASIC: 'basic',
   ELITE: 'elite',
-  BOSS: 'boss'
+  BOSS: 'boss',
+  TUTORIAL: 'tutorial'
+};
+
+// Tutorial enemy - weak practice dummy for learning
+export const tutorialEnemy = {
+  name: "Training Dummy",
+  health: 50,
+  goldReward: [5, 10],
+  isTutorial: true,
+  actionPoints: 10,
+  abilities: [
+    {
+      name: "Weak Punch",
+      type: "damage",
+      damage: [3, 5],
+      cost: 4,
+      chance: 60,
+      message: "weakly punches you!"
+    },
+    {
+      name: "Rest",
+      type: "skip",
+      cost: 2,
+      chance: 30,
+      message: "stands still..."
+    },
+    {
+      name: "Block",
+      type: "buff",
+      healing: 3,
+      cost: 3,
+      chance: 10,
+      message: "blocks and recovers slightly!"
+    }
+  ]
 };
 
 // Basic enemies (Floors 1-20)
