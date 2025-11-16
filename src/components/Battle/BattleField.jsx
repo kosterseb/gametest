@@ -341,10 +341,10 @@ export const BattleField = ({
           </div>
         </div>
 
-        {/* Timer & Stage Section */}
-        <div className="flex flex-col items-center justify-center gap-2">
-          {/* Timer Stage Indicator - Above everything */}
-          <div className="flex gap-2 mb-2">
+        {/* Center Section */}
+        <div className="flex flex-col items-center justify-center">
+          {/* Timer Stage Indicator - Separate section at top */}
+          <div className="flex gap-2 mb-6">
             <div className={`
               nb-border-md px-4 py-2 font-black uppercase
               ${currentStage === 'early' ? 'nb-bg-green' : ''}

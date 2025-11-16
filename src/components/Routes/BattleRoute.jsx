@@ -712,28 +712,52 @@ export const BattleRoute = () => {
         if (card.effect === 'drawRoll') {
           const roll = diceResult || Math.floor(Math.random() * 6) + 1;
           setBattleLog(prev => [...prev, `🎲 Rolled ${roll}!`]);
-          drawMultipleCards(roll);
-          setBattleLog(prev => [...prev, `📖 Drew ${roll} cards!`]);
+          const maxHandSize = 5;
+          const cardsToDraw = Math.min(roll, Math.max(0, maxHandSize - hand.length));
+          if (cardsToDraw > 0) {
+            drawMultipleCards(cardsToDraw);
+            setBattleLog(prev => [...prev, `📖 Drew ${cardsToDraw} cards!`]);
+          } else {
+            setBattleLog(prev => [...prev, `⚠️ Hand is full!`]);
+          }
         }
         if (card.effect === 'draw_multi') {
-          drawMultipleCards(3);
-          setBattleLog(prev => [...prev, `📖 ${card.name}: Drew 3 cards!`]);
+          const maxHandSize = 5;
+          const cardsToDraw = Math.min(3, Math.max(0, maxHandSize - hand.length));
+          if (cardsToDraw > 0) {
+            drawMultipleCards(cardsToDraw);
+            setBattleLog(prev => [...prev, `📖 ${card.name}: Drew ${cardsToDraw} cards!`]);
+          } else {
+            setBattleLog(prev => [...prev, `⚠️ Hand is full!`]);
+          }
         }
         if (card.effect === 'draw_energy') {
-          drawMultipleCards(2);
+          const maxHandSize = 5;
+          const cardsToDraw = Math.min(2, Math.max(0, maxHandSize - hand.length));
+          if (cardsToDraw > 0) {
+            drawMultipleCards(cardsToDraw);
+          }
           setPlayerEnergy(prev => prev + 2);
-          setBattleLog(prev => [...prev, `⚡📖 ${card.name}: Drew 2 cards and gained 2 energy!`]);
+          setBattleLog(prev => [...prev, `⚡📖 ${card.name}: Drew ${cardsToDraw || 0} cards and gained 2 energy!`]);
         }
         if (card.effect === 'master_plan') {
-          drawMultipleCards(4);
+          const maxHandSize = 5;
+          const cardsToDraw = Math.min(4, Math.max(0, maxHandSize - hand.length));
+          if (cardsToDraw > 0) {
+            drawMultipleCards(cardsToDraw);
+          }
           setPlayerEnergy(prev => prev + 3);
-          setBattleLog(prev => [...prev, `⚡📖 ${card.name}: Drew 4 cards and gained 3 energy!`]);
+          setBattleLog(prev => [...prev, `⚡📖 ${card.name}: Drew ${cardsToDraw || 0} cards and gained 3 energy!`]);
         }
         if (card.effect === 'adrenaline') {
-          drawMultipleCards(2);
+          const maxHandSize = 5;
+          const cardsToDraw = Math.min(2, Math.max(0, maxHandSize - hand.length));
+          if (cardsToDraw > 0) {
+            drawMultipleCards(cardsToDraw);
+          }
           setPlayerEnergy(prev => prev + 4);
           setPlayerHealth(prev => Math.min(maxPlayerHealth, prev + 10));
-          setBattleLog(prev => [...prev, `🔥 ${card.name}: Drew 2 cards, gained 4 energy, and healed 10 HP!`]);
+          setBattleLog(prev => [...prev, `🔥 ${card.name}: Drew ${cardsToDraw || 0} cards, gained 4 energy, and healed 10 HP!`]);
         }
         
         if (card.effect === 'shield') {
@@ -922,16 +946,26 @@ export const BattleRoute = () => {
     }
 
     const modifiedCost = getModifiedCardCost(card.energyCost, playerStatuses);
+    const isCounterCard = card.isCounter && card.type === 'counter';
+    const isCounterOpportunity = showCounterOpportunity && pendingEnemyAttack;
 
-    if (playerEnergy < modifiedCost) {
-      setBattleLog(prev => [...prev, '⚠️ Not enough energy!']);
-      return;
+    // Counter cards during counter opportunity don't cost energy
+    if (!isCounterOpportunity || !isCounterCard) {
+      if (playerEnergy < modifiedCost) {
+        setBattleLog(prev => [...prev, '⚠️ Not enough energy!']);
+        return;
+      }
     }
 
     console.log('🎴 Playing card:', card.name, 'ID:', card.id);
     console.log('✋ Hand before:', hand.length, 'cards');
 
-    setPlayerEnergy(prev => prev - modifiedCost);
+    // Only deduct energy if not a counter card during counter opportunity
+    if (!isCounterOpportunity || !isCounterCard) {
+      setPlayerEnergy(prev => prev - modifiedCost);
+    } else {
+      console.log('🛡️ Counter card - no energy cost during counter opportunity');
+    }
 
     // ✅ Use reducer to remove card from hand and add to discard
     dispatchCardState({
@@ -966,7 +1000,7 @@ export const BattleRoute = () => {
     } else {
       executeCard(card);
     }
-  }, [isBattleOver, playerEnergy, playerStatuses, hand.length, executeCard]);
+  }, [isBattleOver, playerEnergy, playerStatuses, hand.length, executeCard, showCounterOpportunity, pendingEnemyAttack]);
 
   // ✅ Manual discard handler
   const handleManualDiscard = useCallback((card) => {
@@ -1070,11 +1104,22 @@ export const BattleRoute = () => {
     }
 
     if (item.needsSpecialHandling) {
+      const maxHandSize = 5;
       if (item.specialEffect === 'draw_3_cards') {
-        drawMultipleCards(3);
+        const cardsToDraw = Math.min(3, Math.max(0, maxHandSize - hand.length));
+        if (cardsToDraw > 0) {
+          drawMultipleCards(cardsToDraw);
+        } else {
+          setBattleLog(prev => [...prev, '⚠️ Hand is full! Cannot draw cards.']);
+        }
       } else if (item.specialEffect === 'draw_2_cards') {
         setPlayerEnergy(prev => prev + 8);
-        drawMultipleCards(2);
+        const cardsToDraw = Math.min(2, Math.max(0, maxHandSize - hand.length));
+        if (cardsToDraw > 0) {
+          drawMultipleCards(cardsToDraw);
+        } else {
+          setBattleLog(prev => [...prev, '⚠️ Hand is full! Cannot draw cards.']);
+        }
       }
     }
 
@@ -1352,7 +1397,17 @@ export const BattleRoute = () => {
           console.log('🔄 Refilling hand and energy...');
           setPlayerEnergy(maxEnergy);
           setEnemyEnergy(maxEnemyEnergy);
-          drawMultipleCards(gameState.maxHandSize || 6);
+
+          // ✅ CHANGED: Draw up to max hand size of 5 (hand persists now)
+          const maxHandSize = 5;
+          const cardsToDraw = Math.max(0, maxHandSize - hand.length);
+          if (cardsToDraw > 0) {
+            console.log(`📥 Drawing ${cardsToDraw} cards to fill hand to ${maxHandSize}`);
+            drawMultipleCards(cardsToDraw);
+          } else {
+            console.log(`✋ Hand full (${hand.length} cards)`);
+          }
+
           setIsEnemyTurn(false);
           setIsAttackAnimationPlaying(false); // Reset animation lock
           setHasUsedDrawAbility(false);
@@ -1615,28 +1670,31 @@ export const BattleRoute = () => {
 
           {/* Cards Area - 28% */}
           <div className="h-[28%] px-3 py-2 flex flex-col overflow-hidden relative">
-            {/* Discard Zone - Bottom Right Corner */}
-            <div className="fixed right-4 bottom-4 pointer-events-none z-40">
-              <div className="nb-border-md border-dashed border-4 border-red-600/50 bg-red-600/10 px-6 py-4 text-center">
-                <Trash2 className="w-12 h-12 text-red-300 mx-auto mb-2" />
-                <div className="text-red-200 font-black text-sm uppercase">Discard</div>
+            {/* Right Side Actions */}
+            <div className="absolute top-0 right-4 z-40 flex flex-col items-end gap-3">
+              {/* End Turn Button */}
+              <NBButton
+                onClick={handleEndTurn}
+                disabled={isEnemyTurn || isAttackAnimationPlaying || isTurnStarting}
+                variant={isEnemyTurn || isAttackAnimationPlaying || isTurnStarting ? 'white' : 'danger'}
+                size="lg"
+                className={`
+                  px-8 py-4 text-xl
+                  ${isEnemyTurn || isAttackAnimationPlaying || isTurnStarting ? 'opacity-50 cursor-not-allowed' : ''}
+                `}
+              >
+                {isEnemyTurn ? 'ENEMY TURN...' : isTurnStarting ? 'STARTING...' : 'END TURN'}
+              </NBButton>
+
+              {/* Discard Zone - Card-sized */}
+              <div className="w-48 h-72 pointer-events-none">
+                <div className="nb-border-md border-dashed border-4 border-red-600/50 bg-red-600/10 rounded-2xl w-full h-full flex flex-col items-center justify-center">
+                  <Trash2 className="w-16 h-16 text-red-300 mb-3" />
+                  <div className="text-red-200 font-black text-base uppercase">Discard</div>
+                  <div className="text-red-300 text-xs font-bold mt-2">Drag here</div>
+                </div>
               </div>
             </div>
-
-            {/* End Turn Button - Floating on Right Side */}
-            <NBButton
-              onClick={handleEndTurn}
-              disabled={isEnemyTurn || isAttackAnimationPlaying || isTurnStarting}
-              variant={isEnemyTurn || isAttackAnimationPlaying || isTurnStarting ? 'white' : 'danger'}
-              size="lg"
-              className={`
-                absolute top-4 right-4 z-50
-                px-8 py-4 text-xl
-                ${isEnemyTurn || isAttackAnimationPlaying || isTurnStarting ? 'opacity-50 cursor-not-allowed' : ''}
-              `}
-            >
-              {isEnemyTurn ? 'ENEMY TURN...' : isTurnStarting ? 'STARTING...' : 'END TURN'}
-            </NBButton>
 
             <div className="flex justify-between items-center mb-2">
               <div>
