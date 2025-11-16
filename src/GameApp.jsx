@@ -6,6 +6,7 @@ import { useGame } from './context/GameContext';
 import { MainMenu } from './components/UI/MainMenu';
 import { SaveSlotSelection } from './components/UI/SaveSlotSelection';
 import { ProfileCreation } from './components/UI/ProfileCreation';
+import { GameModeSelection } from './components/UI/GameModeSelection';
 import { BattleRoute } from './components/Routes/BattleRoute';
 import { VictoryScreen } from './components/UI/VictoryScreen';
 import { DefeatScreen } from './components/UI/DefeatScreen';
@@ -38,6 +39,8 @@ const GameApp = () => {
         return <SaveSlotSelection />;
       case '/profile-creation':
         return <ProfileCreation />;
+      case '/game-mode-selection':
+        return <GameModeSelection />;
       case '/battle':
         return <BattleRoute />;
       case '/map':
@@ -63,11 +66,12 @@ const GameApp = () => {
     }
   };
 
-  // Show menu buttons on all routes except main menu, save select, profile creation, and battle (battle has its own)
+  // Show menu buttons on all routes except main menu, save select, profile creation, game mode selection, and battle (battle has its own)
   const showMenuButtons = ![
     '/',
     '/save-select',
     '/profile-creation',
+    '/game-mode-selection',
     '/battle'
   ].includes(currentRoute);
 
@@ -103,27 +107,29 @@ const GameApp = () => {
             <Menu className="w-8 h-8" />
           </NBButton>
 
-          {/* Character Button - UNDERNEATH with Avatar */}
-          <button
-            onClick={handleOpenCharacterMenu}
-            className="w-16 h-16 nb-bg-cyan nb-border-xl nb-shadow-lg nb-hover flex items-center justify-center p-0 overflow-hidden"
-            aria-label="Open character menu"
-          >
-            {gameState.profile?.avatarSeed ? (
-              <img
-                src={`https://api.dicebear.com/9.x/notionists/svg?seed=${gameState.profile.avatarSeed}`}
-                alt="Your character"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <User className="w-8 h-8 text-black" />
-            )}
-          </button>
+          {/* Character Button - UNDERNEATH with Avatar (only show if profile exists) */}
+          {gameState.profile && (
+            <button
+              onClick={handleOpenCharacterMenu}
+              className="w-16 h-16 nb-bg-cyan nb-border-xl nb-shadow-lg nb-hover flex items-center justify-center p-0 overflow-hidden"
+              aria-label="Open character menu"
+            >
+              {gameState.profile.avatarSeed ? (
+                <img
+                  src={`https://api.dicebear.com/9.x/notionists/svg?seed=${gameState.profile.avatarSeed}`}
+                  alt="Your character"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-8 h-8 text-black" />
+              )}
+            </button>
+          )}
         </div>
       )}
 
       {/* Battle Menu - Settings/Utility (available on all routes except main menu) */}
-      {currentRoute !== '/' && currentRoute !== '/save-select' && currentRoute !== '/profile-creation' && (
+      {currentRoute !== '/' && currentRoute !== '/save-select' && currentRoute !== '/profile-creation' && currentRoute !== '/game-mode-selection' && (
         <BattleMenu
           isOpen={isMenuOpen}
           onClose={() => setIsMenuOpen(false)}

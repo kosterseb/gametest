@@ -2,57 +2,58 @@ import React, { useState } from 'react';
 import { Swords, Shield, Crown, HelpCircle, Coins, Heart, Zap, Skull, ShoppingCart, Sparkles, Target, Tent } from 'lucide-react';
 import { NBBadge } from '../UI/NeoBrutalUI';
 
-export const MapNode = ({ node, floor, isSelected, isCompleted, isAvailable, onSelect }) => {
+// Helper functions moved outside component for better performance
+const getNodeIcon = (type) => {
+  switch (type) {
+    case 'enemy': return <Swords className="w-8 h-8" />;
+    case 'elite': return <Shield className="w-8 h-8" />;
+    case 'boss': return <Crown className="w-8 h-8" />;
+    case 'shop': return <ShoppingCart className="w-8 h-8" />;
+    case 'event': return <Target className="w-8 h-8" />;
+    case 'mystery': return <HelpCircle className="w-8 h-8" />;
+    case 'god': return <Sparkles className="w-8 h-8" />;
+    case 'rest': return <Tent className="w-8 h-8" />;
+    case 'joker': return <HelpCircle className="w-8 h-8" />; // Deprecated
+    default: return <Swords className="w-8 h-8" />;
+  }
+};
+
+const getNodeColor = (type, isCompleted, isAvailable, isSelected) => {
+  if (isCompleted) return 'bg-gray-400';
+  if (!isAvailable) return 'bg-gray-600';
+  if (isSelected) return 'nb-bg-yellow';
+
+  switch (type) {
+    case 'enemy': return 'nb-bg-red';
+    case 'elite': return 'nb-bg-orange';
+    case 'boss': return 'nb-bg-purple';
+    case 'shop': return 'nb-bg-green';
+    case 'event': return 'nb-bg-blue';
+    case 'mystery': return 'nb-bg-purple';
+    case 'god': return 'nb-bg-yellow';
+    case 'rest': return 'nb-bg-cyan';
+    case 'joker': return 'nb-bg-cyan';
+    default: return 'bg-gray-600';
+  }
+};
+
+const getNodeLabel = (type) => {
+  switch (type) {
+    case 'enemy': return 'BATTLE';
+    case 'elite': return 'ELITE';
+    case 'boss': return 'BOSS';
+    case 'shop': return 'SHOP';
+    case 'event': return 'EVENT';
+    case 'mystery': return 'MYSTERY';
+    case 'god': return 'GOD';
+    case 'rest': return 'REST';
+    case 'joker': return 'MYSTERY';
+    default: return 'NODE';
+  }
+};
+
+const MapNodeComponent = ({ node, floor, isSelected, isCompleted, isAvailable, onSelect }) => {
   const [showPreview, setShowPreview] = useState(false);
-
-  const getNodeIcon = (type) => {
-    switch (type) {
-      case 'enemy': return <Swords className="w-8 h-8" />;
-      case 'elite': return <Shield className="w-8 h-8" />;
-      case 'boss': return <Crown className="w-8 h-8" />;
-      case 'shop': return <ShoppingCart className="w-8 h-8" />;
-      case 'event': return <Target className="w-8 h-8" />;
-      case 'mystery': return <HelpCircle className="w-8 h-8" />;
-      case 'god': return <Sparkles className="w-8 h-8" />;
-      case 'rest': return <Tent className="w-8 h-8" />;
-      case 'joker': return <HelpCircle className="w-8 h-8" />; // Deprecated
-      default: return <Swords className="w-8 h-8" />;
-    }
-  };
-
-  const getNodeColor = () => {
-    if (isCompleted) return 'bg-gray-400';
-    if (!isAvailable) return 'bg-gray-600';
-    if (isSelected) return 'nb-bg-yellow';
-
-    switch (node.type) {
-      case 'enemy': return 'nb-bg-red';
-      case 'elite': return 'nb-bg-orange';
-      case 'boss': return 'nb-bg-purple';
-      case 'shop': return 'nb-bg-green';
-      case 'event': return 'nb-bg-blue';
-      case 'mystery': return 'nb-bg-purple';
-      case 'god': return 'nb-bg-yellow';
-      case 'rest': return 'nb-bg-cyan';
-      case 'joker': return 'nb-bg-cyan';
-      default: return 'bg-gray-600';
-    }
-  };
-
-  const getNodeLabel = () => {
-    switch (node.type) {
-      case 'enemy': return 'BATTLE';
-      case 'elite': return 'ELITE';
-      case 'boss': return 'BOSS';
-      case 'shop': return 'SHOP';
-      case 'event': return 'EVENT';
-      case 'mystery': return 'MYSTERY';
-      case 'god': return 'GOD';
-      case 'rest': return 'REST';
-      case 'joker': return 'MYSTERY';
-      default: return 'NODE';
-    }
-  };
 
   const canInteract = isAvailable && !isCompleted;
 
@@ -65,7 +66,7 @@ export const MapNode = ({ node, floor, isSelected, isCompleted, isAvailable, onS
         onMouseLeave={() => setShowPreview(false)}
         disabled={!canInteract}
         className={`
-          ${getNodeColor()}
+          ${getNodeColor(node.type, isCompleted, isAvailable, isSelected)}
           nb-border-xl nb-shadow-lg
           w-24 h-24
           flex flex-col items-center justify-center gap-1
@@ -82,7 +83,7 @@ export const MapNode = ({ node, floor, isSelected, isCompleted, isAvailable, onS
 
         {/* Label */}
         <span className="text-xs font-black text-black uppercase tracking-tight">
-          {getNodeLabel()}
+          {getNodeLabel(node.type)}
         </span>
 
         {/* Completed Checkmark */}
@@ -261,3 +262,16 @@ export const MapNode = ({ node, floor, isSelected, isCompleted, isAvailable, onS
     </div>
   );
 };
+
+// Memoized export with custom comparison function
+export const MapNode = React.memo(MapNodeComponent, (prevProps, nextProps) => {
+  // Only re-render if these specific props change
+  return (
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.isCompleted === nextProps.isCompleted &&
+    prevProps.isAvailable === nextProps.isAvailable &&
+    prevProps.node.id === nextProps.node.id &&
+    prevProps.node.type === nextProps.node.type &&
+    prevProps.floor === nextProps.floor
+  );
+});

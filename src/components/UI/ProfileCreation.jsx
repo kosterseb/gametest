@@ -86,8 +86,8 @@ export const ProfileCreation = ({ slotNumber }) => {
     
     console.log('✅ Profile created:', profileName);
     
-    // Navigate to map
-    navigate('/map');
+    // Navigate to game mode selection
+    navigate('/game-mode-selection');
   };
 
   const avatarUrl = `https://api.dicebear.com/9.x/notionists/svg?seed=${avatarSeed}&hairColor=${hairColors[hairColorIndex]}&mouthColor=${mouthColors[mouthColorIndex]}&shirtColor=${shirtColors[shirtColorIndex]}`;

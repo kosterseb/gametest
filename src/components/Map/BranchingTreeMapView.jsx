@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useGame } from '../../context/GameContext';
 import { useRouter } from '../../hooks/useRouter';
 import { generateBranchingMap } from '../../utils/mapGenerator';
