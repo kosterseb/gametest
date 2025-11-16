@@ -41,10 +41,18 @@ export const ProgressionMapView = () => {
 
   // 📚 Start map tutorial after first battle (if tutorial was completed in battle)
   useEffect(() => {
+    console.log('📚 Map tutorial check:', {
+      tutorialCompleted: gameState.tutorialCompleted,
+      mapTutorialCompleted,
+      showRecap,
+      shouldStart: gameState.tutorialCompleted && !mapTutorialCompleted && !showRecap
+    });
+
     // Check if we should show map tutorial
     // Show it if: player just finished tutorial battle AND hasn't completed map tutorial yet
     // After tutorial battle, floor advances to 2, so check for that OR just completed tutorial
     if (gameState.tutorialCompleted && !mapTutorialCompleted && !showRecap) {
+      console.log('📚 Starting map tutorial!');
       setTimeout(() => {
         setCurrentMapTutorialStep(MAP_TUTORIAL_STEPS[0]);
         setShowMapTutorial(true);
