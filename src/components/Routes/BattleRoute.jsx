@@ -22,7 +22,7 @@ import { CardPlayParticles } from '../Effects/CardPlayParticles';
 import { NBButton, NBDropdown, useNBConfirm } from '../UI/NeoBrutalUI';
 import { BattleMenu } from '../UI/BattleMenu';
 import { TutorialOverlay } from '../Tutorial/TutorialOverlay';
-import { TUTORIAL_STEPS, getNextTutorialStep, isTutorialComplete } from '../../data/tutorialSteps';
+import { TUTORIAL_STEPS, getNextTutorialStep, getTutorialStep, isTutorialComplete } from '../../data/tutorialSteps';
 import {
   applyStatus,
   tickStatuses,
@@ -373,8 +373,8 @@ export const BattleRoute = () => {
 
   // ⏱️ Timer countdown - only counts down for active player
   useEffect(() => {
-    // Don't count down if battle is over, turn order not decided, or during animations/banner/turn starting
-    if (isBattleOver || !turnOrderDecided || isAttackAnimationPlaying || showCoinFlip || showDiceRoll || showTurnBanner || isTurnStarting) {
+    // Don't count down if battle is over, turn order not decided, during animations/banner/turn starting, or during tutorial
+    if (isBattleOver || !turnOrderDecided || isAttackAnimationPlaying || showCoinFlip || showDiceRoll || showTurnBanner || isTurnStarting || showTutorial) {
       return;
     }
 
@@ -408,7 +408,7 @@ export const BattleRoute = () => {
     }, 1000); // Count down every second
 
     return () => clearInterval(timerInterval);
-  }, [isEnemyTurn, isBattleOver, turnOrderDecided, isAttackAnimationPlaying, showCoinFlip, showDiceRoll, showTurnBanner, isTurnStarting]);
+  }, [isEnemyTurn, isBattleOver, turnOrderDecided, isAttackAnimationPlaying, showCoinFlip, showDiceRoll, showTurnBanner, isTurnStarting, showTutorial]);
 
   // If no enemy, redirect to map
   useEffect(() => {
@@ -1442,6 +1442,17 @@ export const BattleRoute = () => {
           setIsAttackAnimationPlaying(false); // Reset animation lock
           setHasUsedDrawAbility(false);
           setHasUsedDiscardAbility(false);
+
+          // 📚 Tutorial: Trigger second turn tutorial if applicable
+          if (isTutorial && turnCount === 2 && currentTutorialStep?.id === 'turn_ended_success') {
+            setTimeout(() => {
+              const nextStep = getTutorialStep('second_turn');
+              if (nextStep) {
+                setCurrentTutorialStep(nextStep);
+                setShowTutorial(true);
+              }
+            }, 1000);
+          }
         }, 4000); // Increased to 4 seconds to prevent animation overwriting
         return;
       }

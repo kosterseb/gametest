@@ -1,5 +1,5 @@
 /**
- * Tutorial Steps
+ * Tutorial Steps - Staged Tutorial Flow
  *
  * Each step has:
  * - id: Unique identifier
@@ -8,109 +8,100 @@
  * - position: Where Stijn's popup appears
  * - highlightArea: Optional CSS selector to highlight
  * - autoAdvance: Whether to auto-advance after condition met
+ * - pauseBattle: Whether to pause battle actions during this step
  */
 
 export const TUTORIAL_STEPS = [
   {
     id: 'welcome',
-    message: "Welcome to your first battle! I'm Stijn, and I'll guide you through the basics. Let's start by understanding what you're looking at.",
+    message: "Welcome to your first battle! I'm Stijn, and I'll guide you through the basics. This is the Training Dummy - it's weak and slow, perfect for learning.",
     trigger: 'on_battle_start',
     position: 'bottom-left',
-    autoAdvance: false
+    autoAdvance: false,
+    pauseBattle: true
   },
   {
     id: 'hand_intro',
-    message: "These are your cards at the bottom. You start with 5 cards, and your hand persists between turns - no more discarding everything!",
+    message: "These are your cards at the bottom. You start with 5 cards each battle. Your hand PERSISTS between turns - no more discarding everything like other card games!",
     trigger: 'manual',
     position: 'bottom-left',
-    highlightArea: '.card-hand-area',
-    autoAdvance: false
+    autoAdvance: false,
+    pauseBattle: true
   },
   {
     id: 'energy_intro',
-    message: "See that energy counter? You need energy to play cards. Each card shows its energy cost. You start with 10 energy each turn.",
+    message: "See that energy counter? Each card costs energy to play. You start with 10 energy and it refills EVERY turn. Look at the energy cost on your cards!",
     trigger: 'manual',
     position: 'bottom-left',
-    highlightArea: '.energy-display',
-    autoAdvance: false
+    autoAdvance: false,
+    pauseBattle: true
   },
   {
-    id: 'play_card',
-    message: "Now try it! DRAG A CARD UPWARD to play it. Go ahead, attack the enemy!",
+    id: 'play_card_intro',
+    message: "Time to attack! DRAG A CARD UPWARD onto the battlefield to play it. Try playing a damage card to attack the Training Dummy!",
     trigger: 'manual',
     position: 'bottom-left',
-    highlightArea: '.card-hand-area',
     waitFor: 'card_played',
-    autoAdvance: true
+    autoAdvance: true,
+    pauseBattle: true
   },
   {
     id: 'card_played_success',
-    message: "Nice! You dealt damage! Cards go to your discard pile after use, and you'll shuffle them back when your deck runs out.",
+    message: "Great job! Your card went into the discard pile. When your deck runs out, the discard pile shuffles back in. You'll never run out of cards!",
     trigger: 'on_card_played',
     position: 'bottom-left',
-    autoAdvance: false
+    autoAdvance: false,
+    pauseBattle: true
   },
   {
     id: 'discard_intro',
-    message: "Don't like a card? DRAG IT TO THE RIGHT to discard it. This helps you manage your hand better!",
+    message: "Don't need a card right now? DRAG IT TO THE RIGHT to the discard zone. This helps you cycle through your deck faster to find the cards you need!",
     trigger: 'manual',
     position: 'bottom-right',
-    highlightArea: '.discard-zone',
     waitFor: 'card_discarded',
-    autoAdvance: true
+    autoAdvance: true,
+    pauseBattle: true
   },
   {
-    id: 'discard_success',
-    message: "Perfect! Discarding lets you get rid of cards you don't need right now. Use it wisely!",
-    trigger: 'on_card_discarded',
-    position: 'bottom-right',
-    autoAdvance: false
-  },
-  {
-    id: 'status_effects',
-    message: "See those icons under the health bars? Those are status effects. They can buff you, debuff enemies, or cause damage over time.",
-    trigger: 'manual',
-    position: 'top-left',
-    highlightArea: '.status-display',
-    autoAdvance: false
-  },
-  {
-    id: 'timer_intro',
-    message: "Watch the timer! You have 2 minutes per battle. The battle gets harder as time runs out - Early, Mid, and Late stages affect enemy strength.",
-    trigger: 'manual',
-    position: 'top-left',
-    highlightArea: '.battle-timer',
-    autoAdvance: false
-  },
-  {
-    id: 'timer_stages',
-    message: "Early game (80s+) is normal. Mid game (40-80s), enemies get +1 Strength. Late game (<40s), they get +2 Strength and Regeneration. Don't let time run out!",
-    trigger: 'manual',
-    position: 'top-left',
-    autoAdvance: false
-  },
-  {
-    id: 'counter_system',
-    message: "If an enemy attacks and you have a counter card, you'll get a 15-second window to block! Counter cards are powerful defensive tools.",
-    trigger: 'manual',
-    position: 'bottom-left',
-    autoAdvance: false
-  },
-  {
-    id: 'end_turn',
-    message: "When you're done with your turn, click the END TURN button on the right. You'll draw back up to 5 cards and refill your energy!",
+    id: 'end_turn_intro',
+    message: "Alright, let's end your turn! Click the END TURN button on the right. You'll draw back up to 5 cards and refill your energy. The enemy will take their turn next.",
     trigger: 'manual',
     position: 'bottom-right',
-    highlightArea: '.end-turn-button',
     waitFor: 'turn_ended',
-    autoAdvance: true
+    autoAdvance: true,
+    pauseBattle: true
   },
   {
-    id: 'tutorial_complete',
-    message: "That's everything! Remember: drag up to play, drag right to discard, watch your timer, and use those counter cards. Now go win this battle!",
+    id: 'turn_ended_success',
+    message: "Perfect! Your hand refilled and your energy is back to 10. Now the enemy will attack. Don't worry, the Training Dummy is very weak!",
     trigger: 'on_turn_ended',
     position: 'bottom-left',
     autoAdvance: false,
+    pauseBattle: false // Let enemy take their turn
+  },
+  {
+    id: 'second_turn',
+    message: "Your turn again! Notice your hand still has cards from before, plus you drew more. This persistence is key - plan ahead!",
+    trigger: 'manual',
+    position: 'bottom-left',
+    autoAdvance: false,
+    pauseBattle: true
+  },
+  {
+    id: 'timer_intro',
+    message: "See the timer at the top? You have 2 minutes per battle. As time runs out, enemies get STRONGER. Early (80s+) is normal. Mid (40-80s) gives enemies +1 Strength. Late (<40s) gives +2 Strength and Regeneration!",
+    trigger: 'manual',
+    position: 'top-left',
+    autoAdvance: false,
+    pauseBattle: true
+  },
+  {
+    id: 'finish_battle',
+    message: "That's the core! Play cards, manage energy, end your turn, repeat. Defeat the Training Dummy to complete the tutorial. The timer is paused while I'm talking, so take your time!",
+    trigger: 'manual',
+    position: 'bottom-left',
+    autoAdvance: false,
+    pauseBattle: true,
     isLastStep: true
   }
 ];
