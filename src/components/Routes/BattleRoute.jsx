@@ -285,6 +285,10 @@ export const BattleRoute = () => {
   const [counterUsed, setCounterUsed] = useState(false);
   const counterTimerRef = useRef(null);
 
+  // ⏰ Timer stages state
+  const [currentStage, setCurrentStage] = useState('early'); // 'early', 'mid', 'late'
+  const stageBuffsAppliedRef = useRef({ mid: false, late: false });
+
   // 🎭 Show turn banner when turn changes
   useEffect(() => {
     // Only show banner after turn order is decided, when turn actually changes, and not on cooldown
@@ -394,6 +398,49 @@ export const BattleRoute = () => {
     timeoutsRef.current.push(timeoutId);
     return timeoutId;
   }, []);
+
+  // ⏰ Timer stage detection and enemy buff application
+  useEffect(() => {
+    // Determine current stage based on player time
+    let newStage = 'early';
+    if (playerTime <= 40) {
+      newStage = 'late';
+    } else if (playerTime <= 80) {
+      newStage = 'mid';
+    }
+
+    // Update stage if changed
+    if (newStage !== currentStage) {
+      setCurrentStage(newStage);
+      console.log(`⏰ Stage changed to: ${newStage.toUpperCase()}`);
+      setBattleLog(prev => [...prev, `⚠️ Battle stage: ${newStage.toUpperCase()}!`]);
+    }
+
+    // Apply buffs when entering mid stage
+    if (newStage === 'mid' && !stageBuffsAppliedRef.current.mid) {
+      stageBuffsAppliedRef.current.mid = true;
+      const strengthStatus = createStatus('strength', 1);
+      setEnemyStatuses(prev => applyStatus(prev, strengthStatus));
+      setBattleLog(prev => [...prev, '🔥 Enemy gained Strength +1! (Mid-game)']);
+      console.log('🔥 Mid-game buffs applied');
+    }
+
+    // Apply buffs when entering late stage
+    if (newStage === 'late' && !stageBuffsAppliedRef.current.late) {
+      stageBuffsAppliedRef.current.late = true;
+      const extraStrength = createStatus('strength', 2); // Total +2 (replaces mid +1)
+      const regenStatus = createStatus('regeneration', 1);
+      setEnemyStatuses(prev => {
+        // Remove existing strength and add new total
+        let statuses = prev.filter(s => s.type !== 'strength');
+        statuses = applyStatus(statuses, extraStrength);
+        statuses = applyStatus(statuses, regenStatus);
+        return statuses;
+      });
+      setBattleLog(prev => [...prev, '🔥💚 Enemy gained Strength +2 and Regeneration! (Late-game)']);
+      console.log('🔥💚 Late-game buffs applied');
+    }
+  }, [playerTime, currentStage]);
 
   if (!currentEnemy) {
     return <div className="min-h-screen flex items-center justify-center text-white">Loading battle...</div>;
@@ -1479,6 +1526,17 @@ export const BattleRoute = () => {
               onForfeit={handleForfeit}
               onMenuClick={() => setIsMenuOpen(true)}
             />
+
+            {/* Timer Stage Indicator */}
+            <div className={`
+              nb-border-md px-4 py-2 font-black uppercase
+              ${currentStage === 'early' ? 'nb-bg-green' : ''}
+              ${currentStage === 'mid' ? 'nb-bg-orange' : ''}
+              ${currentStage === 'late' ? 'nb-bg-red animate-pulse' : ''}
+            `}>
+              <div className="text-xs">STAGE</div>
+              <div className="text-lg">{currentStage === 'early' ? '⚡ EARLY' : currentStage === 'mid' ? '🔥 MID' : '💀 LATE'}</div>
+            </div>
           </div>
 
           {/* Battle Area - 62% */}
