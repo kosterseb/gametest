@@ -66,7 +66,7 @@ export const TUTORIAL_STEPS = [
     id: 'end_turn_intro',
     message: "Alright, let's end your turn! Click the END TURN button on the right. You'll draw back up to 5 cards and refill your energy. The enemy will take their turn next.",
     trigger: 'manual',
-    position: 'bottom-right',
+    position: 'bottom-left',
     waitFor: 'turn_ended',
     autoAdvance: true,
     pauseBattle: true

@@ -85,42 +85,48 @@ export const TutorialOverlay = ({
       {/* Spotlight overlay - dims everything except highlighted area */}
       {highlightArea && spotlightStyle && (
         <>
-          {/* Dark overlay with cutout */}
+          {/* Dark overlay */}
           <div
-            className="fixed inset-0 z-40 pointer-events-none"
+            className="fixed inset-0 pointer-events-none"
             style={{
-              background: 'rgba(0, 0, 0, 0.75)'
+              background: 'rgba(0, 0, 0, 0.75)',
+              zIndex: 40
             }}
           />
-          {/* Spotlight box */}
+          {/* Circular spotlight */}
           <div
-            className="fixed z-41 pointer-events-none rounded-lg"
+            className="fixed pointer-events-none"
             style={{
-              top: `${spotlightStyle.top}px`,
-              left: `${spotlightStyle.left}px`,
-              width: `${spotlightStyle.width}px`,
-              height: `${spotlightStyle.height}px`,
+              top: `${spotlightStyle.top + spotlightStyle.height / 2}px`,
+              left: `${spotlightStyle.left + spotlightStyle.width / 2}px`,
+              width: `${Math.max(spotlightStyle.width, spotlightStyle.height) * 1.2}px`,
+              height: `${Math.max(spotlightStyle.width, spotlightStyle.height) * 1.2}px`,
+              transform: 'translate(-50%, -50%)',
+              borderRadius: '50%',
               boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.75)',
-              border: '3px solid #22d3ee',
-              animation: 'pulse 2s ease-in-out infinite'
+              border: '4px solid #22d3ee',
+              animation: 'pulse 2s ease-in-out infinite',
+              zIndex: 41
             }}
           />
         </>
       )}
       {highlightArea && !spotlightStyle && (
         <div
-          className="fixed inset-0 z-40 pointer-events-none"
+          className="fixed inset-0 pointer-events-none"
           style={{
-            background: 'rgba(0, 0, 0, 0.75)'
+            background: 'rgba(0, 0, 0, 0.75)',
+            zIndex: 40
           }}
         />
       )}
 
       {/* Stijn's Tutorial Frame */}
       <div
-        className={`fixed ${positionClasses[position]} z-50 w-[600px] animate-slideInLeft`}
+        className={`fixed ${positionClasses[position]} w-[600px] animate-slideInLeft`}
         style={{
-          animation: 'slideInLeft 0.3s ease-out'
+          animation: 'slideInLeft 0.3s ease-out',
+          zIndex: 50
         }}
       >
         <div className="nb-bg-cyan nb-border-xl nb-shadow-xl overflow-hidden">
