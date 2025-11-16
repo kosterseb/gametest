@@ -11,7 +11,7 @@ import { getDialogue } from '../../data/dialogues';
  * Accepts dialogue data through route state
  */
 export const DialogueRoute = () => {
-  const { navigate, state } = useRouter();
+  const { navigate, routeParams } = useRouter();
   const { gameState, dispatch } = useGame();
 
   const [dialogue, setDialogue] = useState(null);
@@ -20,25 +20,25 @@ export const DialogueRoute = () => {
 
   // Load dialogue on mount
   useEffect(() => {
-    if (state?.dialogueId) {
+    if (routeParams?.dialogueId) {
       // Load dialogue by ID
-      const dialogueData = getDialogue(state.dialogueId);
+      const dialogueData = getDialogue(routeParams.dialogueId);
       setDialogue(dialogueData);
-    } else if (state?.dialogue) {
+    } else if (routeParams?.dialogue) {
       // Use custom dialogue data
-      setDialogue(state.dialogue);
+      setDialogue(routeParams.dialogue);
     }
 
     // Set next route
-    if (state?.nextRoute) {
-      setNextRoute(state.nextRoute);
+    if (routeParams?.nextRoute) {
+      setNextRoute(routeParams.nextRoute);
     }
 
     // Set completion action
-    if (state?.onComplete) {
-      setOnCompleteAction(() => state.onComplete);
+    if (routeParams?.onComplete) {
+      setOnCompleteAction(() => routeParams.onComplete);
     }
-  }, [state]);
+  }, [routeParams]);
 
   // Handle dialogue completion
   const handleComplete = () => {
