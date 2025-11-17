@@ -1,32 +1,75 @@
 import React from 'react';
-import { Swords, Heart, Shield, Zap, Flame, Droplet, Wind, Sparkles } from 'lucide-react';
+import {
+  Swords, Heart, Shield, Zap, Flame, Droplet, Wind, Sparkles,
+  Target, Hammer, Repeat, Skull, Rocket, TrendingUp, BandAid,
+  Pill, Activity, CheckCircle, Users, Eye, Battery, Brain,
+  RefreshCw, Clock, Lightbulb, Plus, Droplets, AlertCircle,
+  Award, Disc, Crosshair
+} from 'lucide-react';
 
 /**
  * Card Icon Mapping
  * Maps card names to Lucide React icons
+ * Comprehensive mapping for all 45 cards in the game
  */
 const iconMap = {
-  // Damage cards
-  'Strike': Swords,
-  'Heavy Strike': Swords,
-  'Slash': Swords,
-  'Fireball': Flame,
-  'Lightning Bolt': Zap,
-  'Ice Shard': Droplet,
-  'Wind Slash': Wind,
+  // ==================== DAMAGE CARDS ====================
+  'Quick Jab': Swords,
+  'Power Slam': Hammer,
+  'Swift Strike': Wind,
+  'Heavy Blow': Hammer,
+  'Lucky Strike': Target,
+  'Crushing Hammer': Hammer,
+  'Double Tap': Repeat,
+  'Execute': Skull,
+  'Devastating Blow': Rocket,
+  'Meteor Strike': Flame,
+  'Blade Flurry': TrendingUp,
 
-  // Heal cards
-  'Heal': Heart,
-  'Greater Heal': Heart,
-  'Regenerate': Heart,
+  // ==================== HEAL CARDS ====================
+  'First Aid': BandAid,
+  'Minor Heal': Heart,
+  'Healing Potion': Pill,
+  'Big Heal': Heart,
+  'Regeneration': Activity,
+  'Full Restore': Heart,
+  'Miracle Cure': Sparkles,
 
-  // Utility cards
-  'Shield': Shield,
-  'Block': Shield,
-  'Counter': Shield,
+  // ==================== UTILITY CARDS ====================
+  'Shield Wall': Shield,
+  'Card Draw': Plus,
+  'Energy Boost': Zap,
+  'Focus': Eye,
+  'Lucky Draw': Target,
+  'Second Wind': Wind,
+  'Preparation': Brain,
+  'Fortify': Shield,
+  'Time Warp': Clock,
+  'Master Plan': Lightbulb,
+  'Adrenaline Rush': Rocket,
 
-  // Default
-  'default': Sparkles
+  // ==================== CLEANSE CARDS ====================
+  'Antidote': Droplets,
+  'Clear Mind': Brain,
+  'Bandage': BandAid,
+  'Purify': Sparkles,
+  'Cleansing Fire': Flame,
+  'Battle Cry': Users,
+  'Regenerate': Activity,
+
+  // ==================== COUNTER CARDS ====================
+  'Evasion': Wind,
+  'Thorny Armor': Shield,
+  'Power Surge': Zap,
+  'Divine Protection': Sparkles,
+  'Perfect Block': Shield,
+  'Riposte': Swords,
+  'Counter Strike': Crosshair,
+  'Lucky Counter': Target,
+  'Parry': Shield,
+
+  // Default fallback
+  'default': Disc
 };
 
 /**
