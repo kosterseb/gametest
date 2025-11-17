@@ -216,6 +216,120 @@ export const VICTORY_DIALOGUE = [
   }
 ];
 
+// 📚 Tutorial: Post-Battle Dialogue
+export const POST_TUTORIAL_BATTLE = [
+  {
+    character: CHARACTERS.STIJN,
+    text: "Not bad! You survived your first fight. That Training Dummy didn't stand a chance!"
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Now comes the tricky part - navigating the map. You'll see different paths, different enemies, different rewards."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Let me show you how this works. Ready?",
+    choices: [
+      {
+        text: "Show me the map! 🗺️",
+        action: 'continue_to_map_tutorial',
+        variant: 'green'
+      },
+      {
+        text: "I'll figure it out myself.",
+        action: 'skip_map_tutorial',
+        variant: 'white'
+      }
+    ]
+  }
+];
+
+// 📚 Tutorial: Post-Map Tutorial Dialogue
+export const POST_MAP_TUTORIAL = [
+  {
+    character: CHARACTERS.STIJN,
+    text: "Great! You've got the hang of navigation. But there's one more thing you need to know..."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Your inventory and character progression. This is where you'll manage your gear, upgrade your talents, and build your deck."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Trust me, you'll want to know this stuff. Ready for a quick tour?",
+    choices: [
+      {
+        text: "Show me everything! 📦",
+        action: 'start_inventory_tutorial',
+        variant: 'green'
+      },
+      {
+        text: "I'll explore it later.",
+        action: 'skip_inventory_tutorial',
+        variant: 'white'
+      }
+    ]
+  }
+];
+
+// 📚 Tutorial: Inventory & Character Menu
+export const INVENTORY_TUTORIAL = [
+  {
+    character: CHARACTERS.STIJN,
+    text: "Alright, quick overview of your character menu. You can access this anytime during the game to manage your stuff."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "DECK: This is where you manage your cards. You can only bring a limited number of cards into battle, so choose wisely."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "INVENTORY: Items you find during your run. Consumables for in-battle use, passive items for permanent boosts."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "TALENTS: Use talent points to unlock permanent upgrades. More health, more energy, better cards - all here."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "STATS: Your current run statistics. Track your progress, see how you're doing."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "That's the quick tour! The menu button is in the top-right during battles and on the map. Use it!",
+    choices: [
+      {
+        text: "Got it! 👍",
+        action: 'finish_inventory_tutorial',
+        variant: 'green'
+      }
+    ]
+  }
+];
+
+// 📚 Tutorial: Final Dialogue
+export const TUTORIAL_COMPLETE = [
+  {
+    character: CHARACTERS.STIJN,
+    text: "Alright, I think you're ready now. You know the basics: combat, navigation, and progression."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "From here on out, you're on your own. Make smart choices. Watch the timer. And don't die."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Good luck out there. You'll need it.",
+    choices: [
+      {
+        text: "Let's do this! 🎮",
+        action: 'start_real_game',
+        variant: 'success'
+      }
+    ]
+  }
+];
+
 // Helper function to get dialogue by ID
 export const getDialogue = (dialogueId) => {
   const dialogues = {
@@ -225,7 +339,11 @@ export const getDialogue = (dialogueId) => {
     'reed_defeat': REED_DEFEAT,
     'brothers_intro': BROTHERS_INTRO,
     'event_mysterious_stranger': EVENT_MYSTERIOUS_STRANGER,
-    'victory_dialogue': VICTORY_DIALOGUE
+    'victory_dialogue': VICTORY_DIALOGUE,
+    'post_tutorial_battle': POST_TUTORIAL_BATTLE,
+    'post_map_tutorial': POST_MAP_TUTORIAL,
+    'inventory_tutorial': INVENTORY_TUTORIAL,
+    'tutorial_complete': TUTORIAL_COMPLETE
   };
 
   return dialogues[dialogueId] || null;

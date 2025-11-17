@@ -94,11 +94,13 @@ export const TutorialOverlay = ({
 
   return (
     <>
-      {/* Dark overlay */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 pointer-events-none"
-        style={{ zIndex: 40 }}
-      />
+      {/* Dark overlay - only show when NOT highlighting an element (spotlight has its own overlay) */}
+      {!highlightArea && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 pointer-events-none"
+          style={{ zIndex: 40 }}
+        />
+      )}
 
       {/* Circular spotlight on highlighted element */}
       {spotlightRect && (

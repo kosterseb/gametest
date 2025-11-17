@@ -1640,9 +1640,15 @@ export const BattleRoute = () => {
     }
 
     setTrackedTimeout(() => {
-      navigate('/reward');
+      // 📚 Tutorial: Skip reward screen, go to dialogue instead
+      if (isTutorial) {
+        console.log('📚 Tutorial battle complete! Navigating to post-battle dialogue');
+        navigate('/dialogue', { scene: 'post_tutorial_battle' });
+      } else {
+        navigate('/reward');
+      }
     }, 2000);
-  }, [currentEnemy, playerHealth, dispatch, navigate, setTrackedTimeout]);
+  }, [currentEnemy, playerHealth, dispatch, navigate, setTrackedTimeout, isTutorial]);
 
   const handleDefeat = useCallback(() => {
     setIsBattleOver(true);

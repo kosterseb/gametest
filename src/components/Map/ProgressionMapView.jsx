@@ -15,7 +15,7 @@ import { MAP_TUTORIAL_STEPS, getNextMapTutorialStep } from '../../data/mapTutori
 export const ProgressionMapView = () => {
   console.log('📚 ProgressionMapView MOUNTED');
   const { gameState, dispatch } = useGame();
-  const { navigate } = useRouter();
+  const { navigate, routeParams } = useRouter();
   const [selectedNode, setSelectedNode] = useState(null);
   const [showRecap, setShowRecap] = useState(false);
 
@@ -23,7 +23,8 @@ export const ProgressionMapView = () => {
     tutorialCompleted: gameState.tutorialCompleted,
     mapTutorialCompleted: gameState.mapTutorialCompleted,
     currentFloor: gameState.currentFloor,
-    showBattleRecap: gameState.showBattleRecap
+    showBattleRecap: gameState.showBattleRecap,
+    startMapTutorial: routeParams?.startMapTutorial
   });
 
   // 📚 Map Tutorial State
@@ -47,7 +48,16 @@ export const ProgressionMapView = () => {
     }
   }, [gameState.showBattleRecap, gameState.lastBattleRewards]);
 
-  // 📚 Map tutorial is now triggered in handleRecapContinue after recap closes
+  // 📚 Start map tutorial if requested via route params
+  useEffect(() => {
+    if (routeParams?.startMapTutorial && !mapTutorialCompleted) {
+      console.log('📚 Starting map tutorial from route params!');
+      setTimeout(() => {
+        setCurrentMapTutorialStep(MAP_TUTORIAL_STEPS[0]);
+        setShowMapTutorial(true);
+      }, 500);
+    }
+  }, [routeParams?.startMapTutorial, mapTutorialCompleted]);
 
   // 📚 Tutorial progression handlers
   const advanceMapTutorial = useCallback(() => {
@@ -57,12 +67,17 @@ export const ProgressionMapView = () => {
     if (nextStep) {
       setCurrentMapTutorialStep(nextStep);
     } else {
-      // Tutorial complete
+      // Tutorial complete - navigate to post-map dialogue
       setMapTutorialCompleted(true);
       setShowMapTutorial(false);
       dispatch({ type: 'SET_MAP_TUTORIAL_COMPLETED', completed: true });
+
+      console.log('📚 Map tutorial complete! Navigating to post-map dialogue');
+      setTimeout(() => {
+        navigate('/dialogue', { scene: 'post_map_tutorial' });
+      }, 500);
     }
-  }, [currentMapTutorialStep, mapTutorialCompleted, dispatch]);
+  }, [currentMapTutorialStep, mapTutorialCompleted, dispatch, navigate]);
 
   const handleMapTutorialNext = useCallback(() => {
     advanceMapTutorial();

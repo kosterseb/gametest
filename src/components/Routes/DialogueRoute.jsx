@@ -21,7 +21,11 @@ export const DialogueRoute = () => {
 
   // Load dialogue on mount
   useEffect(() => {
-    if (routeParams?.dialogueId) {
+    if (routeParams?.scene) {
+      // Load dialogue by scene ID (same as dialogueId)
+      const dialogueData = getDialogue(routeParams.scene);
+      setDialogue(dialogueData);
+    } else if (routeParams?.dialogueId) {
       // Load dialogue by ID
       const dialogueData = getDialogue(routeParams.dialogueId);
       setDialogue(dialogueData);
@@ -92,6 +96,43 @@ export const DialogueRoute = () => {
           break;
 
         case 'continue_to_map':
+          navigate('/map');
+          break;
+
+        case 'continue_to_map_tutorial':
+          // Show map tutorial after this dialogue
+          console.log('📚 Starting map tutorial');
+          navigate('/map', { startMapTutorial: true });
+          break;
+
+        case 'skip_map_tutorial':
+          // Skip map tutorial, go directly to map
+          console.log('📚 Skipping map tutorial');
+          dispatch({ type: 'SET_MAP_TUTORIAL_COMPLETED', completed: true });
+          navigate('/map');
+          break;
+
+        case 'start_inventory_tutorial':
+          // Show inventory tutorial dialogue
+          console.log('📚 Starting inventory tutorial');
+          navigate('/dialogue', { scene: 'inventory_tutorial' });
+          break;
+
+        case 'skip_inventory_tutorial':
+          // Skip inventory tutorial, complete all tutorials
+          console.log('📚 Skipping inventory tutorial');
+          navigate('/dialogue', { scene: 'tutorial_complete' });
+          break;
+
+        case 'finish_inventory_tutorial':
+          // Inventory tutorial complete, show final dialogue
+          console.log('📚 Inventory tutorial complete!');
+          navigate('/dialogue', { scene: 'tutorial_complete' });
+          break;
+
+        case 'start_real_game':
+          // Tutorial complete! Start real gameplay
+          console.log('📚 Tutorial complete! Starting real game');
           navigate('/map');
           break;
 
