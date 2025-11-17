@@ -275,7 +275,7 @@ export const BattleField = ({
   );
 
   return (
-    <div className="p-3 h-full overflow-auto">
+    <div className="battlefield-container p-3 h-full overflow-auto">
       {/* Battle Arena */}
       <div className="grid grid-cols-3 gap-4 mb-2">
         {/* Player Side */}
@@ -307,7 +307,7 @@ export const BattleField = ({
           </div>
 
           {/* Player Energy Bar */}
-          <div className="w-full">
+          <div className="energy-display w-full">
             <NBProgressBar
               value={playerEnergy}
               max={maxEnergy}
@@ -373,13 +373,15 @@ export const BattleField = ({
           </div>
 
           {/* Battle Timer */}
-          <BattleTimer
-            playerTime={playerTime}
-            enemyTime={enemyTime}
-            isEnemyTurn={isEnemyTurn}
-            playerName={playerName}
-            enemyName={enemy.name || 'Enemy'}
-          />
+          <div className="battle-timer">
+            <BattleTimer
+              playerTime={playerTime}
+              enemyTime={enemyTime}
+              isEnemyTurn={isEnemyTurn}
+              playerName={playerName}
+              enemyName={enemy.name || 'Enemy'}
+            />
+          </div>
 
           {/* VS Indicator */}
           <div className="flex flex-col items-center gap-2 mt-2">

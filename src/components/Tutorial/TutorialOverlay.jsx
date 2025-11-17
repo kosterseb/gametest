@@ -7,7 +7,7 @@ import { NBButton } from '../UI/NeoBrutalUI';
  *
  * Stijn's popup frame that appears during tutorial
  * Shows tips with typewriter effect like cutscenes
- * Simple overlay without targeting specific elements
+ * Highlights specific areas when highlightArea is provided
  */
 export const TutorialOverlay = ({
   message,
@@ -15,10 +15,48 @@ export const TutorialOverlay = ({
   onSkip,
   showNext = true,
   showSkip = true,
-  position = 'bottom-left' // 'bottom-left', 'bottom-right', 'top-left', 'top-right'
+  position = 'bottom-left', // 'bottom-left', 'bottom-right', 'top-left', 'top-right'
+  highlightArea = null // CSS selector for element to highlight
 }) => {
   const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(true);
+  const [spotlightRect, setSpotlightRect] = useState(null);
+
+  // Find and track highlighted element
+  useEffect(() => {
+    if (!highlightArea) {
+      setSpotlightRect(null);
+      return;
+    }
+
+    const updateSpotlight = () => {
+      const element = document.querySelector(highlightArea);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        setSpotlightRect({
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
+          centerX: rect.left + rect.width / 2,
+          centerY: rect.top + rect.height / 2
+        });
+      }
+    };
+
+    // Initial position
+    updateSpotlight();
+
+    // Update on window resize
+    window.addEventListener('resize', updateSpotlight);
+    // Update periodically in case element moves
+    const interval = setInterval(updateSpotlight, 100);
+
+    return () => {
+      window.removeEventListener('resize', updateSpotlight);
+      clearInterval(interval);
+    };
+  }, [highlightArea]);
 
   // Typewriter effect
   useEffect(() => {
@@ -56,11 +94,29 @@ export const TutorialOverlay = ({
 
   return (
     <>
-      {/* Simple dark overlay */}
+      {/* Dark overlay */}
       <div
         className="fixed inset-0 bg-black bg-opacity-50 pointer-events-none"
         style={{ zIndex: 40 }}
       />
+
+      {/* Circular spotlight on highlighted element */}
+      {spotlightRect && (
+        <div
+          className="fixed pointer-events-none"
+          style={{
+            top: spotlightRect.top - 20,
+            left: spotlightRect.left - 20,
+            width: spotlightRect.width + 40,
+            height: spotlightRect.height + 40,
+            border: '4px solid #22d3ee',
+            borderRadius: '12px',
+            boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 30px #22d3ee, inset 0 0 20px rgba(34, 211, 238, 0.2)',
+            animation: 'pulse 2s ease-in-out infinite',
+            zIndex: 41
+          }}
+        />
+      )}
 
       {/* Stijn's Tutorial Frame */}
       <div
@@ -166,11 +222,11 @@ export const TutorialOverlay = ({
         @keyframes pulse {
           0%, 100% {
             border-color: #22d3ee;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75), 0 0 20px #22d3ee;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 30px #22d3ee, inset 0 0 20px rgba(34, 211, 238, 0.2);
           }
           50% {
             border-color: #06b6d4;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75), 0 0 40px #22d3ee;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 50px #22d3ee, inset 0 0 30px rgba(34, 211, 238, 0.3);
           }
         }
       `}</style>

@@ -25,6 +25,7 @@ export const TUTORIAL_STEPS = [
     message: "These are your cards at the bottom. You start with 5 cards each battle. Your hand PERSISTS between turns - no more discarding everything like other card games!",
     trigger: 'manual',
     position: 'bottom-left',
+    highlightArea: '.card-hand-container',
     autoAdvance: false,
     pauseBattle: true
   },
@@ -32,7 +33,8 @@ export const TUTORIAL_STEPS = [
     id: 'energy_intro',
     message: "See that energy counter? Each card costs energy to play. You start with 10 energy and it refills EVERY turn. Look at the energy cost on your cards!",
     trigger: 'manual',
-    position: 'bottom-left',
+    position: 'top-left',
+    highlightArea: '.energy-display',
     autoAdvance: false,
     pauseBattle: true
   },
@@ -41,6 +43,7 @@ export const TUTORIAL_STEPS = [
     message: "Time to attack! DRAG A CARD UPWARD onto the battlefield to play it. Try playing a damage card to attack the Training Dummy!",
     trigger: 'manual',
     position: 'bottom-left',
+    highlightArea: '.battlefield-container',
     waitFor: 'card_played',
     autoAdvance: true,
     pauseBattle: true
@@ -57,7 +60,8 @@ export const TUTORIAL_STEPS = [
     id: 'discard_intro',
     message: "Don't need a card right now? DRAG IT TO THE RIGHT to the discard zone. This helps you cycle through your deck faster to find the cards you need!",
     trigger: 'manual',
-    position: 'bottom-right',
+    position: 'bottom-left',
+    highlightArea: '.discard-zone',
     waitFor: 'card_discarded',
     autoAdvance: true,
     pauseBattle: true
@@ -67,6 +71,7 @@ export const TUTORIAL_STEPS = [
     message: "Alright, let's end your turn! Click the END TURN button on the right. You'll draw back up to 5 cards and refill your energy. The enemy will take their turn next.",
     trigger: 'manual',
     position: 'bottom-left',
+    highlightArea: '.end-turn-button',
     waitFor: 'turn_ended',
     autoAdvance: true,
     pauseBattle: true
@@ -91,7 +96,8 @@ export const TUTORIAL_STEPS = [
     id: 'timer_intro',
     message: "See the timer at the top? You have 2 minutes per battle. As time runs out, enemies get STRONGER. Early (80s+) is normal. Mid (40-80s) gives enemies +1 Strength. Late (<40s) gives +2 Strength and Regeneration!",
     trigger: 'manual',
-    position: 'top-left',
+    position: 'bottom-left',
+    highlightArea: '.battle-timer',
     autoAdvance: false,
     pauseBattle: true
   },

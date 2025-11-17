@@ -657,13 +657,19 @@ export const BattleRoute = () => {
     deckInitialized.current = true;
   }, []); // Empty deps - only run once
 
-  // ✅ Show coin flip after deck is initialized
+  // ✅ Show coin flip after deck is initialized (or auto-win in tutorial)
   useEffect(() => {
     if (deck.length > 0 && !turnOrderDecided && !showCoinFlip) {
-      console.log('🪙 Showing coin flip for turn order');
-      setShowCoinFlip(true);
+      // 📚 Tutorial mode: Always let player go first (skip coin flip)
+      if (isTutorial) {
+        console.log('📚 Tutorial mode: Player automatically goes first');
+        handleCoinFlipComplete('player');
+      } else {
+        console.log('🪙 Showing coin flip for turn order');
+        setShowCoinFlip(true);
+      }
     }
-  }, [deck.length, turnOrderDecided, showCoinFlip]);
+  }, [deck.length, turnOrderDecided, showCoinFlip, isTutorial, handleCoinFlipComplete]);
 
   // ✅ FIXED: Draw initial hand ONLY ONCE (after turn order is decided AND if it's player's turn)
   useEffect(() => {
@@ -1766,7 +1772,7 @@ export const BattleRoute = () => {
           </div>
 
           {/* Cards Area - 28% */}
-          <div className="h-[28%] px-3 py-2 flex flex-col overflow-hidden relative">
+          <div className="card-hand-container h-[28%] px-3 py-2 flex flex-col overflow-hidden relative">
             {/* Right Side Actions */}
             <div className="absolute top-0 right-4 z-40 flex flex-col items-end gap-3">
               {/* End Turn Button */}
@@ -1776,6 +1782,7 @@ export const BattleRoute = () => {
                 variant={isEnemyTurn || isAttackAnimationPlaying || isTurnStarting ? 'white' : 'danger'}
                 size="lg"
                 className={`
+                  end-turn-button
                   px-8 py-4 text-xl
                   ${isEnemyTurn || isAttackAnimationPlaying || isTurnStarting ? 'opacity-50 cursor-not-allowed' : ''}
                 `}
@@ -1784,7 +1791,7 @@ export const BattleRoute = () => {
               </NBButton>
 
               {/* Discard Zone - Card-sized */}
-              <div className="w-48 h-72 pointer-events-none">
+              <div className="discard-zone w-48 h-72 pointer-events-none">
                 <div className="nb-border-md border-dashed border-4 border-red-600/50 bg-red-600/10 rounded-2xl w-full h-full flex flex-col items-center justify-center">
                   <Trash2 className="w-16 h-16 text-red-300 mb-3" />
                   <div className="text-red-200 font-black text-base uppercase">Discard</div>
