@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Lightbulb, ChevronRight } from 'lucide-react';
 import { NBButton } from '../UI/NeoBrutalUI';
 
@@ -7,6 +7,7 @@ import { NBButton } from '../UI/NeoBrutalUI';
  *
  * Stijn's popup frame that appears during tutorial
  * Shows tips with typewriter effect like cutscenes
+ * Simple overlay without targeting specific elements
  */
 export const TutorialOverlay = ({
   message,
@@ -14,12 +15,10 @@ export const TutorialOverlay = ({
   onSkip,
   showNext = true,
   showSkip = true,
-  highlightArea = null, // CSS selector for element to highlight
   position = 'bottom-left' // 'bottom-left', 'bottom-right', 'top-left', 'top-right'
 }) => {
   const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(true);
-  const [spotlightStyle, setSpotlightStyle] = useState(null);
 
   // Typewriter effect
   useEffect(() => {
@@ -40,31 +39,6 @@ export const TutorialOverlay = ({
     return () => clearInterval(typeInterval);
   }, [message]);
 
-  // Calculate spotlight position for highlighted elements
-  useEffect(() => {
-    if (!highlightArea) {
-      setSpotlightStyle(null);
-      return;
-    }
-
-    const element = document.querySelector(highlightArea);
-    if (!element) {
-      console.warn(`Tutorial: Could not find element with selector "${highlightArea}"`);
-      setSpotlightStyle(null);
-      return;
-    }
-
-    const rect = element.getBoundingClientRect();
-    const padding = 12; // Padding around the highlighted element
-
-    setSpotlightStyle({
-      top: rect.top - padding,
-      left: rect.left - padding,
-      width: rect.width + (padding * 2),
-      height: rect.height + (padding * 2)
-    });
-  }, [highlightArea, message]); // Recalculate when message changes (step changes)
-
   const positionClasses = {
     'bottom-left': 'bottom-4 left-4',
     'bottom-right': 'bottom-4 right-4',
@@ -82,44 +56,11 @@ export const TutorialOverlay = ({
 
   return (
     <>
-      {/* Spotlight overlay - dims everything except highlighted area */}
-      {highlightArea && spotlightStyle && (
-        <>
-          {/* Dark overlay */}
-          <div
-            className="fixed inset-0 pointer-events-none"
-            style={{
-              background: 'rgba(0, 0, 0, 0.75)',
-              zIndex: 40
-            }}
-          />
-          {/* Circular spotlight */}
-          <div
-            className="fixed pointer-events-none"
-            style={{
-              top: `${spotlightStyle.top + spotlightStyle.height / 2}px`,
-              left: `${spotlightStyle.left + spotlightStyle.width / 2}px`,
-              width: `${Math.max(spotlightStyle.width, spotlightStyle.height) * 1.2}px`,
-              height: `${Math.max(spotlightStyle.width, spotlightStyle.height) * 1.2}px`,
-              transform: 'translate(-50%, -50%)',
-              borderRadius: '50%',
-              boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.75)',
-              border: '4px solid #22d3ee',
-              animation: 'pulse 2s ease-in-out infinite',
-              zIndex: 41
-            }}
-          />
-        </>
-      )}
-      {highlightArea && !spotlightStyle && (
-        <div
-          className="fixed inset-0 pointer-events-none"
-          style={{
-            background: 'rgba(0, 0, 0, 0.75)',
-            zIndex: 40
-          }}
-        />
-      )}
+      {/* Simple dark overlay */}
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 pointer-events-none"
+        style={{ zIndex: 40 }}
+      />
 
       {/* Stijn's Tutorial Frame */}
       <div

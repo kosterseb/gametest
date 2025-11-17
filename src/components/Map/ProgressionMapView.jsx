@@ -13,10 +13,18 @@ import { TutorialOverlay } from '../Tutorial/TutorialOverlay';
 import { MAP_TUTORIAL_STEPS, getNextMapTutorialStep } from '../../data/mapTutorialSteps';
 
 export const ProgressionMapView = () => {
+  console.log('📚 ProgressionMapView MOUNTED');
   const { gameState, dispatch } = useGame();
   const { navigate } = useRouter();
   const [selectedNode, setSelectedNode] = useState(null);
   const [showRecap, setShowRecap] = useState(false);
+
+  console.log('📚 ProgressionMapView - gameState:', {
+    tutorialCompleted: gameState.tutorialCompleted,
+    mapTutorialCompleted: gameState.mapTutorialCompleted,
+    currentFloor: gameState.currentFloor,
+    showBattleRecap: gameState.showBattleRecap
+  });
 
   // 📚 Map Tutorial State
   const [showMapTutorial, setShowMapTutorial] = useState(false);
@@ -39,26 +47,7 @@ export const ProgressionMapView = () => {
     }
   }, [gameState.showBattleRecap, gameState.lastBattleRewards]);
 
-  // 📚 Start map tutorial after first battle (if tutorial was completed in battle)
-  useEffect(() => {
-    console.log('📚 Map tutorial check:', {
-      tutorialCompleted: gameState.tutorialCompleted,
-      mapTutorialCompleted,
-      showRecap,
-      shouldStart: gameState.tutorialCompleted && !mapTutorialCompleted && !showRecap
-    });
-
-    // Check if we should show map tutorial
-    // Show it if: player just finished tutorial battle AND hasn't completed map tutorial yet
-    // After tutorial battle, floor advances to 2, so check for that OR just completed tutorial
-    if (gameState.tutorialCompleted && !mapTutorialCompleted && !showRecap) {
-      console.log('📚 Starting map tutorial!');
-      setTimeout(() => {
-        setCurrentMapTutorialStep(MAP_TUTORIAL_STEPS[0]);
-        setShowMapTutorial(true);
-      }, 1000); // Small delay after loading map
-    }
-  }, [gameState.tutorialCompleted, mapTutorialCompleted, showRecap]);
+  // 📚 Map tutorial is now triggered in handleRecapContinue after recap closes
 
   // 📚 Tutorial progression handlers
   const advanceMapTutorial = useCallback(() => {
@@ -107,6 +96,20 @@ export const ProgressionMapView = () => {
   const handleRecapContinue = () => {
     setShowRecap(false);
     dispatch({ type: 'CLEAR_BATTLE_RECAP' });
+
+    // 📚 Check if we should start map tutorial after closing recap
+    console.log('📚 Recap closed - checking map tutorial trigger:', {
+      tutorialCompleted: gameState.tutorialCompleted,
+      mapTutorialCompleted
+    });
+
+    if (gameState.tutorialCompleted && !mapTutorialCompleted) {
+      console.log('📚 Starting map tutorial after recap!');
+      setTimeout(() => {
+        setCurrentMapTutorialStep(MAP_TUTORIAL_STEPS[0]);
+        setShowMapTutorial(true);
+      }, 500);
+    }
   };
 
   const handleConfirmSelection = () => {
