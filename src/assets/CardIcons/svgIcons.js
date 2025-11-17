@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Swords, Heart, Shield, Zap, Flame, Droplet, Wind, Sparkles,
-  Target, Hammer, Repeat, Skull, Rocket, TrendingUp, BandAid,
+  Target, Hammer, Repeat, Skull, Rocket, TrendingUp, Cross,
   Pill, Activity, CheckCircle, Users, Eye, Battery, Brain,
   RefreshCw, Clock, Lightbulb, Plus, Droplets, AlertCircle,
   Award, Disc, Crosshair
@@ -27,7 +27,7 @@ const iconMap = {
   'Blade Flurry': TrendingUp,
 
   // ==================== HEAL CARDS ====================
-  'First Aid': BandAid,
+  'First Aid': Cross,
   'Minor Heal': Heart,
   'Healing Potion': Pill,
   'Big Heal': Heart,
@@ -51,7 +51,7 @@ const iconMap = {
   // ==================== CLEANSE CARDS ====================
   'Antidote': Droplets,
   'Clear Mind': Brain,
-  'Bandage': BandAid,
+  'Bandage': Cross,
   'Purify': Sparkles,
   'Cleansing Fire': Flame,
   'Battle Cry': Users,
