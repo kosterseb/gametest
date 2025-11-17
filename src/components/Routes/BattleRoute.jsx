@@ -553,6 +553,34 @@ export const BattleRoute = () => {
     return shuffled;
   };
 
+  // ✅ Handle coin flip completion (defined early for tutorial mode)
+  const handleCoinFlipComplete = useCallback((winner) => {
+    console.log('🪙 Coin flip result:', winner);
+    setShowCoinFlip(false);
+    setTurnOrderDecided(true);
+
+    if (winner === 'enemy') {
+      setBattleLog(prev => [...prev, '🪙 Enemy won the coin flip and attacks first!']);
+      setIsEnemyTurn(true);
+      // Mark that enemy turn is pending (will be triggered after banner + 1s delay)
+      pendingEnemyTurnRef.current = true;
+    } else {
+      setBattleLog(prev => [...prev, '🪙 You won the coin flip! Your turn to attack!']);
+      setIsEnemyTurn(false);
+    }
+
+    // Show banner for first turn (for both player and enemy)
+    setTimeout(() => {
+      setShowTurnBanner(true);
+      setIsTurnStarting(true);
+      bannerCooldownRef.current = true;
+
+      setTimeout(() => {
+        bannerCooldownRef.current = false;
+      }, 2500);
+    }, 500);
+  }, []);
+
   // ✅ FIXED: Better unique ID generator using counter
   const cardIdCounter = useRef(0);
   const generateUniqueCardId = (cardName, extraInfo = '') => {
@@ -1156,34 +1184,6 @@ export const BattleRoute = () => {
       setPendingDiceCard(null);
     }
   }, [pendingDiceCard, executeCard]);
-
-  // ✅ Handle coin flip completion
-  const handleCoinFlipComplete = useCallback((winner) => {
-    console.log('🪙 Coin flip result:', winner);
-    setShowCoinFlip(false);
-    setTurnOrderDecided(true);
-
-    if (winner === 'enemy') {
-      setBattleLog(prev => [...prev, '🪙 Enemy won the coin flip and attacks first!']);
-      setIsEnemyTurn(true);
-      // Mark that enemy turn is pending (will be triggered after banner + 1s delay)
-      pendingEnemyTurnRef.current = true;
-    } else {
-      setBattleLog(prev => [...prev, '🪙 You won the coin flip! Your turn to attack!']);
-      setIsEnemyTurn(false);
-    }
-
-    // Show banner for first turn (for both player and enemy)
-    setTimeout(() => {
-      setShowTurnBanner(true);
-      setIsTurnStarting(true);
-      bannerCooldownRef.current = true;
-
-      setTimeout(() => {
-        bannerCooldownRef.current = false;
-      }, 2500);
-    }, 500);
-  }, []);
 
   // ✅ Item usage
   const handleUseItem = useCallback((item) => {
