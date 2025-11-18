@@ -744,7 +744,7 @@ const BackgroundPattern = ({ patternType, biomeColor }) => {
 const FloatingShapes = ({ biomeColor }) => {
   const shapesData = useMemo(() => {
     const shapes = [];
-    const count = 15;
+    const count = 5; // Reduced from 15 to 5 for better performance
 
     for (let i = 0; i < count; i++) {
       const type = ['box', 'pyramid', 'octahedron'][Math.floor(Math.random() * 3)];
@@ -894,7 +894,7 @@ const AnimatedBackgroundCreatures = () => {
     const creatures = [];
     const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4'];
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 3; i++) { // Reduced from 6 to 3 for better performance
       creatures.push({
         id: `flyer-${i}`,
         radius: 5 + Math.random() * 8,
@@ -1591,8 +1591,12 @@ export const ThreeDMapView = ({
       </svg>
 
       <Canvas
-        gl={{ antialias: true }}
-        dpr={[1, 2]}
+        gl={{
+          antialias: false, // Disabled for better performance
+          powerPreference: "high-performance"
+        }}
+        dpr={[1, 1.5]} // Reduced from [1, 2] for better performance
+        performance={{ min: 0.5 }} // Adaptive performance scaling
         className="relative z-10"
       >
         {/* Biome-specific neo-brutal background colors */}
