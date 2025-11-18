@@ -21,17 +21,26 @@ export const DialogueRoute = () => {
 
   // Load dialogue on mount
   useEffect(() => {
+    console.log('📚 DialogueRoute: Loading dialogue. routeParams:', routeParams);
+
     if (routeParams?.scene) {
       // Load dialogue by scene ID (same as dialogueId)
+      console.log('📚 DialogueRoute: Loading dialogue by scene:', routeParams.scene);
       const dialogueData = getDialogue(routeParams.scene);
+      console.log('📚 DialogueRoute: Dialogue data loaded:', dialogueData ? 'SUCCESS' : 'FAILED (null)');
       setDialogue(dialogueData);
     } else if (routeParams?.dialogueId) {
       // Load dialogue by ID
+      console.log('📚 DialogueRoute: Loading dialogue by ID:', routeParams.dialogueId);
       const dialogueData = getDialogue(routeParams.dialogueId);
+      console.log('📚 DialogueRoute: Dialogue data loaded:', dialogueData ? 'SUCCESS' : 'FAILED (null)');
       setDialogue(dialogueData);
     } else if (routeParams?.dialogue) {
       // Use custom dialogue data
+      console.log('📚 DialogueRoute: Using custom dialogue data');
       setDialogue(routeParams.dialogue);
+    } else {
+      console.log('⚠️ DialogueRoute: No dialogue source provided in routeParams!');
     }
 
     // Set next route
@@ -58,10 +67,11 @@ export const DialogueRoute = () => {
 
   // Handle player choices
   const handleChoice = (choice) => {
-    console.log('Player chose:', choice);
+    console.log('📚 DialogueRoute: Player chose:', choice);
 
     // Execute choice action
     if (choice.action) {
+      console.log('📚 DialogueRoute: Executing action:', choice.action);
       switch (choice.action) {
         case 'start_tutorial':
           // Set tutorial enemy and navigate to tutorial battle
@@ -176,12 +186,15 @@ export const DialogueRoute = () => {
   };
 
   if (!dialogue) {
+    console.log('⚠️ DialogueRoute: No dialogue loaded, showing loading screen');
     return (
       <div className="fixed inset-0 bg-black flex items-center justify-center">
         <p className="text-white text-2xl font-black">Loading dialogue...</p>
       </div>
     );
   }
+
+  console.log('📚 DialogueRoute: Rendering DialogueBox with', dialogue.length, 'dialogue steps');
 
   return (
     <DialogueBox
