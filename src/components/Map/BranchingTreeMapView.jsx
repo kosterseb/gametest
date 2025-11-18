@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useGame } from '../../context/GameContext';
 import { useRouter } from '../../hooks/useRouter';
 import { generateBranchingMap } from '../../utils/mapGenerator';
@@ -10,6 +10,8 @@ import { BattleRecapPopup } from '../UI/BattleRecapPopup';
 import { ThreeDMapView } from './ThreeDMapView';
 import { MapNavigationDashboard } from './MapNavigationDashboard';
 import { MiniMap } from './MiniMap';
+import { TutorialOverlay } from '../Tutorial/TutorialOverlay';
+import { MAP_TUTORIAL_STEPS, getNextMapTutorialStep } from '../../data/mapTutorialSteps';
 
 // Biome Selection Screen
 const BiomeSelectionScreen = ({ actData, onSelectBiome }) => {
@@ -123,7 +125,7 @@ const BiomeSelectionScreen = ({ actData, onSelectBiome }) => {
 // Main Branching Tree Map View
 export const BranchingTreeMapView = () => {
   const { gameState, dispatch } = useGame();
-  const { navigate } = useRouter();
+  const { navigate, routeParams } = useRouter();
   const [showRecap, setShowRecap] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
   const [selectedNodeScreenPos, setSelectedNodeScreenPos] = useState(null);
@@ -131,6 +133,13 @@ export const BranchingTreeMapView = () => {
   const [cameraControls, setCameraControls] = useState(null);
   const [highlightPaths, setHighlightPaths] = useState(false);
   const [hoveredNode, setHoveredNode] = useState(null);
+
+  // 📚 Map Tutorial State
+  const [showMapTutorial, setShowMapTutorial] = useState(false);
+  const [currentMapTutorialStep, setCurrentMapTutorialStep] = useState(null);
+  const [mapTutorialCompleted, setMapTutorialCompleted] = useState(
+    gameState.mapTutorialCompleted || false
+  );
 
   // Use state from GameContext instead of local state
   const is3DView = gameState.prefer3DView;
@@ -214,6 +223,58 @@ export const BranchingTreeMapView = () => {
     prevAvailableCountRef.current = currentCount;
   }, [gameState.availableNodeIds.length, is3DView]);
 
+  // 📚 Start map tutorial if requested via route params
+  useEffect(() => {
+    if (routeParams?.startMapTutorial && !mapTutorialCompleted) {
+      console.log('📚 Starting map tutorial from route params!');
+      setTimeout(() => {
+        setCurrentMapTutorialStep(MAP_TUTORIAL_STEPS[0]);
+        setShowMapTutorial(true);
+      }, 500);
+    }
+  }, [routeParams?.startMapTutorial, mapTutorialCompleted]);
+
+  // 📚 Tutorial progression handlers
+  const advanceMapTutorial = useCallback(() => {
+    if (!currentMapTutorialStep || mapTutorialCompleted) return;
+
+    const nextStep = getNextMapTutorialStep(currentMapTutorialStep.id);
+    if (nextStep) {
+      setCurrentMapTutorialStep(nextStep);
+    } else {
+      // Tutorial complete - navigate to post-map dialogue
+      setMapTutorialCompleted(true);
+      setShowMapTutorial(false);
+      dispatch({ type: 'SET_MAP_TUTORIAL_COMPLETED', completed: true });
+
+      console.log('📚 Map tutorial complete! Navigating to post-map dialogue');
+      setTimeout(() => {
+        navigate('/dialogue', { scene: 'post_map_tutorial' });
+      }, 500);
+    }
+  }, [currentMapTutorialStep, mapTutorialCompleted, dispatch, navigate]);
+
+  const handleMapTutorialNext = useCallback(() => {
+    advanceMapTutorial();
+  }, [advanceMapTutorial]);
+
+  const handleMapTutorialSkip = useCallback(() => {
+    setMapTutorialCompleted(true);
+    setShowMapTutorial(false);
+    dispatch({ type: 'SET_MAP_TUTORIAL_COMPLETED', completed: true });
+  }, [dispatch]);
+
+  // 📚 Tutorial event checker
+  const checkMapTutorialProgress = useCallback((eventType) => {
+    if (!showMapTutorial || !currentMapTutorialStep || mapTutorialCompleted) return;
+
+    // Check if current step is waiting for this event
+    if (currentMapTutorialStep.waitFor === eventType && currentMapTutorialStep.autoAdvance) {
+      console.log('📚 Map tutorial event triggered:', eventType);
+      advanceMapTutorial();
+    }
+  }, [showMapTutorial, currentMapTutorialStep, mapTutorialCompleted, advanceMapTutorial]);
+
   const handleBiomeSelection = (biomeId) => {
     dispatch({ type: 'SELECT_BIOME', biomeId });
   };
@@ -221,6 +282,20 @@ export const BranchingTreeMapView = () => {
   const handleRecapContinue = () => {
     setShowRecap(false);
     dispatch({ type: 'CLEAR_BATTLE_RECAP' });
+
+    // 📚 Check if we should start map tutorial after closing recap
+    console.log('📚 Recap closed - checking map tutorial trigger:', {
+      tutorialCompleted: gameState.tutorialCompleted,
+      mapTutorialCompleted
+    });
+
+    if (gameState.tutorialCompleted && !mapTutorialCompleted) {
+      console.log('📚 Starting map tutorial after recap!');
+      setTimeout(() => {
+        setCurrentMapTutorialStep(MAP_TUTORIAL_STEPS[0]);
+        setShowMapTutorial(true);
+      }, 500);
+    }
   };
 
   const handleNodeSelect = (node) => {
@@ -232,10 +307,16 @@ export const BranchingTreeMapView = () => {
     if (node.type === 'boss' && cameraControls?.shake) {
       cameraControls.shake();
     }
+
+    // 📚 Tutorial: Check if node was selected
+    checkMapTutorialProgress('node_selected');
   };
 
   const handleConfirmSelection = () => {
     if (!selectedNode) return;
+
+    // 📚 Tutorial: Check if node was confirmed
+    checkMapTutorialProgress('node_confirmed');
 
     const isBossNode = selectedNode.type === 'boss';
 
@@ -651,6 +732,19 @@ export const BranchingTreeMapView = () => {
             currentActData={currentActData}
             availableNodeIds={gameState.availableNodeIds}
             completedNodeIds={gameState.completedNodeIds}
+          />
+        )}
+
+        {/* Map Tutorial Overlay */}
+        {showMapTutorial && currentMapTutorialStep && (
+          <TutorialOverlay
+            message={currentMapTutorialStep.message}
+            onNext={currentMapTutorialStep.autoAdvance ? null : handleMapTutorialNext}
+            onSkip={handleMapTutorialSkip}
+            showNext={!currentMapTutorialStep.autoAdvance}
+            showSkip={true}
+            highlightArea={currentMapTutorialStep.highlightArea}
+            position={currentMapTutorialStep.position || 'bottom-left'}
           />
         )}
       </div>
