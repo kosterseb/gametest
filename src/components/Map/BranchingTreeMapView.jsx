@@ -388,6 +388,19 @@ export const BranchingTreeMapView = () => {
     );
   }
 
+  // Guard: Check if act data is available
+  if (!currentActData) {
+    return (
+      <PageTransition>
+        <div className="min-h-screen nb-bg-purple flex items-center justify-center">
+          <div className="nb-bg-white nb-border-xl nb-shadow-xl p-8">
+            <div className="text-black text-2xl font-black uppercase">Loading Act Data...</div>
+          </div>
+        </div>
+      </PageTransition>
+    );
+  }
+
   // Show biome selection if no biome is selected yet
   if (!gameState.biomeLocked) {
     return <BiomeSelectionScreen actData={currentActData} onSelectBiome={handleBiomeSelection} />;
