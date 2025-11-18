@@ -72,13 +72,18 @@ export const DialogueBox = ({
     onChoice?.(choice);
   };
 
-  if (!currentLine) return null;
+  if (!currentLine) {
+    console.log('⚠️ DialogueBox: No currentLine, returning null');
+    return null;
+  }
 
   const hasChoices = currentLine.choices && currentLine.choices.length > 0;
   const isLastLine = currentIndex === dialogue.length - 1;
 
+  console.log('💬 DialogueBox: Rendering line', currentIndex + 1, '/', dialogue.length, '- Character:', currentLine.character?.name);
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-90 z-[10001] flex items-center justify-center p-4">
       <div className="max-w-4xl w-full">
         {/* Main Dialogue Container */}
         <div className="nb-bg-white nb-border-xl nb-shadow-xl overflow-hidden">

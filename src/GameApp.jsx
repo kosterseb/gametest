@@ -33,6 +33,8 @@ const GameApp = () => {
   const [showSplash, setShowSplash] = useState(true);
 
   const renderRoute = () => {
+    console.log('🎮 GameApp: Rendering route:', currentRoute);
+
     switch (currentRoute) {
       case '/':
         return <MainMenu />;
@@ -43,10 +45,12 @@ const GameApp = () => {
       case '/game-mode-selection':
         return <GameModeSelection />;
       case '/dialogue':
+        console.log('🎮 GameApp: Rendering DialogueRoute');
         return <DialogueRoute />;
       case '/battle':
         return <BattleRoute />;
       case '/map':
+        console.log('🎮 GameApp: Rendering map view');
         return gameState.useBranchingPaths ? <BranchingTreeMapView /> : <ProgressionMapView />;
       case '/shop':
         return <Shop />;
@@ -65,6 +69,7 @@ const GameApp = () => {
       case '/pre-battle-loadout':
         return <PreBattleLoadout />;
       default:
+        console.log('🎮 GameApp: Unknown route, rendering MainMenu');
         return <MainMenu />;
     }
   };
