@@ -1161,22 +1161,30 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
   }, [hoveredNodeData, onHoveredNodeChange]);
 
   // 🎬 Handle camera zoom animation when node is selected
-  const [cameraControlsRef, setCameraControlsRef] = useState(null);
+  const cameraControlsRef = React.useRef(null);
+  const hasTriggeredZoom = React.useRef(false);
 
   React.useEffect(() => {
-    if (isZoomingToNode && zoomTargetPosition && cameraControlsRef) {
+    if (isZoomingToNode && zoomTargetPosition && cameraControlsRef.current && !hasTriggeredZoom.current) {
       console.log('🎬 Triggering camera zoom to position:', zoomTargetPosition);
+      hasTriggeredZoom.current = true;
       // Animate camera to the selected node position with faster duration
-      cameraControlsRef.animateToPosition(zoomTargetPosition.x, zoomTargetPosition.y, 1200);
+      cameraControlsRef.current.animateToPosition(zoomTargetPosition.x, zoomTargetPosition.y, 1200);
     }
-  }, [isZoomingToNode, zoomTargetPosition, cameraControlsRef]);
 
-  const handleCameraControlsReady = (controls) => {
-    setCameraControlsRef(controls);
+    // Reset the flag when animation stops
+    if (!isZoomingToNode) {
+      hasTriggeredZoom.current = false;
+    }
+  }, [isZoomingToNode, zoomTargetPosition?.x, zoomTargetPosition?.y]);
+
+  const handleCameraControlsReady = React.useCallback((controls) => {
+    console.log('🎬 Camera controls ready:', controls);
+    cameraControlsRef.current = controls;
     if (onCameraControlsReady) {
       onCameraControlsReady(controls);
     }
-  };
+  }, [onCameraControlsReady]);
 
   // Calculate CONNECTION LINE positions (true positions for path structure)
   const connectionPositions = useMemo(() => {

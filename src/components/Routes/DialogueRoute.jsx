@@ -25,31 +25,41 @@ export const DialogueRoute = () => {
   useEffect(() => {
     console.log('📚 DialogueRoute: Loading dialogue. routeParams:', routeParams);
 
-    if (routeParams?.scene) {
-      // Detect visual stance from scene name
-      const scene = routeParams.scene;
+    // Determine which scene we're loading
+    let sceneId = routeParams?.scene || routeParams?.dialogueId;
 
-      // Disable visual effects for tutorial and intro scenes to avoid blocking interaction
-      const disableEffectsFor = [
-        'story_intro',
-        'tutorial_intro',
-        'post_tutorial_battle',
-        'biome_tutorial',
-        'post_map_tutorial',
-        'inventory_tutorial',
-        'tutorial_complete'
-      ];
-      setVisualEffectsEnabled(!disableEffectsFor.includes(scene));
+    // Disable visual effects for tutorial and intro scenes to avoid blocking interaction
+    const disableEffectsFor = [
+      'story_intro',
+      'tutorial_intro',
+      'post_tutorial_battle',
+      'biome_tutorial',
+      'post_map_tutorial',
+      'inventory_tutorial',
+      'tutorial_complete'
+    ];
 
-      if (scene.includes('energized') || scene.includes('confident')) {
+    // Default to disabled unless we're in a story event scene
+    const shouldEnableEffects = sceneId &&
+      (sceneId.includes('reed') ||
+       sceneId.includes('boss') ||
+       sceneId.includes('response') ||
+       sceneId.includes('defeat')) &&
+      !disableEffectsFor.includes(sceneId);
+
+    setVisualEffectsEnabled(shouldEnableEffects);
+
+    // Detect visual stance from scene name
+    if (sceneId) {
+      if (sceneId.includes('energized') || sceneId.includes('confident')) {
         setVisualStance('energized');
-      } else if (scene.includes('cautious') || scene.includes('humble')) {
+      } else if (sceneId.includes('cautious') || sceneId.includes('humble')) {
         setVisualStance('cautious');
-      } else if (scene.includes('aggressive') || scene.includes('defiant')) {
+      } else if (sceneId.includes('aggressive') || sceneId.includes('defiant')) {
         setVisualStance('aggressive');
-      } else if (scene.includes('tactical') || scene.includes('diplomatic')) {
+      } else if (sceneId.includes('tactical') || sceneId.includes('diplomatic')) {
         setVisualStance('tactical');
-      } else if (scene.includes('reed') || scene.includes('boss')) {
+      } else if (sceneId.includes('reed') || sceneId.includes('boss')) {
         setVisualStance('aggressive'); // Default boss encounters to aggressive
       } else {
         setVisualStance('neutral');
@@ -186,22 +196,14 @@ export const DialogueRoute = () => {
           break;
 
         case 'start_real_game':
-          // Tutorial complete! Start real gameplay
-          console.log('📚 Tutorial complete! Starting real game');
-          console.log('📚 Game state before reset:', {
-            biomeLocked: gameState.biomeLocked,
-            selectedBiome: gameState.selectedBiome,
-            branchingMapLength: gameState.branchingMap?.length,
-            currentAct: gameState.currentAct,
-            availableNodeIds: gameState.availableNodeIds?.length,
-            completedNodeIds: gameState.completedNodeIds?.length
-          });
+          // Tutorial complete! Start with Reed encounter
+          console.log('📚 Tutorial complete! Starting Reed encounter');
 
-          // Reset any tutorial state and ensure clean slate for biome selection
+          // Reset any tutorial state and ensure clean slate
           dispatch({ type: 'RESET_FOR_NEW_GAME' });
 
-          console.log('📚 Navigating to /map after reset');
-          navigate('/map');
+          console.log('📚 Navigating to Reed pre-battle encounter');
+          navigate('/dialogue', { scene: 'reed_pre_battle_encounter' });
           break;
 
         // 🎭 STORY EVENT: Reed Pre-Battle Choices

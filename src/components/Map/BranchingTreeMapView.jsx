@@ -807,26 +807,30 @@ export const BranchingTreeMapView = () => {
         )}
 
         {/* Map Navigation Dashboard */}
-        {is3DView && (
-          <MapNavigationDashboard
-            isOpen={isDashboardOpen}
-            onClose={() => setIsDashboardOpen(false)}
-            cameraControls={cameraControls}
-            currentNodePosition={currentNodePosition}
-            highlightPaths={highlightPaths}
-            onToggleHighlight={() => setHighlightPaths(!highlightPaths)}
-          />
-        )}
+        <UIFadeOut isActive={isAnimating}>
+          {is3DView && (
+            <MapNavigationDashboard
+              isOpen={isDashboardOpen}
+              onClose={() => setIsDashboardOpen(false)}
+              cameraControls={cameraControls}
+              currentNodePosition={currentNodePosition}
+              highlightPaths={highlightPaths}
+              onToggleHighlight={() => setHighlightPaths(!highlightPaths)}
+            />
+          )}
+        </UIFadeOut>
 
         {/* Mini-Map */}
-        {is3DView && (
-          <MiniMap
-            selectedBiomeData={selectedBiomeData}
-            currentActData={currentActData}
-            availableNodeIds={gameState.availableNodeIds}
-            completedNodeIds={gameState.completedNodeIds}
-          />
-        )}
+        <UIFadeOut isActive={isAnimating}>
+          {is3DView && (
+            <MiniMap
+              selectedBiomeData={selectedBiomeData}
+              currentActData={currentActData}
+              availableNodeIds={gameState.availableNodeIds}
+              completedNodeIds={gameState.completedNodeIds}
+            />
+          )}
+        </UIFadeOut>
 
         {/* Map Tutorial Overlay */}
         {showMapTutorial && currentMapTutorialStep && (
