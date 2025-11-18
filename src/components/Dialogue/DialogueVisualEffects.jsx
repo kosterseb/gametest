@@ -252,13 +252,18 @@ export const DialogueVisualEffects = ({
   character = null,
   showChoiceIndicator = false,
   choiceType = 'neutral',
+  enabled = true,
   className = ''
 }) => {
+  // Don't render if disabled
+  if (!enabled) return null;
+
   return (
-    <div className={`absolute inset-0 pointer-events-none ${className}`} style={{ zIndex: 45 }}>
+    <div className={`absolute inset-0 ${className}`} style={{ zIndex: 45, pointerEvents: 'none' }}>
       <Canvas
         camera={{ position: [0, 2, 10], fov: 60 }}
         gl={{ alpha: true, antialias: true }}
+        style={{ pointerEvents: 'none' }}
       >
         <DialogueScene
           stance={stance}

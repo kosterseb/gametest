@@ -2,6 +2,7 @@ import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { PerspectiveCamera, Line, Billboard, Text, Html } from '@react-three/drei';
 import * as THREE from 'three';
+import { useCameraZoomToNode } from './NodeSelectionAnimation';
 
 // Node type to color mapping - Neo-Brutal bright colors
 const NODE_COLORS = {
@@ -1149,7 +1150,7 @@ const ScreenPositionTracker = ({ position, onPositionUpdate }) => {
 };
 
 // Main 3D Scene
-const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelect, availableNodeIds, completedNodeIds, onSelectedNodeScreenPosition, onCameraControlsReady, highlightPaths, onHoveredNodeChange, avatarSeed, currentNodePosition }) => {
+const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelect, availableNodeIds, completedNodeIds, onSelectedNodeScreenPosition, onCameraControlsReady, highlightPaths, onHoveredNodeChange, avatarSeed, currentNodePosition, isZoomingToNode = false, zoomTargetPosition = null }) => {
   const [hoveredNodeData, setHoveredNodeData] = useState(null);
 
   // Track hovered node changes and notify parent
@@ -1158,6 +1159,25 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
       onHoveredNodeChange(hoveredNodeData);
     }
   }, [hoveredNodeData, onHoveredNodeChange]);
+
+  // 🎬 Handle camera zoom animation when node is selected
+  const [cameraControlsRef, setCameraControlsRef] = useState(null);
+
+  React.useEffect(() => {
+    if (isZoomingToNode && zoomTargetPosition && cameraControlsRef) {
+      console.log('🎬 Triggering camera zoom to position:', zoomTargetPosition);
+      // Animate camera to the selected node position with faster duration
+      cameraControlsRef.animateToPosition(zoomTargetPosition.x, zoomTargetPosition.y, 1200);
+    }
+  }, [isZoomingToNode, zoomTargetPosition, cameraControlsRef]);
+
+  const handleCameraControlsReady = (controls) => {
+    setCameraControlsRef(controls);
+    if (onCameraControlsReady) {
+      onCameraControlsReady(controls);
+    }
+  };
+
   // Calculate CONNECTION LINE positions (true positions for path structure)
   const connectionPositions = useMemo(() => {
     const positions = new Map();
@@ -1277,7 +1297,7 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
       <PerspectiveCamera makeDefault position={[0, 2, 12]} fov={45} rotation={[-0.15, 0, 0]} />
 
       {/* Drag/Pan controls with parallax effect */}
-      <DragPanCamera onCameraControlsReady={onCameraControlsReady} disableDrag={selectedNode !== null} />
+      <DragPanCamera onCameraControlsReady={handleCameraControlsReady} disableDrag={selectedNode !== null} />
 
       {/* Animated creatures in background */}
       <AnimatedBackgroundCreatures />
@@ -1431,7 +1451,9 @@ export const ThreeDMapView = ({
   highlightPaths,
   onHoveredNodeChange,
   avatarSeed,
-  currentNodePosition
+  currentNodePosition,
+  isZoomingToNode = false,
+  zoomTargetPosition = null
 }) => {
   const containerRef = React.useRef(null);
 
@@ -1625,6 +1647,8 @@ export const ThreeDMapView = ({
           onHoveredNodeChange={onHoveredNodeChange}
           avatarSeed={avatarSeed}
           currentNodePosition={currentNodePosition}
+          isZoomingToNode={isZoomingToNode}
+          zoomTargetPosition={zoomTargetPosition}
         />
       </Canvas>
     </div>

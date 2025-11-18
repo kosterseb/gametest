@@ -12,6 +12,7 @@ import { MapNavigationDashboard } from './MapNavigationDashboard';
 import { MiniMap } from './MiniMap';
 import { TutorialOverlay } from '../Tutorial/TutorialOverlay';
 import { MAP_TUTORIAL_STEPS, getNextMapTutorialStep } from '../../data/mapTutorialSteps';
+import { WhiteFlashOverlay, UIFadeOut } from './NodeSelectionAnimation';
 
 // Biome Selection Screen
 const BiomeSelectionScreen = ({ actData, onSelectBiome }) => {
@@ -156,6 +157,11 @@ export const BranchingTreeMapView = () => {
 
   // 📚 Tutorial Mode - when true, interactions are controlled by tutorial
   const isInTutorialMode = showMapTutorial && !mapTutorialCompleted;
+
+  // 🎬 Node Selection Animation State
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [showWhiteFlash, setShowWhiteFlash] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState(null);
 
   // Use state from GameContext instead of local state
   const is3DView = gameState.prefer3DView;
@@ -349,26 +355,47 @@ export const BranchingTreeMapView = () => {
       dispatch({ type: 'COMPLETE_NODE_IN_TREE', nodeId: selectedNode.id });
     }
 
-    // Navigate based on node type
+    // Prepare navigation based on node type
+    let navigationRoute = null;
     if (selectedNode.type === 'enemy' || selectedNode.type === 'elite' || selectedNode.type === 'boss') {
       dispatch({
         type: 'SET_ENEMY_FOR_BATTLE',
         enemyData: selectedNode.enemyData,
         isBoss: isBossNode
       });
-
-      if (gameState.showPreBattleLoadout) {
-        navigate('/pre-battle-loadout');
-      } else {
-        navigate('/battle');
-      }
+      navigationRoute = gameState.showPreBattleLoadout ? '/pre-battle-loadout' : '/battle';
     } else if (selectedNode.type === 'shop') {
-      navigate('/shop');
+      navigationRoute = '/shop';
     } else if (selectedNode.type === 'joker') {
-      navigate('/joker');
+      navigationRoute = '/joker';
     }
 
-    setSelectedNode(null);
+    // 🎬 Start animation sequence
+    console.log('🎬 Starting node selection animation for:', selectedNode.position);
+    setIsAnimating(true);
+    setPendingNavigation(navigationRoute);
+
+    // Trigger camera zoom (if in 3D view and has controls)
+    if (is3DView && cameraControls) {
+      // Camera will zoom to node position (handled in ThreeDMapView)
+    }
+
+    // After 1.2 seconds, show white flash
+    setTimeout(() => {
+      setShowWhiteFlash(true);
+    }, 1200);
+
+    // After 2 seconds total, navigate
+    setTimeout(() => {
+      if (navigationRoute) {
+        navigate(navigationRoute);
+      }
+      // Reset animation state
+      setIsAnimating(false);
+      setShowWhiteFlash(false);
+      setPendingNavigation(null);
+      setSelectedNode(null);
+    }, 2000);
   };
 
   const handleCancelSelection = () => {
@@ -442,12 +469,15 @@ export const BranchingTreeMapView = () => {
               onHoveredNodeChange={handleHoveredNodeChange}
               avatarSeed={gameState.profile?.avatarSeed}
               currentNodePosition={currentNodePosition}
+              isZoomingToNode={isAnimating}
+              zoomTargetPosition={selectedNode?.position}
             />
           </div>
         )}
 
         {/* Header - Player Stats - Fixed on top with backdrop */}
-        <div className="absolute top-0 left-0 right-0 p-6 z-40 pointer-events-none">
+        <UIFadeOut isActive={isAnimating}>
+          <div className="absolute top-0 left-0 right-0 p-6 z-40 pointer-events-none">
             <div className="flex justify-between items-center pointer-events-auto">
               {/* Act + Biome Info - White Box */}
               <div className="nb-bg-white nb-border-xl nb-shadow-xl p-4">
@@ -497,22 +527,25 @@ export const BranchingTreeMapView = () => {
                 </div>
               </div>
             )}
-        </div>
+          </div>
+        </UIFadeOut>
 
         {/* Navigation Button - Left Side (only in 3D view, hidden during tutorial) */}
-        {is3DView && !isInTutorialMode && (
-          <div className="absolute left-4 top-48 z-40">
-              <NBButton
-                onClick={() => setIsDashboardOpen(true)}
-                variant="white"
-                size="md"
-                className="w-16 h-16 flex items-center justify-center p-0"
-                aria-label="Open navigation dashboard"
-              >
-                <MapIcon className="w-8 h-8" />
-              </NBButton>
-          </div>
-        )}
+        <UIFadeOut isActive={isAnimating}>
+          {is3DView && !isInTutorialMode && (
+            <div className="absolute left-4 top-48 z-40">
+                <NBButton
+                  onClick={() => setIsDashboardOpen(true)}
+                  variant="white"
+                  size="md"
+                  className="w-16 h-16 flex items-center justify-center p-0"
+                  aria-label="Open navigation dashboard"
+                >
+                  <MapIcon className="w-8 h-8" />
+                </NBButton>
+            </div>
+          )}
+        </UIFadeOut>
 
         {/* 2D View - Branching Tree Display with scrolling */}
         {!is3DView && (
@@ -659,6 +692,7 @@ export const BranchingTreeMapView = () => {
         )}
 
         {/* Confirmation Panel - Show in both 2D and 3D */}
+        <UIFadeOut isActive={isAnimating}>
           {selectedNode && !selectedNode.completed && (
             <div
               className="animate-fadeIn fixed z-50"
@@ -722,6 +756,7 @@ export const BranchingTreeMapView = () => {
               </div>
             </div>
           )}
+        </UIFadeOut>
 
         {/* Battle Recap Popup */}
         {showRecap && gameState.lastBattleRewards && gameState.battleStartStats && (
@@ -805,6 +840,9 @@ export const BranchingTreeMapView = () => {
             position={currentMapTutorialStep.position || 'bottom-left'}
           />
         )}
+
+        {/* 🎬 White Flash Transition */}
+        <WhiteFlashOverlay isActive={showWhiteFlash} />
       </div>
     </PageTransition>
   );

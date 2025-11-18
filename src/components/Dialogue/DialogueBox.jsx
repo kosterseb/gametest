@@ -15,7 +15,8 @@ export const DialogueBox = ({
   onChoice,
   autoAdvance = false,
   showPortrait = true,
-  visualStance = 'neutral'  // Visual effects stance (energized, cautious, aggressive, tactical, neutral)
+  visualStance = 'neutral',  // Visual effects stance (energized, cautious, aggressive, tactical, neutral)
+  visualEffectsEnabled = true  // Whether to show visual effects
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
@@ -131,6 +132,7 @@ export const DialogueBox = ({
         character={characterName}
         showChoiceIndicator={showChoiceIndicator}
         choiceType={selectedChoiceType}
+        enabled={visualEffectsEnabled}
       />
 
       <div className="max-w-4xl w-full relative z-10">

@@ -19,6 +19,7 @@ export const DialogueRoute = () => {
   const [nextRoute, setNextRoute] = useState('/map');
   const [onCompleteAction, setOnCompleteAction] = useState(null);
   const [visualStance, setVisualStance] = useState('neutral');
+  const [visualEffectsEnabled, setVisualEffectsEnabled] = useState(true);
 
   // Load dialogue on mount
   useEffect(() => {
@@ -27,6 +28,19 @@ export const DialogueRoute = () => {
     if (routeParams?.scene) {
       // Detect visual stance from scene name
       const scene = routeParams.scene;
+
+      // Disable visual effects for tutorial and intro scenes to avoid blocking interaction
+      const disableEffectsFor = [
+        'story_intro',
+        'tutorial_intro',
+        'post_tutorial_battle',
+        'biome_tutorial',
+        'post_map_tutorial',
+        'inventory_tutorial',
+        'tutorial_complete'
+      ];
+      setVisualEffectsEnabled(!disableEffectsFor.includes(scene));
+
       if (scene.includes('energized') || scene.includes('confident')) {
         setVisualStance('energized');
       } else if (scene.includes('cautious') || scene.includes('humble')) {
@@ -297,7 +311,7 @@ export const DialogueRoute = () => {
   }
 
   console.log('📚 DialogueRoute: Rendering DialogueBox with', dialogue.length, 'dialogue steps');
-  console.log('🎨 Visual stance:', visualStance);
+  console.log('🎨 Visual stance:', visualStance, '| Effects enabled:', visualEffectsEnabled);
 
   return (
     <DialogueBox
@@ -305,6 +319,7 @@ export const DialogueRoute = () => {
       onComplete={handleComplete}
       onChoice={handleChoice}
       visualStance={visualStance}
+      visualEffectsEnabled={visualEffectsEnabled}
     />
   );
 };
