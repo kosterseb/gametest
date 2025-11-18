@@ -224,21 +224,16 @@ export const POST_TUTORIAL_BATTLE = [
   },
   {
     character: CHARACTERS.STIJN,
-    text: "Now comes the tricky part - navigating the map. You'll see different paths, different enemies, different rewards."
+    text: "Before you start exploring the world, you need to understand something important - biomes."
   },
   {
     character: CHARACTERS.STIJN,
-    text: "Let me show you how this works. Ready?",
+    text: "Let me explain how they work. Ready?",
     choices: [
       {
-        text: "Show me the map! 🗺️",
-        action: 'continue_to_map_tutorial',
+        text: "Tell me about biomes! 🌍",
+        action: 'start_biome_tutorial',
         variant: 'green'
-      },
-      {
-        text: "I'll figure it out myself.",
-        action: 'skip_map_tutorial',
-        variant: 'white'
       }
     ]
   }
@@ -260,11 +255,11 @@ export const BIOME_TUTORIAL = [
   },
   {
     character: CHARACTERS.STIJN,
-    text: "For now, just pick one that looks interesting. You'll get the hang of it as you play.",
+    text: "For now, just pick one that looks interesting. Once you choose, I'll show you how to navigate the map.",
     choices: [
       {
         text: "Got it! Let me choose 🌍",
-        action: 'continue_to_inventory_intro',
+        action: 'continue_to_map_tutorial',
         variant: 'green'
       }
     ]

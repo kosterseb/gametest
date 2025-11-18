@@ -112,6 +112,12 @@ export const DialogueRoute = () => {
           navigate('/map');
           break;
 
+        case 'start_biome_tutorial':
+          // Show biome tutorial after battle tutorial
+          console.log('📚 Starting biome tutorial');
+          navigate('/dialogue', { scene: 'biome_tutorial' });
+          break;
+
         case 'continue_to_inventory_intro':
           // After biome tutorial, continue to inventory explanation
           console.log('📚 Continuing to inventory intro');
