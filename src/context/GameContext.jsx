@@ -1297,6 +1297,17 @@ const gameReducer = (state, action) => {
         menuOpen: !state.menuOpen
       };
 
+    case 'RESET_FOR_NEW_GAME':
+      // Reset tutorial-related state while preserving player progress
+      return {
+        ...state,
+        biomeLocked: false,
+        selectedBiome: null,
+        selectedNode: null,
+        tutorialCompleted: true,
+        mapTutorialCompleted: true
+      };
+
     case 'RESET_GAME':
       return { ...initialGameState, playerHand: [], progressionMap: [], currentEnemyData: null };
 

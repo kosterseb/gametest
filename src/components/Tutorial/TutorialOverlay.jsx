@@ -94,6 +94,16 @@ export const TutorialOverlay = ({
 
   return (
     <>
+      {/* Freeze interactions while typing - full-screen click capture */}
+      {isTyping && (
+        <div
+          className="fixed inset-0 cursor-pointer"
+          style={{ zIndex: 39 }}
+          onClick={handleSkipTyping}
+          title="Click to show full message"
+        />
+      )}
+
       {/* Circular spotlight on highlighted element - WITHOUT dark overlay */}
       {spotlightRect && (
         <div

@@ -245,14 +245,14 @@ export const BranchingTreeMapView = () => {
     if (nextStep) {
       setCurrentMapTutorialStep(nextStep);
     } else {
-      // Tutorial complete - navigate to post-map dialogue
+      // Tutorial complete - navigate to biome explanation dialogue
       setMapTutorialCompleted(true);
       setShowMapTutorial(false);
       dispatch({ type: 'SET_MAP_TUTORIAL_COMPLETED', completed: true });
 
-      console.log('📚 Map tutorial complete! Navigating to post-map dialogue');
+      console.log('📚 Map tutorial complete! Navigating to biome explanation');
       setTimeout(() => {
-        navigate('/dialogue', { scene: 'post_map_tutorial' });
+        navigate('/dialogue', { scene: 'biome_tutorial' });
       }, 500);
     }
   }, [currentMapTutorialStep, mapTutorialCompleted, dispatch, navigate]);
@@ -782,7 +782,7 @@ export const BranchingTreeMapView = () => {
             onNext={currentMapTutorialStep.autoAdvance ? null : handleMapTutorialNext}
             onSkip={handleMapTutorialSkip}
             showNext={!currentMapTutorialStep.autoAdvance}
-            showSkip={true}
+            showSkip={false}
             highlightArea={currentMapTutorialStep.highlightArea}
             position={currentMapTutorialStep.position || 'bottom-left'}
           />

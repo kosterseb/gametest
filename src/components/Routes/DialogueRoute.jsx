@@ -112,6 +112,12 @@ export const DialogueRoute = () => {
           navigate('/map');
           break;
 
+        case 'continue_to_inventory_intro':
+          // After biome tutorial, continue to inventory explanation
+          console.log('📚 Continuing to inventory intro');
+          navigate('/dialogue', { scene: 'post_map_tutorial' });
+          break;
+
         case 'start_inventory_tutorial':
           // Show inventory tutorial dialogue
           console.log('📚 Starting inventory tutorial');
@@ -133,6 +139,10 @@ export const DialogueRoute = () => {
         case 'start_real_game':
           // Tutorial complete! Start real gameplay
           console.log('📚 Tutorial complete! Starting real game');
+
+          // Reset any tutorial state and ensure clean slate for biome selection
+          dispatch({ type: 'RESET_FOR_NEW_GAME' });
+
           navigate('/map');
           break;
 

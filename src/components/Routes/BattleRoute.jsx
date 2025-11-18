@@ -2000,7 +2000,7 @@ export const BattleRoute = () => {
           onNext={currentTutorialStep.autoAdvance ? null : handleTutorialNext}
           onSkip={handleTutorialSkip}
           showNext={!currentTutorialStep.autoAdvance}
-          showSkip={true}
+          showSkip={false}
           highlightArea={currentTutorialStep.highlightArea}
           position={currentTutorialStep.position || 'bottom-left'}
         />

@@ -244,6 +244,33 @@ export const POST_TUTORIAL_BATTLE = [
   }
 ];
 
+// 📚 Tutorial: Biome Selection Explanation
+export const BIOME_TUTORIAL = [
+  {
+    character: CHARACTERS.STIJN,
+    text: "Alright! Before you start exploring, you need to choose a biome. Think of it as picking your adventure path."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Each biome has a unique theme and difficulty. Some are easier, some are tougher - but all have different enemies and rewards."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "You'll face multiple floors of enemies, then a boss at the end. Choose wisely - once you pick, you're locked in for this act!"
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "For now, just pick one that looks interesting. You'll get the hang of it as you play.",
+    choices: [
+      {
+        text: "Got it! Let me choose 🌍",
+        action: 'continue_to_inventory_intro',
+        variant: 'green'
+      }
+    ]
+  }
+];
+
 // 📚 Tutorial: Post-Map Tutorial Dialogue
 export const POST_MAP_TUTORIAL = [
   {
@@ -341,6 +368,7 @@ export const getDialogue = (dialogueId) => {
     'event_mysterious_stranger': EVENT_MYSTERIOUS_STRANGER,
     'victory_dialogue': VICTORY_DIALOGUE,
     'post_tutorial_battle': POST_TUTORIAL_BATTLE,
+    'biome_tutorial': BIOME_TUTORIAL,
     'post_map_tutorial': POST_MAP_TUTORIAL,
     'inventory_tutorial': INVENTORY_TUTORIAL,
     'tutorial_complete': TUTORIAL_COMPLETE
