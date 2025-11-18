@@ -232,14 +232,6 @@ const DialogueScene = ({ stance, character, showChoiceIndicator, choiceType }) =
       {/* Atmospheric particles */}
       <DialogueParticles stance={stance} />
 
-      {/* Character silhouettes */}
-      {character && (
-        <CharacterSilhouette character={character} position={[-3, 0, 0]} />
-      )}
-
-      {/* Choice indicators */}
-      <ChoiceIndicators choiceType={choiceType} show={showChoiceIndicator} />
-
       {/* Environment */}
       <Environment preset="night" />
     </>

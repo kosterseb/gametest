@@ -21,7 +21,17 @@ export const CHARACTERS = {
   REED: {
     name: 'Reed',
     title: 'The Programmer',
-    seed: 'reed-programmer'
+    seed: 'reed',
+    avatarParams: {
+      body: 'variant07',
+      beard: 'variant08',
+      beardProbability: '100',
+      lips: 'variant04',
+      hair: 'hat',
+      eyes: 'variant05',
+      brows: 'variant05',
+      glassesProbability: '0'
+    }
   },
   EDDY: {
     name: 'Eddy',
@@ -410,19 +420,19 @@ export const REED_RESPONSE_CONFIDENT = [
   },
   {
     character: CHARACTERS.REED,
-    text: "But confidence without skill is just arrogance. Let's see if you can back it up."
+    text: "But confidence without skill is just arrogance. I want to see if you can back it up."
   },
   {
     character: CHARACTERS.STIJN,
-    text: "Reed, come on. There's no need for—"
+    text: "Reed, come on. There's no need for this..."
   },
   {
     character: CHARACTERS.REED,
-    text: "Relax, Stijn. This is just a test. Consider it... a performance review.",
+    text: "Relax, Stijn. I'm not going to fight them... yet. But if you really think you're ready, come find me later. I'll be waiting at the end of the path.",
     choices: [
       {
-        text: "Bring it on. I'm not afraid.",
-        action: 'start_reed_boss_fight_energized',
+        text: "I will. Just wait and see.",
+        action: 'reed_challenge_accepted',
         variant: 'success'
       }
     ]
@@ -445,11 +455,11 @@ export const REED_RESPONSE_HUMBLE = [
   },
   {
     character: CHARACTERS.REED,
-    text: "Tell you what. Beat me, and I'll give you something useful. Lose, and... well, you'll restart like everyone else.",
+    text: "Tell you what. When you think you're ready, come find me at the end. Prove you can survive, and I might have something useful for you.",
     choices: [
       {
-        text: "I'll do my best. Let's make this fair.",
-        action: 'start_reed_boss_fight_cautious',
+        text: "I'll do my best. Thank you.",
+        action: 'reed_challenge_accepted',
         variant: 'success'
       }
     ]
@@ -472,11 +482,11 @@ export const REED_RESPONSE_DEFIANT = [
   },
   {
     character: CHARACTERS.REED,
-    text: "You want to prove you're different? Then fight me. Show me that fire isn't just talk.",
+    text: "You want to prove you're different? Fine. Make it to the end of the path, and then we'll see if that fire is real or just talk.",
     choices: [
       {
-        text: "Fine. But don't complain when you lose.",
-        action: 'start_reed_boss_fight_aggressive',
+        text: "Just wait. I'll be there soon.",
+        action: 'reed_challenge_accepted',
         variant: 'success'
       }
     ]
@@ -499,11 +509,11 @@ export const REED_RESPONSE_DIPLOMATIC = [
   },
   {
     character: CHARACTERS.REED,
-    text: "But fine. You want cooperation? Prove you're worth cooperating with. Beat me, and maybe we talk. Lose, and stop wasting my time.",
+    text: "But fine. You want cooperation? Prove you're worth cooperating with. Make it through the path ahead, and we'll talk at the end. Maybe.",
     choices: [
       {
-        text: "Alright. I'll prove it.",
-        action: 'start_reed_boss_fight_tactical',
+        text: "Fair enough. I'll see you then.",
+        action: 'reed_challenge_accepted',
         variant: 'success'
       }
     ]

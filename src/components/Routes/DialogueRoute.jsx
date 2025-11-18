@@ -227,33 +227,11 @@ export const DialogueRoute = () => {
           navigate('/dialogue', { scene: 'reed_response_diplomatic' });
           break;
 
-        // 🎭 STORY EVENT: Start Reed Boss Fight (with different modifiers)
-        case 'start_reed_boss_fight_energized':
-          console.log('🎭 Starting Reed boss fight - Energized mode');
-          // TODO: Add player buff (e.g., +1 max energy or starting energy)
-          dispatch({ type: 'SET_PLAYER_COMBAT_STANCE', stance: 'energized' });
-          navigate('/battle', { bossId: 'reed', playerStance: 'energized' });
-          break;
-
-        case 'start_reed_boss_fight_cautious':
-          console.log('🎭 Starting Reed boss fight - Cautious mode');
-          // TODO: Add player buff (e.g., +5 HP or damage reduction)
-          dispatch({ type: 'SET_PLAYER_COMBAT_STANCE', stance: 'cautious' });
-          navigate('/battle', { bossId: 'reed', playerStance: 'cautious' });
-          break;
-
-        case 'start_reed_boss_fight_aggressive':
-          console.log('🎭 Starting Reed boss fight - Aggressive mode');
-          // TODO: Add player buff (e.g., +2 damage to all attacks)
-          dispatch({ type: 'SET_PLAYER_COMBAT_STANCE', stance: 'aggressive' });
-          navigate('/battle', { bossId: 'reed', playerStance: 'aggressive' });
-          break;
-
-        case 'start_reed_boss_fight_tactical':
-          console.log('🎭 Starting Reed boss fight - Tactical mode');
-          // TODO: Add player buff (e.g., draw +1 card at start)
-          dispatch({ type: 'SET_PLAYER_COMBAT_STANCE', stance: 'tactical' });
-          navigate('/battle', { bossId: 'reed', playerStance: 'tactical' });
+        // 🎭 STORY EVENT: Reed Challenge Accepted (go to map to progress)
+        case 'reed_challenge_accepted':
+          console.log('🎭 Reed challenge accepted - Player will meet Reed at the end');
+          // Navigate to map where player can progress through encounters
+          navigate('/map');
           break;
 
         // 🎭 STORY EVENT: Reed Post-Battle Rewards

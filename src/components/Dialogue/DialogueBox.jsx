@@ -144,7 +144,25 @@ export const DialogueBox = ({
               <div className="md:w-1/3 nb-bg-cyan border-b-8 md:border-b-0 md:border-r-8 border-black flex flex-col items-center justify-center p-6">
                 <div className="w-48 h-48 mb-4 overflow-hidden rounded-lg nb-border-md nb-shadow">
                   <img
-                    src={`https://api.dicebear.com/9.x/notionists/svg?seed=${currentLine.character.seed || currentLine.character.name}`}
+                    src={(() => {
+                      const seed = currentLine.character.seed || currentLine.character.name;
+                      let url = `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}`;
+
+                      // Add avatarParams if they exist (for bosses like Reed)
+                      if (currentLine.character.avatarParams) {
+                        const params = currentLine.character.avatarParams;
+                        if (params.body) url += `&body=${params.body}`;
+                        if (params.beard) url += `&beard=${params.beard}`;
+                        if (params.beardProbability) url += `&beardProbability=${params.beardProbability}`;
+                        if (params.lips) url += `&lips=${params.lips}`;
+                        if (params.hair) url += `&hair=${params.hair}`;
+                        if (params.eyes) url += `&eyes=${params.eyes}`;
+                        if (params.brows) url += `&eyebrows=${params.brows}`;
+                        if (params.glassesProbability) url += `&glassesProbability=${params.glassesProbability}`;
+                      }
+
+                      return url;
+                    })()}
                     alt={currentLine.character.name}
                     className="w-full h-full object-cover"
                   />
