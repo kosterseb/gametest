@@ -303,30 +303,34 @@ export const POST_MAP_TUTORIAL = [
 export const INVENTORY_TUTORIAL = [
   {
     character: CHARACTERS.STIJN,
-    text: "Alright, quick overview of your character menu. You can access this anytime during the game to manage your stuff."
+    text: "One last thing - your character menu. Look for the menu button in the top-right corner during battles and on the map."
   },
   {
     character: CHARACTERS.STIJN,
-    text: "DECK: This is where you manage your cards. You can only bring a limited number of cards into battle, so choose wisely."
+    text: "It's where you'll manage everything important. Let me break down what's inside:"
   },
   {
     character: CHARACTERS.STIJN,
-    text: "INVENTORY: Items you find during your run. Consumables for in-battle use, passive items for permanent boosts."
+    text: "📦 DECK TAB: Manage your battle cards here. You can only bring a limited number into each fight, so build smart!"
   },
   {
     character: CHARACTERS.STIJN,
-    text: "TALENTS: Use talent points to unlock permanent upgrades. More health, more energy, better cards - all here."
+    text: "🎒 INVENTORY TAB: All your items. Consumables you can use in battle, and passive items that give you permanent bonuses."
   },
   {
     character: CHARACTERS.STIJN,
-    text: "STATS: Your current run statistics. Track your progress, see how you're doing."
+    text: "⭐ TALENTS TAB: Spend talent points to unlock permanent upgrades. More health, more energy, better card options - the works!"
   },
   {
     character: CHARACTERS.STIJN,
-    text: "That's the quick tour! The menu button is in the top-right during battles and on the map. Use it!",
+    text: "📊 STATS TAB: Track your run progress. See your wins, losses, damage dealt, floors cleared - all the juicy numbers."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Remember: Menu button = Top-right corner. You'll be clicking it a lot, trust me!",
     choices: [
       {
-        text: "Got it! 👍",
+        text: "Got it, I'll find it! 👍",
         action: 'finish_inventory_tutorial',
         variant: 'green'
       }
