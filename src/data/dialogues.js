@@ -356,6 +356,249 @@ export const TUTORIAL_COMPLETE = [
   }
 ];
 
+// 🎭 STORY EVENT: Pre-Boss Encounter with Reed
+export const REED_PRE_BATTLE_ENCOUNTER = [
+  {
+    character: CHARACTERS.STIJN,
+    text: "Hold up. Someone's blocking the path ahead. That's... oh no."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Well, well. If it isn't the new player everyone's talking about. And Stijn, still playing tour guide?"
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Reed. Look, we don't want any trouble. We're just trying to get through."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Oh, I'm not here for trouble. I'm here to see if you're worth the hype. The game's changed us all, but you... you're still fresh. Still naive."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "So tell me, newcomer. What makes you think you can survive in this world?",
+    choices: [
+      {
+        text: "I've trained hard. I'm ready for anything.",
+        action: 'reed_response_confident',
+        variant: 'green'
+      },
+      {
+        text: "I don't know if I can. But I have to try.",
+        action: 'reed_response_humble',
+        variant: 'white'
+      },
+      {
+        text: "I'm not here to prove anything to you.",
+        action: 'reed_response_defiant',
+        variant: 'red'
+      },
+      {
+        text: "Maybe we could work together instead of fighting?",
+        action: 'reed_response_diplomatic',
+        variant: 'cyan'
+      }
+    ]
+  }
+];
+
+// 🎭 Reed Response: Confident Player
+export const REED_RESPONSE_CONFIDENT = [
+  {
+    character: CHARACTERS.REED,
+    text: "Confidence. I like that. Reminds me of myself before the world went to hell."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "But confidence without skill is just arrogance. Let's see if you can back it up."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Reed, come on. There's no need for—"
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Relax, Stijn. This is just a test. Consider it... a performance review.",
+    choices: [
+      {
+        text: "Bring it on. I'm not afraid.",
+        action: 'start_reed_boss_fight_energized',
+        variant: 'success'
+      }
+    ]
+  }
+];
+
+// 🎭 Reed Response: Humble Player
+export const REED_RESPONSE_HUMBLE = [
+  {
+    character: CHARACTERS.REED,
+    text: "Honesty. Rare trait these days. Most people either lie to themselves or to others."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "See? They're being reasonable. Maybe we can all just—"
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Reasonable doesn't survive in this world, Stijn. But... I respect the honesty."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Tell you what. Beat me, and I'll give you something useful. Lose, and... well, you'll restart like everyone else.",
+    choices: [
+      {
+        text: "I'll do my best. Let's make this fair.",
+        action: 'start_reed_boss_fight_cautious',
+        variant: 'success'
+      }
+    ]
+  }
+];
+
+// 🎭 Reed Response: Defiant Player
+export const REED_RESPONSE_DEFIANT = [
+  {
+    character: CHARACTERS.REED,
+    text: "Ooh, defiant. I can work with that. The game loves players with attitude."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Uh, maybe dial it back a bit? Reed's not someone you want to provoke..."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "No, no. Let them talk. I've been waiting for someone with a spine. Everyone else just begs or runs."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "You want to prove you're different? Then fight me. Show me that fire isn't just talk.",
+    choices: [
+      {
+        text: "Fine. But don't complain when you lose.",
+        action: 'start_reed_boss_fight_aggressive',
+        variant: 'success'
+      }
+    ]
+  }
+];
+
+// 🎭 Reed Response: Diplomatic Player
+export const REED_RESPONSE_DIPLOMATIC = [
+  {
+    character: CHARACTERS.REED,
+    text: "...Work together? Hah. You really are new to this."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Actually, that's not a bad idea. We used to be friends, Reed. Remember?"
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "That was before. Before the rules changed. Before everything became a transaction."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "But fine. You want cooperation? Prove you're worth cooperating with. Beat me, and maybe we talk. Lose, and stop wasting my time.",
+    choices: [
+      {
+        text: "Alright. I'll prove it.",
+        action: 'start_reed_boss_fight_tactical',
+        variant: 'success'
+      }
+    ]
+  }
+];
+
+// 🎭 Reed Post-Battle: Victory (Different outcomes based on approach)
+export const REED_DEFEAT_ENERGIZED = [
+  {
+    character: CHARACTERS.REED,
+    text: "...Damn. You weren't kidding about being ready."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "I told you! They've been practicing!"
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Yeah, yeah. Fine. You earned my respect. Here, take this. It might help on the road ahead.",
+    choices: [
+      {
+        text: "Thanks. Maybe next time we don't fight?",
+        action: 'give_reward_energized',
+        variant: 'green'
+      }
+    ]
+  }
+];
+
+export const REED_DEFEAT_CAUTIOUS = [
+  {
+    character: CHARACTERS.REED,
+    text: "Not bad. You played it smart. I can respect that."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "See? Honesty pays off!"
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Here. A deal's a deal. This should give you an edge. Use it wisely.",
+    choices: [
+      {
+        text: "I will. Thank you for the challenge.",
+        action: 'give_reward_cautious',
+        variant: 'green'
+      }
+    ]
+  }
+];
+
+export const REED_DEFEAT_AGGRESSIVE = [
+  {
+    character: CHARACTERS.REED,
+    text: "Okay, okay! You made your point. That hurt more than I expected."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Maybe now you'll think twice before challenging random people?"
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Nah. But I'll think twice before underestimating them. Here, you earned this the hard way.",
+    choices: [
+      {
+        text: "Good fight. No hard feelings.",
+        action: 'give_reward_aggressive',
+        variant: 'green'
+      }
+    ]
+  }
+];
+
+export const REED_DEFEAT_TACTICAL = [
+  {
+    character: CHARACTERS.REED,
+    text: "Alright. You've proven you can hold your own. Diplomacy backed by skill... that's rare."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "So does this mean you'll help us out?"
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Don't push your luck. But... here. Consider this an investment. If you survive, maybe we'll cross paths again.",
+    choices: [
+      {
+        text: "I hope we do. Thanks, Reed.",
+        action: 'give_reward_tactical',
+        variant: 'green'
+      }
+    ]
+  }
+];
+
 // Helper function to get dialogue by ID
 export const getDialogue = (dialogueId) => {
   const dialogues = {
@@ -370,7 +613,17 @@ export const getDialogue = (dialogueId) => {
     'biome_tutorial': BIOME_TUTORIAL,
     'post_map_tutorial': POST_MAP_TUTORIAL,
     'inventory_tutorial': INVENTORY_TUTORIAL,
-    'tutorial_complete': TUTORIAL_COMPLETE
+    'tutorial_complete': TUTORIAL_COMPLETE,
+    // New story dialogues
+    'reed_pre_battle_encounter': REED_PRE_BATTLE_ENCOUNTER,
+    'reed_response_confident': REED_RESPONSE_CONFIDENT,
+    'reed_response_humble': REED_RESPONSE_HUMBLE,
+    'reed_response_defiant': REED_RESPONSE_DEFIANT,
+    'reed_response_diplomatic': REED_RESPONSE_DIPLOMATIC,
+    'reed_defeat_energized': REED_DEFEAT_ENERGIZED,
+    'reed_defeat_cautious': REED_DEFEAT_CAUTIOUS,
+    'reed_defeat_aggressive': REED_DEFEAT_AGGRESSIVE,
+    'reed_defeat_tactical': REED_DEFEAT_TACTICAL
   };
 
   return dialogues[dialogueId] || null;

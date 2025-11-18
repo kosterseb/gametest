@@ -171,6 +171,89 @@ export const DialogueRoute = () => {
           navigate('/map');
           break;
 
+        // 🎭 STORY EVENT: Reed Pre-Battle Choices
+        case 'reed_response_confident':
+          console.log('🎭 Player chose confident response');
+          navigate('/dialogue', { scene: 'reed_response_confident' });
+          break;
+
+        case 'reed_response_humble':
+          console.log('🎭 Player chose humble response');
+          navigate('/dialogue', { scene: 'reed_response_humble' });
+          break;
+
+        case 'reed_response_defiant':
+          console.log('🎭 Player chose defiant response');
+          navigate('/dialogue', { scene: 'reed_response_defiant' });
+          break;
+
+        case 'reed_response_diplomatic':
+          console.log('🎭 Player chose diplomatic response');
+          navigate('/dialogue', { scene: 'reed_response_diplomatic' });
+          break;
+
+        // 🎭 STORY EVENT: Start Reed Boss Fight (with different modifiers)
+        case 'start_reed_boss_fight_energized':
+          console.log('🎭 Starting Reed boss fight - Energized mode');
+          // TODO: Add player buff (e.g., +1 max energy or starting energy)
+          dispatch({ type: 'SET_PLAYER_COMBAT_STANCE', stance: 'energized' });
+          navigate('/battle', { bossId: 'reed', playerStance: 'energized' });
+          break;
+
+        case 'start_reed_boss_fight_cautious':
+          console.log('🎭 Starting Reed boss fight - Cautious mode');
+          // TODO: Add player buff (e.g., +5 HP or damage reduction)
+          dispatch({ type: 'SET_PLAYER_COMBAT_STANCE', stance: 'cautious' });
+          navigate('/battle', { bossId: 'reed', playerStance: 'cautious' });
+          break;
+
+        case 'start_reed_boss_fight_aggressive':
+          console.log('🎭 Starting Reed boss fight - Aggressive mode');
+          // TODO: Add player buff (e.g., +2 damage to all attacks)
+          dispatch({ type: 'SET_PLAYER_COMBAT_STANCE', stance: 'aggressive' });
+          navigate('/battle', { bossId: 'reed', playerStance: 'aggressive' });
+          break;
+
+        case 'start_reed_boss_fight_tactical':
+          console.log('🎭 Starting Reed boss fight - Tactical mode');
+          // TODO: Add player buff (e.g., draw +1 card at start)
+          dispatch({ type: 'SET_PLAYER_COMBAT_STANCE', stance: 'tactical' });
+          navigate('/battle', { bossId: 'reed', playerStance: 'tactical' });
+          break;
+
+        // 🎭 STORY EVENT: Reed Post-Battle Rewards
+        case 'give_reward_energized':
+          console.log('🎭 Giving reward - Energized path');
+          // TODO: Give reward (e.g., rare card or energy boost item)
+          dispatch({ type: 'ADD_GOLD', amount: 100 });
+          dispatch({ type: 'UNLOCK_CARD', cardType: 'rare_energize' });
+          navigate('/map');
+          break;
+
+        case 'give_reward_cautious':
+          console.log('🎭 Giving reward - Cautious path');
+          // TODO: Give reward (e.g., defensive item or HP boost)
+          dispatch({ type: 'ADD_GOLD', amount: 75 });
+          dispatch({ type: 'MODIFY_MAX_HEALTH', amount: 15 });
+          navigate('/map');
+          break;
+
+        case 'give_reward_aggressive':
+          console.log('🎭 Giving reward - Aggressive path');
+          // TODO: Give reward (e.g., damage boost card or attack item)
+          dispatch({ type: 'ADD_GOLD', amount: 100 });
+          dispatch({ type: 'UNLOCK_CARD', cardType: 'rare_attack' });
+          navigate('/map');
+          break;
+
+        case 'give_reward_tactical':
+          console.log('🎭 Giving reward - Tactical path');
+          // TODO: Give reward (e.g., card draw item or utility card)
+          dispatch({ type: 'ADD_GOLD', amount: 125 });
+          dispatch({ type: 'UNLOCK_CARD', cardType: 'rare_utility' });
+          navigate('/map');
+          break;
+
         default:
           // Navigate to specified route if provided
           if (choice.nextRoute) {
