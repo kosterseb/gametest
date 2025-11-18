@@ -21,6 +21,14 @@ export const DialogueBox = ({
 
   const currentLine = dialogue[currentIndex];
 
+  // Reset to first line when dialogue changes
+  useEffect(() => {
+    console.log('💬 DialogueBox: New dialogue loaded, resetting to index 0');
+    setCurrentIndex(0);
+    setIsTyping(false);
+    setDisplayedText('');
+  }, [dialogue]);
+
   // Typewriter effect
   useEffect(() => {
     if (!currentLine) return;
