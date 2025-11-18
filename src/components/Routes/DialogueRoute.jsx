@@ -18,10 +18,29 @@ export const DialogueRoute = () => {
   const [dialogue, setDialogue] = useState(null);
   const [nextRoute, setNextRoute] = useState('/map');
   const [onCompleteAction, setOnCompleteAction] = useState(null);
+  const [visualStance, setVisualStance] = useState('neutral');
 
   // Load dialogue on mount
   useEffect(() => {
     console.log('📚 DialogueRoute: Loading dialogue. routeParams:', routeParams);
+
+    if (routeParams?.scene) {
+      // Detect visual stance from scene name
+      const scene = routeParams.scene;
+      if (scene.includes('energized') || scene.includes('confident')) {
+        setVisualStance('energized');
+      } else if (scene.includes('cautious') || scene.includes('humble')) {
+        setVisualStance('cautious');
+      } else if (scene.includes('aggressive') || scene.includes('defiant')) {
+        setVisualStance('aggressive');
+      } else if (scene.includes('tactical') || scene.includes('diplomatic')) {
+        setVisualStance('tactical');
+      } else if (scene.includes('reed') || scene.includes('boss')) {
+        setVisualStance('aggressive'); // Default boss encounters to aggressive
+      } else {
+        setVisualStance('neutral');
+      }
+    }
 
     if (routeParams?.scene) {
       // Load dialogue by scene ID (same as dialogueId)
@@ -278,12 +297,14 @@ export const DialogueRoute = () => {
   }
 
   console.log('📚 DialogueRoute: Rendering DialogueBox with', dialogue.length, 'dialogue steps');
+  console.log('🎨 Visual stance:', visualStance);
 
   return (
     <DialogueBox
       dialogue={dialogue}
       onComplete={handleComplete}
       onChoice={handleChoice}
+      visualStance={visualStance}
     />
   );
 };

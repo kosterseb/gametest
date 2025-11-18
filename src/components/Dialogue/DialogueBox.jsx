@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, MessageSquare } from 'lucide-react';
 import { NBButton } from '../UI/NeoBrutalUI';
+import { DialogueVisualEffects } from './DialogueVisualEffects';
 
 /**
  * DialogueBox Component
@@ -13,11 +14,14 @@ export const DialogueBox = ({
   onComplete,
   onChoice,
   autoAdvance = false,
-  showPortrait = true
+  showPortrait = true,
+  visualStance = 'neutral'  // Visual effects stance (energized, cautious, aggressive, tactical, neutral)
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [displayedText, setDisplayedText] = useState('');
+  const [showChoiceIndicator, setShowChoiceIndicator] = useState(false);
+  const [selectedChoiceType, setSelectedChoiceType] = useState('neutral');
 
   const currentLine = dialogue[currentIndex];
 
@@ -27,7 +31,33 @@ export const DialogueBox = ({
     setCurrentIndex(0);
     setIsTyping(false);
     setDisplayedText('');
+    setShowChoiceIndicator(false);
   }, [dialogue]);
+
+  // Show choice indicator when choices become available
+  useEffect(() => {
+    if (!currentLine) return;
+
+    if (currentLine.choices && currentLine.choices.length > 0 && !isTyping) {
+      setShowChoiceIndicator(true);
+
+      // Detect choice type from action names
+      const firstChoice = currentLine.choices[0];
+      if (firstChoice.action) {
+        if (firstChoice.action.includes('confident') || firstChoice.action.includes('energized')) {
+          setSelectedChoiceType('confident');
+        } else if (firstChoice.action.includes('humble') || firstChoice.action.includes('cautious')) {
+          setSelectedChoiceType('humble');
+        } else if (firstChoice.action.includes('defiant') || firstChoice.action.includes('aggressive')) {
+          setSelectedChoiceType('defiant');
+        } else if (firstChoice.action.includes('diplomatic') || firstChoice.action.includes('tactical')) {
+          setSelectedChoiceType('diplomatic');
+        }
+      }
+    } else {
+      setShowChoiceIndicator(false);
+    }
+  }, [currentLine, isTyping]);
 
   // Typewriter effect
   useEffect(() => {
@@ -90,9 +120,20 @@ export const DialogueBox = ({
 
   console.log('💬 DialogueBox: Rendering line', currentIndex + 1, '/', dialogue.length, '- Character:', currentLine.character?.name);
 
+  // Extract character name for visual effects
+  const characterName = currentLine.character?.name?.toLowerCase() || 'neutral';
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 z-[10001] flex items-center justify-center p-4">
-      <div className="max-w-4xl w-full">
+      {/* 3D Visual Effects Background */}
+      <DialogueVisualEffects
+        stance={visualStance}
+        character={characterName}
+        showChoiceIndicator={showChoiceIndicator}
+        choiceType={selectedChoiceType}
+      />
+
+      <div className="max-w-4xl w-full relative z-10">
         {/* Main Dialogue Container */}
         <div className="nb-bg-white nb-border-xl nb-shadow-xl overflow-hidden">
           <div className="flex flex-col md:flex-row">
