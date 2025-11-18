@@ -94,15 +94,7 @@ export const TutorialOverlay = ({
 
   return (
     <>
-      {/* Dark overlay - only show when NOT highlighting an element (spotlight has its own overlay) */}
-      {!highlightArea && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 pointer-events-none"
-          style={{ zIndex: 40 }}
-        />
-      )}
-
-      {/* Circular spotlight on highlighted element */}
+      {/* Circular spotlight on highlighted element - WITHOUT dark overlay */}
       {spotlightRect && (
         <div
           className="fixed pointer-events-none"
@@ -113,7 +105,7 @@ export const TutorialOverlay = ({
             height: spotlightRect.height + 40,
             border: '4px solid #22d3ee',
             borderRadius: '12px',
-            boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 30px #22d3ee, inset 0 0 20px rgba(34, 211, 238, 0.2)',
+            boxShadow: '0 0 30px #22d3ee, inset 0 0 20px rgba(34, 211, 238, 0.2)',
             animation: 'pulse 2s ease-in-out infinite',
             zIndex: 41
           }}
@@ -224,11 +216,11 @@ export const TutorialOverlay = ({
         @keyframes pulse {
           0%, 100% {
             border-color: #22d3ee;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 30px #22d3ee, inset 0 0 20px rgba(34, 211, 238, 0.2);
+            box-shadow: 0 0 30px #22d3ee, inset 0 0 20px rgba(34, 211, 238, 0.2);
           }
           50% {
             border-color: #06b6d4;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 50px #22d3ee, inset 0 0 30px rgba(34, 211, 238, 0.3);
+            box-shadow: 0 0 50px #22d3ee, inset 0 0 30px rgba(34, 211, 238, 0.3);
           }
         }
       `}</style>

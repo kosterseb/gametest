@@ -5,7 +5,7 @@ import { generateBranchingMap } from '../../utils/mapGenerator';
 import { PageTransition } from '../UI/PageTransition';
 import { MapNode } from './MapNode';
 import { NBButton, NBHeading, NBBadge } from '../UI/NeoBrutalUI';
-import { Heart, Coins, ArrowDown, CheckCircle, MapIcon } from 'lucide-react';
+import { Heart, Coins, ArrowDown, CheckCircle, MapIcon, Lightbulb } from 'lucide-react';
 import { BattleRecapPopup } from '../UI/BattleRecapPopup';
 import { ThreeDMapView } from './ThreeDMapView';
 import { MapNavigationDashboard } from './MapNavigationDashboard';
@@ -140,6 +140,9 @@ export const BranchingTreeMapView = () => {
   const [mapTutorialCompleted, setMapTutorialCompleted] = useState(
     gameState.mapTutorialCompleted || false
   );
+
+  // 📚 Tutorial Mode - when true, interactions are controlled by tutorial
+  const isInTutorialMode = showMapTutorial && !mapTutorialCompleted;
 
   // Use state from GameContext instead of local state
   const is3DView = gameState.prefer3DView;
@@ -318,6 +321,14 @@ export const BranchingTreeMapView = () => {
     // 📚 Tutorial: Check if node was confirmed
     checkMapTutorialProgress('node_confirmed');
 
+    // 📚 Tutorial Mode: Prevent actual navigation during tutorial
+    if (isInTutorialMode) {
+      console.log('📚 Tutorial mode: Node confirmation blocked. Complete tutorial first!');
+      // Deselect node but don't navigate
+      setSelectedNode(null);
+      return;
+    }
+
     const isBossNode = selectedNode.type === 'boss';
 
     // Complete node (except boss - that's handled after victory)
@@ -453,10 +464,25 @@ export const BranchingTreeMapView = () => {
                 </div>
               </div>
             </div>
+
+            {/* 📚 Tutorial Mode Banner */}
+            {isInTutorialMode && (
+              <div className="mt-4 pointer-events-auto">
+                <div className="nb-bg-orange nb-border-xl nb-shadow-xl p-4 animate-pulse">
+                  <div className="flex items-center justify-center gap-2">
+                    <Lightbulb className="w-6 h-6 text-black" />
+                    <span className="text-black font-black text-lg uppercase">Tutorial Mode - Learn the Map!</span>
+                  </div>
+                  <div className="text-center text-black font-bold text-sm mt-1">
+                    Navigation is disabled during tutorial
+                  </div>
+                </div>
+              </div>
+            )}
         </div>
 
-        {/* Navigation Button - Left Side (only in 3D view) */}
-        {is3DView && (
+        {/* Navigation Button - Left Side (only in 3D view, hidden during tutorial) */}
+        {is3DView && !isInTutorialMode && (
           <div className="absolute left-4 top-48 z-40">
               <NBButton
                 onClick={() => setIsDashboardOpen(true)}
@@ -656,12 +682,13 @@ export const BranchingTreeMapView = () => {
                   <div className="flex justify-center gap-4">
                     <NBButton
                       onClick={handleConfirmSelection}
-                      variant={selectedNode.type === 'boss' ? 'danger' :
-                        selectedNode.type === 'elite' ? 'orange' : 'success'}
+                      variant={isInTutorialMode ? 'cyan' :
+                        (selectedNode.type === 'boss' ? 'danger' :
+                        selectedNode.type === 'elite' ? 'orange' : 'success')}
                       size="lg"
                       className="px-8 py-4 text-xl"
                     >
-                      CONFIRM
+                      {isInTutorialMode ? '✓ PRACTICE SELECT' : 'CONFIRM'}
                     </NBButton>
 
                     <NBButton
