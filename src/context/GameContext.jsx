@@ -1299,11 +1299,16 @@ const gameReducer = (state, action) => {
 
     case 'RESET_FOR_NEW_GAME':
       // Reset tutorial-related state while preserving player progress
+      // Ensure clean state for starting the real game after tutorial
       return {
         ...state,
+        currentAct: 1,
+        currentFloor: 1,
         biomeLocked: false,
         selectedBiome: null,
         selectedNode: null,
+        completedNodeIds: [],
+        availableNodeIds: [],
         tutorialCompleted: true,
         mapTutorialCompleted: true
       };

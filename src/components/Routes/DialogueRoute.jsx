@@ -145,10 +145,19 @@ export const DialogueRoute = () => {
         case 'start_real_game':
           // Tutorial complete! Start real gameplay
           console.log('📚 Tutorial complete! Starting real game');
+          console.log('📚 Game state before reset:', {
+            biomeLocked: gameState.biomeLocked,
+            selectedBiome: gameState.selectedBiome,
+            branchingMapLength: gameState.branchingMap?.length,
+            currentAct: gameState.currentAct,
+            availableNodeIds: gameState.availableNodeIds?.length,
+            completedNodeIds: gameState.completedNodeIds?.length
+          });
 
           // Reset any tutorial state and ensure clean slate for biome selection
           dispatch({ type: 'RESET_FOR_NEW_GAME' });
 
+          console.log('📚 Navigating to /map after reset');
           navigate('/map');
           break;
 

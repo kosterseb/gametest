@@ -23,6 +23,19 @@ const BiomeSelectionScreen = ({ actData, onSelectBiome }) => {
     }
   };
 
+  // Safety check for actData structure
+  if (!actData || !actData.biomeOptions || actData.biomeOptions.length === 0) {
+    return (
+      <PageTransition>
+        <div className="min-h-screen nb-bg-purple flex items-center justify-center">
+          <div className="nb-bg-white nb-border-xl nb-shadow-xl p-8">
+            <div className="text-black text-2xl font-black uppercase">No biomes available...</div>
+          </div>
+        </div>
+      </PageTransition>
+    );
+  }
+
   return (
     <PageTransition>
       <div className="min-h-screen nb-bg-purple p-8">
@@ -375,21 +388,9 @@ export const BranchingTreeMapView = () => {
     );
   }
 
-  // Wait for currentActData to be available
-  if (!currentActData) {
-    return (
-      <PageTransition>
-        <div className="min-h-screen nb-bg-purple flex items-center justify-center">
-          <div className="nb-bg-white nb-border-xl nb-shadow-xl p-8">
-            <div className="text-black text-2xl font-black uppercase">Initializing map...</div>
-          </div>
-        </div>
-      </PageTransition>
-    );
-  }
-
   // Guard: Check if act data is available
   if (!currentActData) {
+    console.log('⚠️ BranchingTreeMapView: No currentActData. branchingMapLength:', gameState.branchingMap?.length, 'currentAct:', gameState.currentAct);
     return (
       <PageTransition>
         <div className="min-h-screen nb-bg-purple flex items-center justify-center">
@@ -403,6 +404,10 @@ export const BranchingTreeMapView = () => {
 
   // Show biome selection if no biome is selected yet
   if (!gameState.biomeLocked) {
+    console.log('🗺️ BranchingTreeMapView: Showing biome selection. actData:', {
+      actNumber: currentActData.actNumber,
+      biomeCount: currentActData.biomeOptions?.length
+    });
     return <BiomeSelectionScreen actData={currentActData} onSelectBiome={handleBiomeSelection} />;
   }
 
