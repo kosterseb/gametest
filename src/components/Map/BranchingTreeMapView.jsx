@@ -13,6 +13,7 @@ import { MiniMap } from './MiniMap';
 import { TutorialOverlay } from '../Tutorial/TutorialOverlay';
 import { MAP_TUTORIAL_STEPS, getNextMapTutorialStep } from '../../data/mapTutorialSteps';
 import { WhiteFlashOverlay, UIFadeOut } from './NodeSelectionAnimation';
+import { getRandomMysteryEvent } from '../../data/dialogues';
 
 // Biome Selection Screen
 const BiomeSelectionScreen = ({ actData, onSelectBiome }) => {
@@ -357,6 +358,8 @@ export const BranchingTreeMapView = () => {
 
     // Prepare navigation based on node type
     let navigationRoute = null;
+    let mysteryEventScene = null;
+
     if (selectedNode.type === 'enemy' || selectedNode.type === 'elite' || selectedNode.type === 'boss') {
       dispatch({
         type: 'SET_ENEMY_FOR_BATTLE',
@@ -368,6 +371,11 @@ export const BranchingTreeMapView = () => {
       navigationRoute = '/shop';
     } else if (selectedNode.type === 'joker') {
       navigationRoute = '/joker';
+    } else if (selectedNode.type === 'mystery') {
+      // 🔮 Mystery node - get random mystery event
+      mysteryEventScene = getRandomMysteryEvent();
+      console.log('🔮 Mystery node selected! Event:', mysteryEventScene);
+      navigationRoute = '/dialogue';
     }
 
     // 🎬 Start animation sequence
@@ -388,7 +396,12 @@ export const BranchingTreeMapView = () => {
     // After 2 seconds total, navigate
     setTimeout(() => {
       if (navigationRoute) {
-        navigate(navigationRoute);
+        // If it's a mystery node, pass the mystery scene parameter
+        if (selectedNode.type === 'mystery' && mysteryEventScene) {
+          navigate(navigationRoute, { scene: mysteryEventScene });
+        } else {
+          navigate(navigationRoute);
+        }
       }
       // Reset animation state
       setIsAnimating(false);
@@ -801,6 +814,9 @@ export const BranchingTreeMapView = () => {
               )}
               {hoveredNode.node.type === 'joker' && (
                 <div className="text-xs font-semibold text-gray-700">Mystery event</div>
+              )}
+              {hoveredNode.node.type === 'mystery' && (
+                <div className="text-xs font-semibold text-gray-700">Fortune or misfortune...</div>
               )}
             </div>
           </div>

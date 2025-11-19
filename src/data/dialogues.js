@@ -47,6 +47,21 @@ export const CHARACTERS = {
     name: 'Narrator',
     title: null,
     seed: 'narrator'
+  },
+  MYSTERIOUS_FIGURE: {
+    name: '???',
+    title: 'Mysterious Figure',
+    seed: 'mysterious-shadow'
+  },
+  FORTUNE_TELLER: {
+    name: 'The Oracle',
+    title: 'Seer of Fates',
+    seed: 'oracle-fortune'
+  },
+  SHADOW_DEALER: {
+    name: 'Shadow',
+    title: 'Keeper of Bargains',
+    seed: 'shadow-dealer'
   }
 };
 
@@ -609,6 +624,272 @@ export const REED_DEFEAT_TACTICAL = [
   }
 ];
 
+// 🔮 MYSTERY NODES: Fortune and Misfortune
+
+// Mystery Event 1: The Flickering Lantern
+export const MYSTERY_FLICKERING_LANTERN = [
+  {
+    character: CHARACTERS.MYSTERIOUS_FIGURE,
+    text: "A lantern flickers in the darkness. Its light reveals a hooded figure, hand outstretched."
+  },
+  {
+    character: CHARACTERS.MYSTERIOUS_FIGURE,
+    text: "\"Fate is a fickle thing, traveler. Choose wisely...\"",
+    choices: [
+      {
+        text: "Take the left path. (???)",
+        action: 'mystery_lantern_left',
+        variant: 'purple'
+      },
+      {
+        text: "Take the right path. (???)",
+        action: 'mystery_lantern_right',
+        variant: 'purple'
+      },
+      {
+        text: "Walk away. (Gain nothing)",
+        action: 'mystery_leave',
+        variant: 'white'
+      }
+    ]
+  }
+];
+
+// Mystery Event 2: The Whispering Voice
+export const MYSTERY_WHISPERING_VOICE = [
+  {
+    character: CHARACTERS.SHADOW_DEALER,
+    text: "Whispers echo from the shadows. A voice, neither male nor female, speaks directly into your mind."
+  },
+  {
+    character: CHARACTERS.SHADOW_DEALER,
+    text: "\"Power... or safety... One must be sacrificed for the other. What do you value more?\"",
+    choices: [
+      {
+        text: "\"Give me power.\" (???)",
+        action: 'mystery_choose_power',
+        variant: 'red'
+      },
+      {
+        text: "\"I choose safety.\" (???)",
+        action: 'mystery_choose_safety',
+        variant: 'cyan'
+      },
+      {
+        text: "\"I need neither.\" (Leave)",
+        action: 'mystery_leave',
+        variant: 'white'
+      }
+    ]
+  }
+];
+
+// Mystery Event 3: The Oracle's Fortune
+export const MYSTERY_ORACLE_FORTUNE = [
+  {
+    character: CHARACTERS.FORTUNE_TELLER,
+    text: "An elderly figure sits before a crystal ball, eyes glowing with unnatural light."
+  },
+  {
+    character: CHARACTERS.FORTUNE_TELLER,
+    text: "\"I see your future, traveler... but knowledge comes at a price. Will you pay it?\"",
+    choices: [
+      {
+        text: "\"Yes. Show me my fate.\" (Pay 50 Gold)",
+        action: 'mystery_oracle_accept',
+        variant: 'yellow'
+      },
+      {
+        text: "\"No. I make my own fate.\" (Leave)",
+        action: 'mystery_leave',
+        variant: 'white'
+      }
+    ]
+  }
+];
+
+// Mystery Event 4: The Cursed Chest
+export const MYSTERY_CURSED_CHEST = [
+  {
+    character: CHARACTERS.NARRATOR,
+    text: "A chest sits in the center of the path. It's covered in strange markings that seem to shift when you look away."
+  },
+  {
+    character: CHARACTERS.NARRATOR,
+    text: "Something about it feels... wrong. But it might contain treasure.",
+    choices: [
+      {
+        text: "Open the chest. (???)",
+        action: 'mystery_open_chest',
+        variant: 'purple'
+      },
+      {
+        text: "Destroy the chest. (???)",
+        action: 'mystery_destroy_chest',
+        variant: 'red'
+      },
+      {
+        text: "Leave it alone.",
+        action: 'mystery_leave',
+        variant: 'white'
+      }
+    ]
+  }
+];
+
+// Mystery Event 5: The Mirror
+export const MYSTERY_DARK_MIRROR = [
+  {
+    character: CHARACTERS.MYSTERIOUS_FIGURE,
+    text: "A tall mirror stands in your path. Your reflection stares back... but something's different."
+  },
+  {
+    character: CHARACTERS.MYSTERIOUS_FIGURE,
+    text: "\"Touch the glass, and your reflection will grant you a gift... or take something precious.\"",
+    choices: [
+      {
+        text: "Touch the mirror. (???)",
+        action: 'mystery_touch_mirror',
+        variant: 'purple'
+      },
+      {
+        text: "Shatter the mirror. (???)",
+        action: 'mystery_shatter_mirror',
+        variant: 'red'
+      },
+      {
+        text: "Walk past it.",
+        action: 'mystery_leave',
+        variant: 'white'
+      }
+    ]
+  }
+];
+
+// Mystery Outcomes - Good
+export const MYSTERY_OUTCOME_FORTUNE = [
+  {
+    character: CHARACTERS.NARRATOR,
+    text: "Fortune smiles upon you..."
+  },
+  {
+    character: CHARACTERS.NARRATOR,
+    text: "You gained gold and feel strangely energized!",
+    choices: [
+      {
+        text: "Continue onward.",
+        action: 'mystery_reward_fortune',
+        variant: 'success'
+      }
+    ]
+  }
+];
+
+export const MYSTERY_OUTCOME_POWER = [
+  {
+    character: CHARACTERS.NARRATOR,
+    text: "Dark energy courses through you. You feel... stronger."
+  },
+  {
+    character: CHARACTERS.NARRATOR,
+    text: "You gained a powerful card, but at what cost?",
+    choices: [
+      {
+        text: "Accept the power.",
+        action: 'mystery_reward_power',
+        variant: 'success'
+      }
+    ]
+  }
+];
+
+export const MYSTERY_OUTCOME_BLESSING = [
+  {
+    character: CHARACTERS.NARRATOR,
+    text: "A warm light washes over you. Your wounds begin to heal."
+  },
+  {
+    character: CHARACTERS.NARRATOR,
+    text: "You've been blessed with vitality!",
+    choices: [
+      {
+        text: "Feel grateful.",
+        action: 'mystery_reward_blessing',
+        variant: 'success'
+      }
+    ]
+  }
+];
+
+// Mystery Outcomes - Bad
+export const MYSTERY_OUTCOME_MISFORTUNE = [
+  {
+    character: CHARACTERS.NARRATOR,
+    text: "The shadows close in. You feel something taken from you..."
+  },
+  {
+    character: CHARACTERS.NARRATOR,
+    text: "You've been cursed! You lost gold and feel weakened.",
+    choices: [
+      {
+        text: "Endure the curse.",
+        action: 'mystery_penalty_misfortune',
+        variant: 'danger'
+      }
+    ]
+  }
+];
+
+export const MYSTERY_OUTCOME_CURSE = [
+  {
+    character: CHARACTERS.NARRATOR,
+    text: "Pain shoots through your body. The curse takes hold..."
+  },
+  {
+    character: CHARACTERS.NARRATOR,
+    text: "You've been cursed with frailty!",
+    choices: [
+      {
+        text: "Push through the pain.",
+        action: 'mystery_penalty_curse',
+        variant: 'danger'
+      }
+    ]
+  }
+];
+
+export const MYSTERY_OUTCOME_NOTHING = [
+  {
+    character: CHARACTERS.NARRATOR,
+    text: "Nothing happens. Perhaps that was for the best."
+  },
+  {
+    character: CHARACTERS.NARRATOR,
+    text: "Sometimes the wisest choice is caution.",
+    choices: [
+      {
+        text: "Continue.",
+        action: 'continue_to_map',
+        variant: 'white'
+      }
+    ]
+  }
+];
+
+// Helper function to get a random mystery event
+export const getRandomMysteryEvent = () => {
+  const mysteryEvents = [
+    'mystery_flickering_lantern',
+    'mystery_whispering_voice',
+    'mystery_oracle_fortune',
+    'mystery_cursed_chest',
+    'mystery_dark_mirror'
+  ];
+
+  const randomIndex = Math.floor(Math.random() * mysteryEvents.length);
+  return mysteryEvents[randomIndex];
+};
+
 // Helper function to get dialogue by ID
 export const getDialogue = (dialogueId) => {
   const dialogues = {
@@ -633,7 +914,19 @@ export const getDialogue = (dialogueId) => {
     'reed_defeat_energized': REED_DEFEAT_ENERGIZED,
     'reed_defeat_cautious': REED_DEFEAT_CAUTIOUS,
     'reed_defeat_aggressive': REED_DEFEAT_AGGRESSIVE,
-    'reed_defeat_tactical': REED_DEFEAT_TACTICAL
+    'reed_defeat_tactical': REED_DEFEAT_TACTICAL,
+    // Mystery node dialogues
+    'mystery_flickering_lantern': MYSTERY_FLICKERING_LANTERN,
+    'mystery_whispering_voice': MYSTERY_WHISPERING_VOICE,
+    'mystery_oracle_fortune': MYSTERY_ORACLE_FORTUNE,
+    'mystery_cursed_chest': MYSTERY_CURSED_CHEST,
+    'mystery_dark_mirror': MYSTERY_DARK_MIRROR,
+    'mystery_outcome_fortune': MYSTERY_OUTCOME_FORTUNE,
+    'mystery_outcome_power': MYSTERY_OUTCOME_POWER,
+    'mystery_outcome_blessing': MYSTERY_OUTCOME_BLESSING,
+    'mystery_outcome_misfortune': MYSTERY_OUTCOME_MISFORTUNE,
+    'mystery_outcome_curse': MYSTERY_OUTCOME_CURSE,
+    'mystery_outcome_nothing': MYSTERY_OUTCOME_NOTHING
   };
 
   return dialogues[dialogueId] || null;

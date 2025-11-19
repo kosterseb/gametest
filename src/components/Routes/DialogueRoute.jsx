@@ -44,14 +44,18 @@ export const DialogueRoute = () => {
       (sceneId.includes('reed') ||
        sceneId.includes('boss') ||
        sceneId.includes('response') ||
-       sceneId.includes('defeat')) &&
+       sceneId.includes('defeat') ||
+       sceneId.includes('mystery')) && // Enable for mystery nodes
       !disableEffectsFor.includes(sceneId);
 
     setVisualEffectsEnabled(shouldEnableEffects);
 
     // Detect visual stance from scene name
     if (sceneId) {
-      if (sceneId.includes('energized') || sceneId.includes('confident')) {
+      if (sceneId.includes('mystery')) {
+        // Mystery nodes use aggressive (dark red/orange) for eerie vibe
+        setVisualStance('aggressive');
+      } else if (sceneId.includes('energized') || sceneId.includes('confident')) {
         setVisualStance('energized');
       } else if (sceneId.includes('cautious') || sceneId.includes('humble')) {
         setVisualStance('cautious');
@@ -264,6 +268,125 @@ export const DialogueRoute = () => {
           // TODO: Give reward (e.g., card draw item or utility card)
           dispatch({ type: 'ADD_GOLD', amount: 125 });
           dispatch({ type: 'UNLOCK_CARD', cardType: 'rare_utility' });
+          navigate('/map');
+          break;
+
+        // 🔮 MYSTERY NODE EVENTS
+
+        // Flickering Lantern choices
+        case 'mystery_lantern_left':
+        case 'mystery_lantern_right':
+          console.log('🔮 Mystery: Lantern path chosen');
+          // 50/50 chance of fortune or misfortune
+          const lanternOutcome = Math.random() < 0.5 ? 'mystery_outcome_fortune' : 'mystery_outcome_misfortune';
+          navigate('/dialogue', { scene: lanternOutcome });
+          break;
+
+        // Whispering Voice choices
+        case 'mystery_choose_power':
+          console.log('🔮 Mystery: Chose power');
+          // 60% chance of power, 40% chance of curse
+          const powerOutcome = Math.random() < 0.6 ? 'mystery_outcome_power' : 'mystery_outcome_curse';
+          navigate('/dialogue', { scene: powerOutcome });
+          break;
+
+        case 'mystery_choose_safety':
+          console.log('🔮 Mystery: Chose safety');
+          // 70% chance of blessing, 30% chance of nothing
+          const safetyOutcome = Math.random() < 0.7 ? 'mystery_outcome_blessing' : 'mystery_outcome_nothing';
+          navigate('/dialogue', { scene: safetyOutcome });
+          break;
+
+        // Oracle's Fortune
+        case 'mystery_oracle_accept':
+          console.log('🔮 Mystery: Paid oracle for fortune');
+          // Check if player has enough gold
+          if (gameState.gold >= 50) {
+            dispatch({ type: 'ADD_GOLD', amount: -50 });
+            // 70% chance of fortune, 30% chance of misfortune
+            const oracleOutcome = Math.random() < 0.7 ? 'mystery_outcome_fortune' : 'mystery_outcome_misfortune';
+            navigate('/dialogue', { scene: oracleOutcome });
+          } else {
+            // Not enough gold, get cursed
+            navigate('/dialogue', { scene: 'mystery_outcome_curse' });
+          }
+          break;
+
+        // Cursed Chest choices
+        case 'mystery_open_chest':
+          console.log('🔮 Mystery: Opened cursed chest');
+          // 40% fortune, 60% misfortune
+          const chestOutcome = Math.random() < 0.4 ? 'mystery_outcome_fortune' : 'mystery_outcome_misfortune';
+          navigate('/dialogue', { scene: chestOutcome });
+          break;
+
+        case 'mystery_destroy_chest':
+          console.log('🔮 Mystery: Destroyed cursed chest');
+          // 50% nothing, 50% curse (angry spirits)
+          const destroyOutcome = Math.random() < 0.5 ? 'mystery_outcome_nothing' : 'mystery_outcome_curse';
+          navigate('/dialogue', { scene: destroyOutcome });
+          break;
+
+        // Dark Mirror choices
+        case 'mystery_touch_mirror':
+          console.log('🔮 Mystery: Touched the mirror');
+          // 33% each for fortune, power, or misfortune
+          const roll = Math.random();
+          let mirrorOutcome;
+          if (roll < 0.33) mirrorOutcome = 'mystery_outcome_fortune';
+          else if (roll < 0.66) mirrorOutcome = 'mystery_outcome_power';
+          else mirrorOutcome = 'mystery_outcome_misfortune';
+          navigate('/dialogue', { scene: mirrorOutcome });
+          break;
+
+        case 'mystery_shatter_mirror':
+          console.log('🔮 Mystery: Shattered the mirror');
+          // Always get curse (7 years bad luck!)
+          navigate('/dialogue', { scene: 'mystery_outcome_curse' });
+          break;
+
+        // Leave mystery node
+        case 'mystery_leave':
+          console.log('🔮 Mystery: Player walked away');
+          navigate('/dialogue', { scene: 'mystery_outcome_nothing' });
+          break;
+
+        // Mystery Rewards
+        case 'mystery_reward_fortune':
+          console.log('🔮 Mystery Reward: Fortune!');
+          dispatch({ type: 'ADD_GOLD', amount: 80 });
+          dispatch({ type: 'HEAL_PLAYER', amount: 10 });
+          navigate('/map');
+          break;
+
+        case 'mystery_reward_power':
+          console.log('🔮 Mystery Reward: Power!');
+          // Give random rare card
+          dispatch({ type: 'UNLOCK_CARD', cardType: 'rare_random' });
+          dispatch({ type: 'MODIFY_MAX_HEALTH', amount: -10 }); // Cost of power
+          navigate('/map');
+          break;
+
+        case 'mystery_reward_blessing':
+          console.log('🔮 Mystery Reward: Blessing!');
+          dispatch({ type: 'HEAL_PLAYER', amount: 25 });
+          dispatch({ type: 'MODIFY_MAX_HEALTH', amount: 10 });
+          navigate('/map');
+          break;
+
+        // Mystery Penalties
+        case 'mystery_penalty_misfortune':
+          console.log('🔮 Mystery Penalty: Misfortune!');
+          const goldToLose = Math.min(40, gameState.gold); // Lose up to 40 gold
+          dispatch({ type: 'ADD_GOLD', amount: -goldToLose });
+          dispatch({ type: 'DAMAGE_PLAYER', amount: 10 });
+          navigate('/map');
+          break;
+
+        case 'mystery_penalty_curse':
+          console.log('🔮 Mystery Penalty: Curse!');
+          dispatch({ type: 'MODIFY_MAX_HEALTH', amount: -15 });
+          dispatch({ type: 'DAMAGE_PLAYER', amount: 5 });
           navigate('/map');
           break;
 
