@@ -1195,16 +1195,26 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
     const yOffset = 5; // Match node offset for proper alignment
 
     floors.forEach((floor, floorIdx) => {
-      const xPositions = floor.nodes.map(n => n.position.x);
+      // Filter out special nodes (like surprise nodes) from layout calculations
+      const layoutNodes = floor.nodes.filter(n => n.type !== 'surprise');
+      const xPositions = layoutNodes.map(n => n.position.x);
       const minX = Math.min(...xPositions);
       const maxX = Math.max(...xPositions);
       const centerOffset = (minX + maxX) / 2;
 
       floor.nodes.forEach((node) => {
         // Use floor index for consistent vertical positioning
-        const x = (node.position.x - centerOffset) * horizontalSpacing;
-        const y = -floorIdx * verticalSpacing + yOffset;
-        const z = -floorIdx * 1.2;
+        // Surprise nodes get positioned separately (far right)
+        let x, y, z;
+        if (node.type === 'surprise') {
+          x = 8; // Position to the far right
+          y = -floorIdx * verticalSpacing + yOffset;
+          z = -floorIdx * 1.2;
+        } else {
+          x = (node.position.x - centerOffset) * horizontalSpacing;
+          y = -floorIdx * verticalSpacing + yOffset;
+          z = -floorIdx * 1.2;
+        }
         positions.set(node.id, [x, y, z]);
       });
     });
@@ -1226,16 +1236,26 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
     const yOffset = 5; // Shift nodes upward to better center them in view
 
     floors.forEach((floor, floorIdx) => {
-      const xPositions = floor.nodes.map(n => n.position.x);
+      // Filter out special nodes (like surprise nodes) from layout calculations
+      const layoutNodes = floor.nodes.filter(n => n.type !== 'surprise');
+      const xPositions = layoutNodes.map(n => n.position.x);
       const minX = Math.min(...xPositions);
       const maxX = Math.max(...xPositions);
       const centerOffset = (minX + maxX) / 2;
 
       floor.nodes.forEach((node) => {
         // Use floor index for consistent vertical positioning
-        const x = (node.position.x - centerOffset) * horizontalSpacing;
-        const y = -floorIdx * verticalSpacing + yOffset;
-        const z = -floorIdx * 1.2;
+        // Surprise nodes get positioned separately (far right)
+        let x, y, z;
+        if (node.type === 'surprise') {
+          x = 8; // Position to the far right
+          y = -floorIdx * verticalSpacing + yOffset;
+          z = -floorIdx * 1.2;
+        } else {
+          x = (node.position.x - centerOffset) * horizontalSpacing;
+          y = -floorIdx * verticalSpacing + yOffset;
+          z = -floorIdx * 1.2;
+        }
         positions.set(node.id, [x, y, z]);
       });
     });
