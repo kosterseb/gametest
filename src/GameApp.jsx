@@ -9,6 +9,7 @@ import { ProfileCreation } from './components/UI/ProfileCreation';
 import { GameModeSelection } from './components/UI/GameModeSelection';
 import { BattleRoute } from './components/Routes/BattleRoute';
 import { DialogueRoute } from './components/Routes/DialogueRoute';
+import TypingGameRoute from './components/Routes/TypingGameRoute';
 import { VictoryScreen } from './components/UI/VictoryScreen';
 import { DefeatScreen } from './components/UI/DefeatScreen';
 import { Shop } from './components/UI/Shop';
@@ -48,6 +49,9 @@ const GameApp = () => {
       case '/dialogue':
         console.log('🎮 GameApp: Rendering DialogueRoute');
         return <DialogueRoute />;
+      case '/typing-game':
+        console.log('🎮 GameApp: Rendering Typing Game');
+        return <TypingGameRoute />;
       case '/battle':
         return <BattleRoute />;
       case '/map':
