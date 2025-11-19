@@ -4,7 +4,7 @@ import { useRouter } from '../../hooks/useRouter';
 import { generateBranchingMap } from '../../utils/mapGenerator';
 import { PageTransition } from '../UI/PageTransition';
 import { MapNode } from './MapNode';
-import { NBButton, NBHeading, NBBadge } from '../UI/NeoBrutalUI';
+import { NBButton, NBHeading, NBBadge, NBAlertContainer } from '../UI/NeoBrutalUI';
 import { Heart, Coins, ArrowDown, CheckCircle, MapIcon, Lightbulb } from 'lucide-react';
 import { BattleRecapPopup } from '../UI/BattleRecapPopup';
 import { ThreeDMapView } from './ThreeDMapView';
@@ -164,6 +164,9 @@ export const BranchingTreeMapView = () => {
   const [showWhiteFlash, setShowWhiteFlash] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
 
+  // 🔔 Notification State
+  const [notifications, setNotifications] = useState([]);
+
   // Use state from GameContext instead of local state
   const is3DView = gameState.prefer3DView;
 
@@ -177,6 +180,16 @@ export const BranchingTreeMapView = () => {
 
   const handleHoveredNodeChange = (nodeData) => {
     setHoveredNode(nodeData);
+  };
+
+  // 🔔 Show notification helper
+  const showNotification = (message, type = 'success', icon = null) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, message, type, icon, autoClose: true, autoCloseDelay: 3000 }]);
+  };
+
+  const dismissNotification = (id) => {
+    setNotifications(prev => prev.filter(notif => notif.id !== id));
   };
 
   // Get current act data and selected biome (must be before useEffects that reference them)
@@ -381,9 +394,9 @@ export const BranchingTreeMapView = () => {
       console.log('🏕️ Rest node selected - Healing and creating checkpoint');
       dispatch({ type: 'HEAL_PLAYER', amount: gameState.maxPlayerHealth }); // Full heal
       dispatch({ type: 'CREATE_CHECKPOINT' }); // Create save point
-      // Show a brief message then return to map
+      // Show a styled notification
       setTimeout(() => {
-        alert('💾 Checkpoint saved! You are fully healed and your progress has been saved.');
+        showNotification('💾 Checkpoint saved! You are fully healed and your progress has been saved.', 'success', '💾');
       }, 500);
       navigationRoute = '/map'; // Return to map after short delay
     } else if (selectedNode.type === 'surprise') {
@@ -399,7 +412,7 @@ export const BranchingTreeMapView = () => {
       // TODO: Route to mini game system when implemented
       navigationRoute = '/map'; // Placeholder - return to map
       setTimeout(() => {
-        alert('🎮 Mini game events coming soon!');
+        showNotification('🎮 Mini game events coming soon!', 'info', '🎮');
       }, 500);
     }
 
@@ -891,6 +904,13 @@ export const BranchingTreeMapView = () => {
 
         {/* 🎬 White Flash Transition */}
         <WhiteFlashOverlay isActive={showWhiteFlash} />
+
+        {/* 🔔 Notification Container */}
+        <NBAlertContainer
+          alerts={notifications}
+          onDismiss={dismissNotification}
+          position="top-right"
+        />
       </div>
     </PageTransition>
   );
