@@ -638,6 +638,29 @@ const generateBranchingTree = (act, biomeKey, biomeId) => {
     });
   }
 
+  // 🎉 INJECT SURPRISE NODE ON FLOOR 3
+  // Add a special surprise node (Reed's challenge) on floor 3
+  if (act === 1 && floors.length >= 3) {
+    const floor3 = floors[2]; // Floor 3 is index 2
+    const surpriseNode = {
+      id: `${biomeId}_surprise_node`,
+      type: 'surprise',
+      floor: (act - 1) * 5 + 3,
+      position: { x: 999, y: 2 }, // Special position to render separately
+      parentIds: [], // Independent node, not connected to main path
+      childrenIds: [],
+      available: false, // Will be made available when player reaches floor 3
+      completed: false,
+      surpriseData: {
+        description: "Reed's Special Challenge!",
+        rarity: 'legendary',
+        message: "Reed has left a special challenge for you..."
+      }
+    };
+
+    floor3.nodes.push(surpriseNode);
+  }
+
   return floors;
 };
 

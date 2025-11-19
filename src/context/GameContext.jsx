@@ -147,6 +147,10 @@ const initialGameState = {
   // TUTORIAL FLAGS (prevent repeated tutorials)
   notificationTutorialShown: false, // Has seen Stijn explain notification system
   levelUpTutorialShown: false,      // Has seen Stijn explain level up/talents
+
+  // FLOOR DIALOGUE FLAGS (prevent repeated dialogues)
+  floor2DialogueShown: false, // Has seen Stijn's floor 2 encouragement
+  floor3DialogueShown: false, // Has seen Stijn's floor 3 surprise warning
 };
 
 const gameReducer = (state, action) => {
@@ -653,6 +657,18 @@ const gameReducer = (state, action) => {
         )
         .map(node => node.id);
 
+      // Check if player is entering floor 3 (to unlock surprise node)
+      const floor3Number = (state.currentAct - 1) * 5 + 3;
+      const isEnteringFloor3 = childrenIds.some(childId => {
+        for (const floor of selectedBiome.floors) {
+          const childNode = floor.nodes.find(n => n.id === childId);
+          if (childNode && childNode.floor === floor3Number) {
+            return true;
+          }
+        }
+        return false;
+      });
+
       // Update the map: mark node as completed, lock out siblings, make children available
       const mapAfterNodeCompletion = state.branchingMap.map((act, actIdx) => {
         if (actIdx === state.currentAct - 1) {
@@ -677,6 +693,10 @@ const gameReducer = (state, action) => {
                       if (childrenIds.includes(node.id)) {
                         return { ...node, available: true };
                       }
+                      // 🎉 Make surprise node available when entering floor 3
+                      if (node.type === 'surprise' && isEnteringFloor3 && !node.completed) {
+                        return { ...node, available: true };
+                      }
                       return node;
                     })
                   }))
@@ -693,15 +713,29 @@ const gameReducer = (state, action) => {
         return act;
       });
 
+      // Find surprise node ID if we're entering floor 3
+      let surpriseNodeId = null;
+      if (isEnteringFloor3) {
+        const floor3 = selectedBiome.floors.find(f => f.floor === floor3Number);
+        if (floor3) {
+          const surpriseNode = floor3.nodes.find(n => n.type === 'surprise');
+          if (surpriseNode && !surpriseNode.completed) {
+            surpriseNodeId = surpriseNode.id;
+          }
+        }
+      }
+
       // Update available nodes list: remove completed node AND sibling nodes, add children
       // If this is the last floor before boss, add boss node ID
+      // If entering floor 3, add surprise node
       const newAvailableNodeIds = [
         ...state.availableNodeIds.filter(id =>
           id !== nodeId && // Remove completed node
           !siblingNodeIds.includes(id) // Remove locked out siblings
         ),
         ...childrenIds, // Add children
-        ...(isLastFloorBeforeBoss ? [currentAct.bossFloor.node.id] : []) // Add boss if last floor
+        ...(isLastFloorBeforeBoss ? [currentAct.bossFloor.node.id] : []), // Add boss if last floor
+        ...(surpriseNodeId ? [surpriseNodeId] : []) // Add surprise node if entering floor 3
       ];
 
       // Calculate current floor: use the floor number from the completed node's floor
@@ -1363,6 +1397,18 @@ const gameReducer = (state, action) => {
       return {
         ...state,
         levelUpTutorialShown: true
+      };
+
+    case 'MARK_FLOOR_2_DIALOGUE_SHOWN':
+      return {
+        ...state,
+        floor2DialogueShown: true
+      };
+
+    case 'MARK_FLOOR_3_DIALOGUE_SHOWN':
+      return {
+        ...state,
+        floor3DialogueShown: true
       };
 
     case 'OPEN_MENU':

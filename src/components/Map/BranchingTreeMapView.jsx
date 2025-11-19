@@ -386,6 +386,21 @@ export const BranchingTreeMapView = () => {
         alert('💾 Checkpoint saved! You are fully healed and your progress has been saved.');
       }, 500);
       navigationRoute = '/map'; // Return to map after short delay
+    } else if (selectedNode.type === 'surprise') {
+      // 🎉 Surprise node - Reed's special challenge mini game!
+      console.log('🎉 Surprise node selected - Reed\'s special challenge!');
+      // TODO: Route to mini game when mini games are implemented
+      // For now, show placeholder dialogue
+      navigationRoute = '/dialogue';
+      mysteryEventScene = 'surprise_node_placeholder';
+    } else if (selectedNode.type === 'event') {
+      // 🎮 Event node - Mini game challenges
+      console.log('🎮 Event node selected - Mini game!');
+      // TODO: Route to mini game system when implemented
+      navigationRoute = '/map'; // Placeholder - return to map
+      setTimeout(() => {
+        alert('🎮 Mini game events coming soon!');
+      }, 500);
     }
 
     // 🎬 Start animation sequence

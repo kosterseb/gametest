@@ -38,7 +38,10 @@ export const DialogueRoute = () => {
       'inventory_tutorial',
       'tutorial_complete',
       'stijn_notification_tutorial',
-      'stijn_level_up_encouragement'
+      'stijn_level_up_encouragement',
+      'stijn_floor_2_encouragement',
+      'stijn_floor_3_surprise',
+      'surprise_node_placeholder'
     ];
 
     // Default to disabled unless we're in a story event scene
@@ -402,6 +405,19 @@ export const DialogueRoute = () => {
         case 'level_up_tutorial_complete':
           console.log('📚 Level up tutorial complete!');
           dispatch({ type: 'MARK_LEVEL_UP_TUTORIAL_SHOWN' });
+          navigate('/map');
+          break;
+
+        // 💬 FLOOR DIALOGUE EVENTS
+        case 'floor_2_dialogue_complete':
+          console.log('💬 Floor 2 dialogue complete!');
+          dispatch({ type: 'MARK_FLOOR_2_DIALOGUE_SHOWN' });
+          navigate('/map');
+          break;
+
+        case 'floor_3_dialogue_complete':
+          console.log('💬 Floor 3 dialogue complete!');
+          dispatch({ type: 'MARK_FLOOR_3_DIALOGUE_SHOWN' });
           navigate('/map');
           break;
 

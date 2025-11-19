@@ -174,6 +174,13 @@ export const UnifiedRewardScreen = () => {
       dispatch({ type: 'CLEAR_ITEM_REWARD' });
     }
 
+    // If boss was defeated, show act completion popup (don't interrupt with tutorials)
+    if (isBossVictory) {
+      setShowActCompletion(true);
+      return;
+    }
+
+    // ONLY show tutorials after regular battles (not boss fights)
     // Check if we should show tutorial for notifications
     const hasAnyNotifications =
       gameState.menuNotifications.deck ||
@@ -196,14 +203,28 @@ export const UnifiedRewardScreen = () => {
       return;
     }
 
-    // If boss was defeated, show act completion popup
-    if (isBossVictory) {
-      setShowActCompletion(true);
-    } else {
-      // Set flag to show battle recap on map
-      dispatch({ type: 'SHOW_BATTLE_RECAP' });
-      navigate('/map');
+    // Check for floor-specific dialogues (only in Act 1)
+    if (gameState.currentAct === 1) {
+      const currentFloor = gameState.currentFloor;
+
+      // Floor 2 encouragement dialogue
+      if (currentFloor === 2 && !gameState.floor2DialogueShown) {
+        console.log('💬 Triggering floor 2 dialogue');
+        navigate('/dialogue', { scene: 'stijn_floor_2_encouragement' });
+        return;
+      }
+
+      // Floor 3 surprise dialogue (when surprise node appears)
+      if (currentFloor === 3 && !gameState.floor3DialogueShown) {
+        console.log('💬 Triggering floor 3 surprise dialogue');
+        navigate('/dialogue', { scene: 'stijn_floor_3_surprise' });
+        return;
+      }
     }
+
+    // Regular battle complete - return to map
+    dispatch({ type: 'SHOW_BATTLE_RECAP' });
+    navigate('/map');
   };
 
   const handleActContinue = () => {

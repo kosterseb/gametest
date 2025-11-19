@@ -928,6 +928,80 @@ export const STIJN_LEVEL_UP_ENCOURAGEMENT = [
   }
 ];
 
+// Stijn encouragement on floor 2
+export const STIJN_FLOOR_2_ENCOURAGEMENT = [
+  {
+    character: CHARACTERS.STIJN,
+    text: "Hey, you're doing great so far!"
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Just a few more battles before you reach Reed at the end of this act."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Make sure to check shops for upgrades and rest at campfires to save your progress!",
+    choices: [
+      {
+        text: "Thanks for the tips!",
+        action: 'floor_2_dialogue_complete',
+        variant: 'success'
+      }
+    ]
+  }
+];
+
+// Reed's surprise node placeholder (future mini game)
+export const SURPRISE_NODE_PLACEHOLDER = [
+  {
+    character: CHARACTERS.REED,
+    text: "Well, well... you found my little surprise!"
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "I left this special challenge here to test if you're really ready to face me."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Unfortunately, this mini-game isn't quite ready yet. But when it is, you'll find an exciting challenge here!",
+    choices: [
+      {
+        text: "I'll be back when it's ready!",
+        action: 'continue_to_map',
+        variant: 'success'
+      },
+      {
+        text: "Can't wait to try it!",
+        action: 'continue_to_map',
+        variant: 'primary'
+      }
+    ]
+  }
+];
+
+// Stijn warning about floor 3 surprise
+export const STIJN_FLOOR_3_SURPRISE = [
+  {
+    character: CHARACTERS.STIJN,
+    text: "Wait, did you see that?"
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "I swear I just saw something strange appear on the map... like a special node or something."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Reed must have left a surprise challenge for you! Keep an eye out for it - it might be worth checking out!",
+    choices: [
+      {
+        text: "I'll keep my eyes open!",
+        action: 'floor_3_dialogue_complete',
+        variant: 'success'
+      }
+    ]
+  }
+];
+
 // Helper function to get a random mystery event
 export const getRandomMysteryEvent = () => {
   const mysteryEvents = [
@@ -981,7 +1055,12 @@ export const getDialogue = (dialogueId) => {
     'mystery_outcome_nothing': MYSTERY_OUTCOME_NOTHING,
     // Stijn notification tutorials
     'stijn_notification_tutorial': STIJN_NOTIFICATION_TUTORIAL,
-    'stijn_level_up_encouragement': STIJN_LEVEL_UP_ENCOURAGEMENT
+    'stijn_level_up_encouragement': STIJN_LEVEL_UP_ENCOURAGEMENT,
+    // Floor dialogues
+    'stijn_floor_2_encouragement': STIJN_FLOOR_2_ENCOURAGEMENT,
+    'stijn_floor_3_surprise': STIJN_FLOOR_3_SURPRISE,
+    // Surprise node
+    'surprise_node_placeholder': SURPRISE_NODE_PLACEHOLDER
   };
 
   return dialogues[dialogueId] || null;
