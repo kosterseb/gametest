@@ -671,6 +671,29 @@ const gameReducer = (state, action) => {
         currentAct: state.currentAct
       });
 
+      // Find surprise node on floor 4 (for Act 1) - MUST BE CALCULATED BEFORE mapAfterNodeCompletion
+      let surpriseNodeId = null;
+      let surpriseNodeCompleted = false;
+      if (state.currentAct === 1) {
+        const floor4 = selectedBiome.floors.find(f => f.floor === floor4Number);
+        if (floor4) {
+          const surpriseNode = floor4.nodes.find(n => n.type === 'surprise');
+          if (surpriseNode) {
+            surpriseNodeCompleted = surpriseNode.completed;
+            // Add surprise node to available when entering floor 4
+            if (isEnteringFloor4 && !surpriseNode.completed) {
+              surpriseNodeId = surpriseNode.id;
+            }
+          }
+        }
+      }
+
+      // For Act 1: Boss is only available if surprise node is completed
+      // For other acts: Normal boss unlock logic
+      const canUnlockBoss = state.currentAct === 1
+        ? (isLastFloorBeforeBoss && surpriseNodeCompleted)
+        : isLastFloorBeforeBoss;
+
       // Update the map: mark node as completed, lock out siblings, make children available
       const mapAfterNodeCompletion = state.branchingMap.map((act, actIdx) => {
         if (actIdx === state.currentAct - 1) {
@@ -714,29 +737,6 @@ const gameReducer = (state, action) => {
         }
         return act;
       });
-
-      // Find surprise node on floor 4 (for Act 1)
-      let surpriseNodeId = null;
-      let surpriseNodeCompleted = false;
-      if (state.currentAct === 1) {
-        const floor4 = selectedBiome.floors.find(f => f.floor === floor4Number);
-        if (floor4) {
-          const surpriseNode = floor4.nodes.find(n => n.type === 'surprise');
-          if (surpriseNode) {
-            surpriseNodeCompleted = surpriseNode.completed;
-            // Add surprise node to available when entering floor 4
-            if (isEnteringFloor4 && !surpriseNode.completed) {
-              surpriseNodeId = surpriseNode.id;
-            }
-          }
-        }
-      }
-
-      // For Act 1: Boss is only available if surprise node is completed
-      // For other acts: Normal boss unlock logic
-      const canUnlockBoss = state.currentAct === 1
-        ? (isLastFloorBeforeBoss && surpriseNodeCompleted)
-        : isLastFloorBeforeBoss;
 
       // Update available nodes list: remove completed node AND sibling nodes, add children
       // If this is the last floor before boss (and surprise is complete for Act 1), add boss node ID
