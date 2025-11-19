@@ -413,13 +413,11 @@ export const BranchingTreeMapView = () => {
       console.log('🎉 Surprise node selected - Reed\'s Typing Challenge!');
       navigationRoute = '/typing-game';
     } else if (selectedNode.type === 'event') {
-      // 🎮 Event node - Mini game challenges
-      console.log('🎮 Event node selected - Mini game!');
-      // TODO: Route to mini game system when implemented
-      navigationRoute = '/map'; // Placeholder - return to map
-      setTimeout(() => {
-        showNotification('🎮 Mini game events coming soon!', 'info', '🎮');
-      }, 500);
+      // 🎮 Event node - Random mini game challenge!
+      console.log('🎮 Event node selected - Random Mini Game!');
+      navigationRoute = '/mini-game';
+      // Pass the node ID so the game can complete it when done
+      routeParams.nodeId = selectedNode.id;
     }
 
     // 🎬 Start animation sequence

@@ -10,6 +10,8 @@ import { GameModeSelection } from './components/UI/GameModeSelection';
 import { BattleRoute } from './components/Routes/BattleRoute';
 import { DialogueRoute } from './components/Routes/DialogueRoute';
 import TypingGameRoute from './components/Routes/TypingGameRoute';
+import TowerGameRoute from './components/Routes/TowerGameRoute';
+import MiniGameRoute from './components/Routes/MiniGameRoute';
 import { VictoryScreen } from './components/UI/VictoryScreen';
 import { DefeatScreen } from './components/UI/DefeatScreen';
 import { Shop } from './components/UI/Shop';
@@ -52,6 +54,12 @@ const GameApp = () => {
       case '/typing-game':
         console.log('🎮 GameApp: Rendering Typing Game');
         return <TypingGameRoute />;
+      case '/tower-game':
+        console.log('🏗️ GameApp: Rendering Tower Game');
+        return <TowerGameRoute />;
+      case '/mini-game':
+        console.log('🎲 GameApp: Rendering Random Mini Game');
+        return <MiniGameRoute />;
       case '/battle':
         return <BattleRoute />;
       case '/map':
