@@ -876,6 +876,58 @@ export const MYSTERY_OUTCOME_NOTHING = [
   }
 ];
 
+// 📱 STIJN NOTIFICATION TUTORIALS
+
+// Stijn explains the notification system (first time player gets a notification)
+export const STIJN_NOTIFICATION_TUTORIAL = [
+  {
+    character: CHARACTERS.STIJN,
+    text: "Hey! Did you see that?"
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Your character menu button is glowing! That means you got something new - could be a new card, an item, or even a level up!"
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Click on your character icon (the one with your avatar) to check it out. The glowing dot will disappear once you open the menu and see what you got."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Trust me, you don't want to miss checking that out. New cards and items can make a huge difference in battle!",
+    choices: [
+      {
+        text: "Got it! Thanks for the heads up.",
+        action: 'notification_tutorial_complete',
+        variant: 'success'
+      }
+    ]
+  }
+];
+
+// Stijn encourages after first level up
+export const STIJN_LEVEL_UP_ENCOURAGEMENT = [
+  {
+    character: CHARACTERS.STIJN,
+    text: "Whoa! Nice! You just leveled up!"
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "That means you earned a talent point. You can spend it in the talent tree to unlock permanent upgrades!"
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Check your character menu - the talents tab should be glowing. Those upgrades carry over between runs, so choose wisely!",
+    choices: [
+      {
+        text: "Awesome! I'll check it out.",
+        action: 'level_up_tutorial_complete',
+        variant: 'success'
+      }
+    ]
+  }
+];
+
 // Helper function to get a random mystery event
 export const getRandomMysteryEvent = () => {
   const mysteryEvents = [
@@ -926,7 +978,10 @@ export const getDialogue = (dialogueId) => {
     'mystery_outcome_blessing': MYSTERY_OUTCOME_BLESSING,
     'mystery_outcome_misfortune': MYSTERY_OUTCOME_MISFORTUNE,
     'mystery_outcome_curse': MYSTERY_OUTCOME_CURSE,
-    'mystery_outcome_nothing': MYSTERY_OUTCOME_NOTHING
+    'mystery_outcome_nothing': MYSTERY_OUTCOME_NOTHING,
+    // Stijn notification tutorials
+    'stijn_notification_tutorial': STIJN_NOTIFICATION_TUTORIAL,
+    'stijn_level_up_encouragement': STIJN_LEVEL_UP_ENCOURAGEMENT
   };
 
   return dialogues[dialogueId] || null;

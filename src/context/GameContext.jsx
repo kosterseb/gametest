@@ -143,6 +143,10 @@ const initialGameState = {
     talents: false,   // Talent points available or talents unlocked
     stats: false      // Level up or significant stat changes
   },
+
+  // TUTORIAL FLAGS (prevent repeated tutorials)
+  notificationTutorialShown: false, // Has seen Stijn explain notification system
+  levelUpTutorialShown: false,      // Has seen Stijn explain level up/talents
 };
 
 const gameReducer = (state, action) => {
@@ -1347,6 +1351,18 @@ const gameReducer = (state, action) => {
       return {
         ...state,
         mapTutorialCompleted: action.completed
+      };
+
+    case 'MARK_NOTIFICATION_TUTORIAL_SHOWN':
+      return {
+        ...state,
+        notificationTutorialShown: true
+      };
+
+    case 'MARK_LEVEL_UP_TUTORIAL_SHOWN':
+      return {
+        ...state,
+        levelUpTutorialShown: true
       };
 
     case 'OPEN_MENU':

@@ -174,6 +174,28 @@ export const UnifiedRewardScreen = () => {
       dispatch({ type: 'CLEAR_ITEM_REWARD' });
     }
 
+    // Check if we should show tutorial for notifications
+    const hasAnyNotifications =
+      gameState.menuNotifications.deck ||
+      gameState.menuNotifications.inventory ||
+      gameState.menuNotifications.talents ||
+      gameState.menuNotifications.stats;
+
+    // If player just leveled up and hasn't seen level up tutorial
+    const justLeveledUp = gameState.menuNotifications.stats || gameState.menuNotifications.talents;
+    if (justLeveledUp && !gameState.levelUpTutorialShown) {
+      console.log('📚 Triggering level up tutorial dialogue');
+      navigate('/dialogue', { scene: 'stijn_level_up_encouragement' });
+      return;
+    }
+
+    // If player got any notification and hasn't seen notification tutorial
+    if (hasAnyNotifications && !gameState.notificationTutorialShown) {
+      console.log('📚 Triggering notification tutorial dialogue');
+      navigate('/dialogue', { scene: 'stijn_notification_tutorial' });
+      return;
+    }
+
     // If boss was defeated, show act completion popup
     if (isBossVictory) {
       setShowActCompletion(true);

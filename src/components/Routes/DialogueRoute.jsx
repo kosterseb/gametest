@@ -36,7 +36,9 @@ export const DialogueRoute = () => {
       'biome_tutorial',
       'post_map_tutorial',
       'inventory_tutorial',
-      'tutorial_complete'
+      'tutorial_complete',
+      'stijn_notification_tutorial',
+      'stijn_level_up_encouragement'
     ];
 
     // Default to disabled unless we're in a story event scene
@@ -387,6 +389,19 @@ export const DialogueRoute = () => {
           console.log('🔮 Mystery Penalty: Curse!');
           dispatch({ type: 'MODIFY_MAX_HEALTH', amount: -15 });
           dispatch({ type: 'DAMAGE_PLAYER', amount: 5 });
+          navigate('/map');
+          break;
+
+        // 📚 NOTIFICATION TUTORIAL EVENTS
+        case 'notification_tutorial_complete':
+          console.log('📚 Notification tutorial complete!');
+          dispatch({ type: 'MARK_NOTIFICATION_TUTORIAL_SHOWN' });
+          navigate('/map');
+          break;
+
+        case 'level_up_tutorial_complete':
+          console.log('📚 Level up tutorial complete!');
+          dispatch({ type: 'MARK_LEVEL_UP_TUTORIAL_SHOWN' });
           navigate('/map');
           break;
 
