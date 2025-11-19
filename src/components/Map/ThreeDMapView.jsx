@@ -14,7 +14,8 @@ const NODE_COLORS = {
   event: '#3b82f6',      // blue
   mystery: '#a855f7',    // purple
   god: '#fbbf24',        // gold
-  rest: '#06b6d4'        // cyan
+  rest: '#06b6d4',       // cyan
+  surprise: '#ec4899'    // pink (special surprise!)
 };
 
 // Edge component for thick black outlines
@@ -272,6 +273,7 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, isRecent
       case 'mystery': return '❓';
       case 'god': return '✨';
       case 'rest': return '💤';
+      case 'surprise': return '🎁';
       default: return '◆';
     }
   }, [node.type]);

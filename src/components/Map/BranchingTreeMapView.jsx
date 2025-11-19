@@ -373,11 +373,20 @@ export const BranchingTreeMapView = () => {
     let navigationRoute = null;
     let mysteryEventScene = null;
 
-    if (selectedNode.type === 'enemy' || selectedNode.type === 'elite' || selectedNode.type === 'boss') {
+    if (selectedNode.type === 'boss') {
+      // Boss node - show pre-boss dialogue first
       dispatch({
         type: 'SET_ENEMY_FOR_BATTLE',
         enemyData: selectedNode.enemyData,
-        isBoss: isBossNode
+        isBoss: true
+      });
+      navigationRoute = '/dialogue';
+      mysteryEventScene = 'reed_pre_boss_dialogue';
+    } else if (selectedNode.type === 'enemy' || selectedNode.type === 'elite') {
+      dispatch({
+        type: 'SET_ENEMY_FOR_BATTLE',
+        enemyData: selectedNode.enemyData,
+        isBoss: false
       });
       navigationRoute = gameState.showPreBattleLoadout ? '/pre-battle-loadout' : '/battle';
     } else if (selectedNode.type === 'shop') {
@@ -434,8 +443,8 @@ export const BranchingTreeMapView = () => {
     // After 2 seconds total, navigate
     setTimeout(() => {
       if (navigationRoute) {
-        // If it's a mystery node, pass the mystery scene parameter
-        if (selectedNode.type === 'mystery' && mysteryEventScene) {
+        // If it's a node with a dialogue scene (mystery, boss, surprise), pass the scene parameter
+        if (mysteryEventScene) {
           navigate(navigationRoute, { scene: mysteryEventScene });
         } else {
           navigate(navigationRoute);

@@ -41,7 +41,10 @@ export const DialogueRoute = () => {
       'stijn_level_up_encouragement',
       'stijn_floor_2_encouragement',
       'stijn_floor_3_surprise',
-      'surprise_node_placeholder'
+      'surprise_node_placeholder',
+      'reed_pre_boss_dialogue',
+      'reed_pre_boss_lore',
+      'reed_pre_boss_tips'
     ];
 
     // Default to disabled unless we're in a story event scene
@@ -419,6 +422,23 @@ export const DialogueRoute = () => {
           console.log('💬 Floor 3 dialogue complete!');
           dispatch({ type: 'MARK_FLOOR_3_DIALOGUE_SHOWN' });
           navigate('/map');
+          break;
+
+        // 👑 PRE-BOSS DIALOGUE ACTIONS
+        case 'start_boss_battle':
+          console.log('👑 Starting boss battle from dialogue!');
+          // Boss data should already be set when node was selected
+          navigate(gameState.showPreBattleLoadout ? '/pre-battle-loadout' : '/battle');
+          break;
+
+        case 'reed_pre_boss_lore':
+          console.log('👑 Showing Reed lore dialogue');
+          navigate('/dialogue', { scene: 'reed_pre_boss_lore' });
+          break;
+
+        case 'reed_pre_boss_tips':
+          console.log('👑 Showing Reed tips dialogue');
+          navigate('/dialogue', { scene: 'reed_pre_boss_tips' });
           break;
 
         default:

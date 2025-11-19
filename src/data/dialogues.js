@@ -876,6 +876,107 @@ export const MYSTERY_OUTCOME_NOTHING = [
   }
 ];
 
+// 👑 PRE-BOSS REED DIALOGUE (before boss fight)
+export const REED_PRE_BOSS_DIALOGUE = [
+  {
+    character: CHARACTERS.REED,
+    text: "So... you made it this far."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "I've been watching you navigate through my challenges. Impressive, I'll admit."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "But now comes the real test. Are you ready to face me?",
+    choices: [
+      {
+        text: "I'm ready. Let's do this!",
+        action: 'start_boss_battle',
+        variant: 'danger'
+      },
+      {
+        text: "Tell me more about this place first.",
+        action: 'reed_pre_boss_lore',
+        variant: 'info'
+      },
+      {
+        text: "Any tips before we fight?",
+        action: 'reed_pre_boss_tips',
+        variant: 'success'
+      }
+    ]
+  }
+];
+
+// Reed lore path
+export const REED_PRE_BOSS_LORE = [
+  {
+    character: CHARACTERS.REED,
+    text: "You want to know about this realm? Fair enough."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "I created this simulation as a test - for myself, and for anyone brave enough to enter. Each challenge, each enemy, each reward... all carefully designed."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "You're not just fighting random battles. You're proving yourself worthy of what lies beyond Act 1."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Now then... shall we begin?",
+    choices: [
+      {
+        text: "Let's fight!",
+        action: 'start_boss_battle',
+        variant: 'danger'
+      },
+      {
+        text: "Actually, any combat tips?",
+        action: 'reed_pre_boss_tips',
+        variant: 'success'
+      }
+    ]
+  }
+];
+
+// Reed tips path
+export const REED_PRE_BOSS_TIPS = [
+  {
+    character: CHARACTERS.REED,
+    text: "Hah! Asking for tips before fighting me? I respect the strategy."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Here's what I'll tell you: I'm not like the enemies you've faced so far. I have more health, stronger attacks, and I won't go down easy."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Use your defensive cards wisely. Don't burn all your energy in the first turn. And most importantly - make sure you've got a solid deck."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Oh, and one more thing..."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Don't hold back. I certainly won't.",
+    choices: [
+      {
+        text: "Thanks. Let's begin!",
+        action: 'start_boss_battle',
+        variant: 'danger'
+      },
+      {
+        text: "Wait, tell me about this realm first.",
+        action: 'reed_pre_boss_lore',
+        variant: 'info'
+      }
+    ]
+  }
+];
+
 // 📱 STIJN NOTIFICATION TUTORIALS
 
 // Stijn explains the notification system (first time player gets a notification)
@@ -1060,7 +1161,11 @@ export const getDialogue = (dialogueId) => {
     'stijn_floor_2_encouragement': STIJN_FLOOR_2_ENCOURAGEMENT,
     'stijn_floor_3_surprise': STIJN_FLOOR_3_SURPRISE,
     // Surprise node
-    'surprise_node_placeholder': SURPRISE_NODE_PLACEHOLDER
+    'surprise_node_placeholder': SURPRISE_NODE_PLACEHOLDER,
+    // Pre-boss Reed dialogues
+    'reed_pre_boss_dialogue': REED_PRE_BOSS_DIALOGUE,
+    'reed_pre_boss_lore': REED_PRE_BOSS_LORE,
+    'reed_pre_boss_tips': REED_PRE_BOSS_TIPS
   };
 
   return dialogues[dialogueId] || null;

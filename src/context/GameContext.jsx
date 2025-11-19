@@ -658,15 +658,17 @@ const gameReducer = (state, action) => {
         .map(node => node.id);
 
       // Check if player is entering floor 3 (to unlock surprise node)
+      // Simpler check: if we just completed a floor 2 node, we're entering floor 3
+      const floor2Number = (state.currentAct - 1) * 5 + 2;
       const floor3Number = (state.currentAct - 1) * 5 + 3;
-      const isEnteringFloor3 = childrenIds.some(childId => {
-        for (const floor of selectedBiome.floors) {
-          const childNode = floor.nodes.find(n => n.id === childId);
-          if (childNode && childNode.floor === floor3Number) {
-            return true;
-          }
-        }
-        return false;
+      const isEnteringFloor3 = completedNodeFloor.floor === floor2Number;
+
+      console.log('🎁 Surprise node check:', {
+        completedFloor: completedNodeFloor.floor,
+        floor2Number,
+        floor3Number,
+        isEnteringFloor3,
+        currentAct: state.currentAct
       });
 
       // Update the map: mark node as completed, lock out siblings, make children available
