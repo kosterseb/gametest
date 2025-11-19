@@ -6,6 +6,7 @@ import { StatsView } from '/src/components/Menu/StatsView';
 import { InventoryView } from '/src/components/Menu/InventoryView';
 import { TalentTreeView } from '/src/components/Menu/TalentTreeView';
 import { NBTabButton, NBHeading } from './NeoBrutalUI';
+import { NotificationIndicator } from './NotificationIndicator';
 
 export const GameMenu = ({ onClose }) => {
   const { gameState, dispatch } = useGame();
@@ -63,21 +64,27 @@ export const GameMenu = ({ onClose }) => {
         {/* Tab Navigation */}
         <div className="flex nb-border-b-xl bg-white">
           {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => handleTabChange(tab.id)}
-              className={`
-                flex-1 flex flex-col sm:flex-row items-center justify-center gap-2 py-4 px-3
-                nb-border-lg font-bold uppercase tracking-wide transition-all text-sm sm:text-base
-                ${gameState.menuTab === tab.id
-                  ? `${tab.colorClass} nb-shadow transform translate-y-1`
-                  : 'bg-white hover:bg-gray-100'
-                }
-              `}
-            >
-              <span className="text-2xl">{tab.icon}</span>
-              <span className="hidden sm:inline">{tab.label}</span>
-            </button>
+            <div key={tab.id} className="relative flex-1">
+              <button
+                onClick={() => handleTabChange(tab.id)}
+                className={`
+                  w-full flex flex-col sm:flex-row items-center justify-center gap-2 py-4 px-3
+                  nb-border-lg font-bold uppercase tracking-wide transition-all text-sm sm:text-base
+                  ${gameState.menuTab === tab.id
+                    ? `${tab.colorClass} nb-shadow transform translate-y-1`
+                    : 'bg-white hover:bg-gray-100'
+                  }
+                `}
+              >
+                <span className="text-2xl">{tab.icon}</span>
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
+              <NotificationIndicator
+                show={gameState.menuNotifications[tab.id]}
+                size="md"
+                position="top-right"
+              />
+            </div>
           ))}
         </div>
 

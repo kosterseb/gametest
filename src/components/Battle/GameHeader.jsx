@@ -1,13 +1,15 @@
 import React from 'react';
 import { Coins, Map, Clock, ArrowLeft, Menu } from 'lucide-react';
 import { NBButton, NBBadge } from '../UI/NeoBrutalUI';
+import { NotificationIndicator } from '../UI/NotificationIndicator';
 
 export const GameHeader = ({
   battleNumber,
   gold,
   turnCount,
   onForfeit,
-  onMenuClick
+  onMenuClick,
+  hasMenuNotifications = false // Whether any menu tab has notifications
 }) => {
   return (
     <div className="flex justify-between items-center w-full">
@@ -55,15 +57,18 @@ export const GameHeader = ({
 
         {/* Menu Button */}
         {onMenuClick && (
-          <NBButton
-            onClick={onMenuClick}
-            variant="white"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <Menu className="w-5 h-5" />
-            <span>Menu</span>
-          </NBButton>
+          <div className="relative">
+            <NBButton
+              onClick={onMenuClick}
+              variant="white"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Menu className="w-5 h-5" />
+              <span>Menu</span>
+            </NBButton>
+            <NotificationIndicator show={hasMenuNotifications} size="md" position="top-right" />
+          </div>
         )}
       </div>
     </div>

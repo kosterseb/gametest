@@ -131,6 +131,14 @@ const initialGameState = {
   // MENU CONTROL
   menuOpen: false,
   menuTab: 'deck',
+
+  // MENU NOTIFICATIONS (UI indicators for new items/cards/talents)
+  menuNotifications: {
+    deck: false,      // New cards unlocked
+    inventory: false, // New items added
+    talents: false,   // Talent points available or talents unlocked
+    stats: false      // Level up or significant stat changes
+  },
 };
 
 const gameReducer = (state, action) => {
@@ -219,7 +227,14 @@ const gameReducer = (state, action) => {
 
       return {
         ...state,
-        profile: xpResult.profile
+        profile: xpResult.profile,
+        menuNotifications: {
+          ...state.menuNotifications,
+          // Notify on level up
+          stats: xpResult.leveledUp ? true : state.menuNotifications.stats,
+          // Notify talents if talent point was gained
+          talents: xpResult.leveledUp ? true : state.menuNotifications.talents
+        }
       };
 
     case 'UNLOCK_TALENT':
@@ -234,7 +249,11 @@ const gameReducer = (state, action) => {
 
       return {
         ...state,
-        profile: updatedProfileWithTalent
+        profile: updatedProfileWithTalent,
+        menuNotifications: {
+          ...state.menuNotifications,
+          talents: true // Notify player of talent unlock
+        }
       };
 
     case 'UPDATE_RUN_STATS':
@@ -827,7 +846,11 @@ const gameReducer = (state, action) => {
 
       return {
         ...state,
-        unlockedCards: [...state.unlockedCards, action.card]
+        unlockedCards: [...state.unlockedCards, action.card],
+        menuNotifications: {
+          ...state.menuNotifications,
+          deck: true // Notify player of new card
+        }
       };
 
     case 'SELECT_CARD_FOR_DECK':
@@ -937,6 +960,10 @@ const gameReducer = (state, action) => {
         inventory: {
           ...state.inventory,
           bag: newBag
+        },
+        menuNotifications: {
+          ...state.menuNotifications,
+          inventory: true // Notify player of new item
         }
       };
 
@@ -1286,9 +1313,43 @@ const gameReducer = (state, action) => {
       };
 
     case 'SET_MENU_TAB':
+      // Clear notification for the tab being opened
       return {
         ...state,
-        menuTab: action.tab
+        menuTab: action.tab,
+        menuNotifications: {
+          ...state.menuNotifications,
+          [action.tab]: false
+        }
+      };
+
+    case 'SET_MENU_NOTIFICATION':
+      return {
+        ...state,
+        menuNotifications: {
+          ...state.menuNotifications,
+          [action.tab]: action.value
+        }
+      };
+
+    case 'CLEAR_MENU_NOTIFICATION':
+      return {
+        ...state,
+        menuNotifications: {
+          ...state.menuNotifications,
+          [action.tab]: false
+        }
+      };
+
+    case 'CLEAR_ALL_MENU_NOTIFICATIONS':
+      return {
+        ...state,
+        menuNotifications: {
+          deck: false,
+          inventory: false,
+          talents: false,
+          stats: false
+        }
       };
 
     case 'TOGGLE_MENU':

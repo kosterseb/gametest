@@ -22,6 +22,7 @@ import { PreBattleLoadout } from './components/UI/PreBattleLoadout';
 import { BattleMenu } from './components/UI/BattleMenu';
 import { GameMenu } from './components/UI/GameMenu';
 import { SplashScreen } from './components/UI/SplashScreen';
+import { NotificationIndicator } from './components/UI/NotificationIndicator';
 import { Menu, User } from 'lucide-react';
 import { NBButton } from './components/UI/NeoBrutalUI';
 
@@ -118,21 +119,33 @@ const GameApp = () => {
 
           {/* Character Button - UNDERNEATH with Avatar (only show if profile exists) */}
           {gameState.profile && (
-            <button
-              onClick={handleOpenCharacterMenu}
-              className="w-16 h-16 nb-bg-cyan nb-border-xl nb-shadow-lg nb-hover flex items-center justify-center p-0 overflow-hidden"
-              aria-label="Open character menu"
-            >
-              {gameState.profile.avatarSeed ? (
-                <img
-                  src={`https://api.dicebear.com/9.x/notionists/svg?seed=${gameState.profile.avatarSeed}`}
-                  alt="Your character"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <User className="w-8 h-8 text-black" />
-              )}
-            </button>
+            <div className="relative">
+              <button
+                onClick={handleOpenCharacterMenu}
+                className="w-16 h-16 nb-bg-cyan nb-border-xl nb-shadow-lg nb-hover flex items-center justify-center p-0 overflow-hidden"
+                aria-label="Open character menu"
+              >
+                {gameState.profile.avatarSeed ? (
+                  <img
+                    src={`https://api.dicebear.com/9.x/notionists/svg?seed=${gameState.profile.avatarSeed}`}
+                    alt="Your character"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <User className="w-8 h-8 text-black" />
+                )}
+              </button>
+              <NotificationIndicator
+                show={
+                  gameState.menuNotifications.deck ||
+                  gameState.menuNotifications.inventory ||
+                  gameState.menuNotifications.talents ||
+                  gameState.menuNotifications.stats
+                }
+                size="lg"
+                position="top-right"
+              />
+            </div>
           )}
         </div>
       )}

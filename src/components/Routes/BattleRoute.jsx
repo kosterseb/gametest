@@ -1719,6 +1719,12 @@ export const BattleRoute = () => {
               turnCount={turnCount}
               onForfeit={handleForfeit}
               onMenuClick={() => setIsMenuOpen(true)}
+              hasMenuNotifications={
+                gameState.menuNotifications.deck ||
+                gameState.menuNotifications.inventory ||
+                gameState.menuNotifications.talents ||
+                gameState.menuNotifications.stats
+              }
             />
           </div>
 
