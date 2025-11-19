@@ -638,27 +638,54 @@ const generateBranchingTree = (act, biomeKey, biomeId) => {
     });
   }
 
-  // 🎉 INJECT SURPRISE NODE ON FLOOR 3
-  // Add a special surprise node (Reed's challenge) on floor 3
-  if (act === 1 && floors.length >= 3) {
-    const floor3 = floors[2]; // Floor 3 is index 2
+  // 🎉 INJECT SURPRISE NODE ON FLOOR 4
+  // Replace one of the floor 4 nodes with Reed's surprise challenge (disguised as regular node)
+  if (act === 1 && floors.length >= 4) {
+    const floor4 = floors[3]; // Floor 4 is index 3
+
+    // Replace a random node (preferably center node) with the surprise node
+    const centerNodeIndex = floor4.nodes.findIndex(n => n.position.x === 0);
+    const targetIndex = centerNodeIndex !== -1 ? centerNodeIndex : Math.floor(Math.random() * floor4.nodes.length);
+    const originalNode = floor4.nodes[targetIndex];
+
+    // Create surprise node that looks like a regular enemy node
     const surpriseNode = {
       id: `${biomeId}_surprise_node`,
       type: 'surprise',
-      floor: (act - 1) * 5 + 3,
-      position: { x: 999, y: 2 }, // Special position to render separately
-      parentIds: [], // Independent node, not connected to main path
-      childrenIds: [],
-      available: false, // Will be made available when player reaches floor 3
+      disguisedAsType: 'enemy', // Visually appears as enemy
+      floor: (act - 1) * 5 + 4,
+      position: originalNode.position, // Use original node's position
+      parentIds: originalNode.parentIds, // Inherit connections
+      childrenIds: originalNode.childrenIds,
+      available: false,
       completed: false,
       surpriseData: {
         description: "Reed's Special Challenge!",
         rarity: 'legendary',
         message: "Reed has left a special challenge for you..."
+      },
+      // Add fake enemy data to make it look like a regular enemy node
+      enemyData: {
+        name: 'Mysterious Foe',
+        health: 1,
+        act: act
       }
     };
 
-    floor3.nodes.push(surpriseNode);
+    // Replace the original node with surprise node
+    floor4.nodes[targetIndex] = surpriseNode;
+
+    // Update parent references
+    surpriseNode.parentIds.forEach(parentId => {
+      floors.forEach(f => {
+        const parent = f.nodes.find(n => n.id === parentId);
+        if (parent) {
+          parent.childrenIds = parent.childrenIds.map(id =>
+            id === originalNode.id ? surpriseNode.id : id
+          );
+        }
+      });
+    });
   }
 
   return floors;

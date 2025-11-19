@@ -44,7 +44,9 @@ export const DialogueRoute = () => {
       'surprise_node_placeholder',
       'reed_pre_boss_dialogue',
       'reed_pre_boss_lore',
-      'reed_pre_boss_tips'
+      'reed_pre_boss_tips',
+      'reed_stijn_intro',
+      'intro_mechanics_explanation'
     ];
 
     // Default to disabled unless we're in a story event scene
@@ -138,9 +140,10 @@ export const DialogueRoute = () => {
           break;
 
         case 'skip_tutorial':
-          // Skip tutorial, go to map for biome/enemy selection
+          // Skip tutorial, show Reed & Stijn intro then go to map
           dispatch({ type: 'SET_TUTORIAL_ENABLED', enabled: false });
-          navigate('/map');
+          dispatch({ type: 'RESET_FOR_NEW_GAME' });
+          navigate('/dialogue', { scene: 'reed_stijn_intro' });
           break;
 
         case 'accept_deal':
@@ -208,14 +211,14 @@ export const DialogueRoute = () => {
           break;
 
         case 'start_real_game':
-          // Tutorial complete! Start with Reed encounter
-          console.log('📚 Tutorial complete! Starting Reed encounter');
+          // Tutorial complete! Start with intro dialogue
+          console.log('📚 Tutorial complete! Starting intro dialogue');
 
           // Reset any tutorial state and ensure clean slate
           dispatch({ type: 'RESET_FOR_NEW_GAME' });
 
-          console.log('📚 Navigating to Reed pre-battle encounter');
-          navigate('/dialogue', { scene: 'reed_pre_battle_encounter' });
+          console.log('📚 Navigating to Reed & Stijn intro dialogue');
+          navigate('/dialogue', { scene: 'reed_stijn_intro' });
           break;
 
         // 🎭 STORY EVENT: Reed Pre-Battle Choices
@@ -422,6 +425,17 @@ export const DialogueRoute = () => {
           console.log('💬 Floor 3 dialogue complete!');
           dispatch({ type: 'MARK_FLOOR_3_DIALOGUE_SHOWN' });
           navigate('/map');
+          break;
+
+        // 🎮 INTRO DIALOGUE ACTIONS
+        case 'start_game_intro_complete':
+          console.log('🎮 Intro dialogue complete - starting game!');
+          navigate('/map');
+          break;
+
+        case 'intro_mechanics_explanation':
+          console.log('🎮 Showing mechanics explanation');
+          navigate('/dialogue', { scene: 'intro_mechanics_explanation' });
           break;
 
         // 👑 PRE-BOSS DIALOGUE ACTIONS

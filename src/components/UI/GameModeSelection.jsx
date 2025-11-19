@@ -59,8 +59,11 @@ export const GameModeSelection = () => {
         nextRoute: '/map'
       });
     } else {
-      // Other modes go straight to map
-      navigate('/map');
+      // Other modes show Reed & Stijn intro before starting
+      navigate('/dialogue', {
+        dialogueId: 'reed_stijn_intro',
+        nextRoute: '/map'
+      });
     }
   };
 

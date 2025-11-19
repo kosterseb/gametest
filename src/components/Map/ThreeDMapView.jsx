@@ -238,7 +238,9 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, isRecent
     }
   });
 
-  const color = NODE_COLORS[node.type] || '#ffffff';
+  // Use disguised type for surprise nodes (to hide their true nature)
+  const displayType = node.type === 'surprise' && node.disguisedAsType ? node.disguisedAsType : node.type;
+  const color = NODE_COLORS[displayType] || '#ffffff';
   // Opacity: completed = 0.4, unavailable = 0.3, available = 1.0
   const opacity = isCompleted ? 0.4 : (isAvailable ? 1.0 : 0.3);
 
@@ -262,8 +264,10 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, isRecent
   const scale = baseScale * depthScale;
 
   // Node type icons (emoji representations)
+  // Use disguised type for surprise nodes to hide their true nature
   const nodeIcon = useMemo(() => {
-    switch (node.type) {
+    const typeToShow = node.type === 'surprise' && node.disguisedAsType ? node.disguisedAsType : node.type;
+    switch (typeToShow) {
       case 'enemy': return '⚔️';
       case 'elite': return '🛡️';
       case 'boss': return '👑';
@@ -276,7 +280,7 @@ const Node3D = ({ node, position, isSelected, isAvailable, isCompleted, isRecent
       case 'surprise': return '🎁';
       default: return '◆';
     }
-  }, [node.type]);
+  }, [node.type, node.disguisedAsType]);
 
   return (
     <group position={position}>
@@ -1197,26 +1201,17 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
     const yOffset = 5; // Match node offset for proper alignment
 
     floors.forEach((floor, floorIdx) => {
-      // Filter out special nodes (like surprise nodes) from layout calculations
-      const layoutNodes = floor.nodes.filter(n => n.type !== 'surprise');
-      const xPositions = layoutNodes.map(n => n.position.x);
+      // Calculate layout positions for all nodes (surprise nodes now integrated)
+      const xPositions = floor.nodes.map(n => n.position.x);
       const minX = Math.min(...xPositions);
       const maxX = Math.max(...xPositions);
       const centerOffset = (minX + maxX) / 2;
 
       floor.nodes.forEach((node) => {
         // Use floor index for consistent vertical positioning
-        // Surprise nodes get positioned separately (far right)
-        let x, y, z;
-        if (node.type === 'surprise') {
-          x = 8; // Position to the far right
-          y = -floorIdx * verticalSpacing + yOffset;
-          z = -floorIdx * 1.2;
-        } else {
-          x = (node.position.x - centerOffset) * horizontalSpacing;
-          y = -floorIdx * verticalSpacing + yOffset;
-          z = -floorIdx * 1.2;
-        }
+        const x = (node.position.x - centerOffset) * horizontalSpacing;
+        const y = -floorIdx * verticalSpacing + yOffset;
+        const z = -floorIdx * 1.2;
         positions.set(node.id, [x, y, z]);
       });
     });
@@ -1238,26 +1233,17 @@ const MapScene = ({ selectedBiomeData, currentActData, selectedNode, onNodeSelec
     const yOffset = 5; // Shift nodes upward to better center them in view
 
     floors.forEach((floor, floorIdx) => {
-      // Filter out special nodes (like surprise nodes) from layout calculations
-      const layoutNodes = floor.nodes.filter(n => n.type !== 'surprise');
-      const xPositions = layoutNodes.map(n => n.position.x);
+      // Calculate layout positions for all nodes (surprise nodes now integrated)
+      const xPositions = floor.nodes.map(n => n.position.x);
       const minX = Math.min(...xPositions);
       const maxX = Math.max(...xPositions);
       const centerOffset = (minX + maxX) / 2;
 
       floor.nodes.forEach((node) => {
         // Use floor index for consistent vertical positioning
-        // Surprise nodes get positioned separately (far right)
-        let x, y, z;
-        if (node.type === 'surprise') {
-          x = 8; // Position to the far right
-          y = -floorIdx * verticalSpacing + yOffset;
-          z = -floorIdx * 1.2;
-        } else {
-          x = (node.position.x - centerOffset) * horizontalSpacing;
-          y = -floorIdx * verticalSpacing + yOffset;
-          z = -floorIdx * 1.2;
-        }
+        const x = (node.position.x - centerOffset) * horizontalSpacing;
+        const y = -floorIdx * verticalSpacing + yOffset;
+        const z = -floorIdx * 1.2;
         positions.set(node.id, [x, y, z]);
       });
     });

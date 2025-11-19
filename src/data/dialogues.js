@@ -1103,6 +1103,106 @@ export const STIJN_FLOOR_3_SURPRISE = [
   }
 ];
 
+// Intro dialogue - Reed and Stijn introduce the game and explain the premise
+export const REED_STIJN_INTRO = [
+  {
+    character: CHARACTERS.REED,
+    text: "Ah, you're finally here. Welcome to Retenta."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Hey! I'm Stijn, and this intense-looking guy is Reed."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "I've prepared a series of challenges for you across multiple floors. Your goal? Survive and grow stronger with each encounter."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Think of it like climbing a tower! Each floor has different paths you can take - enemy battles, shops, mysterious events, rest points..."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "At the end of each act, you'll face me in battle. Only by defeating me can you progress to the next act."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Don't worry though! You'll collect cards, items, and abilities along the way. Build your deck strategically!"
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Remember: every choice matters. The path you take, the cards you pick, the upgrades you choose..."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "And hey, I'll be here to give you tips and updates as you progress! We're in this together!"
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "One more thing... I may have hidden some surprises along the way. Keep your eyes open.",
+    image: '😏'
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Alright! Ready to start your journey through Retenta?",
+    choices: [
+      {
+        text: "Let's do this!",
+        action: 'start_game_intro_complete',
+        variant: 'success'
+      },
+      {
+        text: "Tell me more about the game mechanics",
+        action: 'intro_mechanics_explanation',
+        variant: 'info'
+      }
+    ]
+  }
+];
+
+// Additional mechanics explanation (if player wants more info)
+export const INTRO_MECHANICS_EXPLANATION = [
+  {
+    character: CHARACTERS.STIJN,
+    text: "Sure! Let me break down the basics for you."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "🎴 CARDS: You'll play cards from your hand during battles. Each card costs energy to play and has different effects."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "⚔️ COMBAT: Attack enemies, defend yourself with block, and use special effects to gain the upper hand!"
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "🗺️ MAP: Choose your path wisely! Enemy nodes give rewards, shops let you buy upgrades, rest points heal you and save your progress."
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "Mystery nodes (❓) offer random events - some beneficial, some risky. Event nodes (📜) contain mini-games for rewards."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "💪 PROGRESSION: Level up to unlock new talents, upgrade your cards at shops, and collect powerful relics!"
+  },
+  {
+    character: CHARACTERS.REED,
+    text: "And remember: at campfires (rest nodes), your progress is saved. Use them strategically."
+  },
+  {
+    character: CHARACTERS.STIJN,
+    text: "Got it? Alright, let's get started!",
+    choices: [
+      {
+        text: "I'm ready now!",
+        action: 'start_game_intro_complete',
+        variant: 'success'
+      }
+    ]
+  }
+];
+
 // Helper function to get a random mystery event
 export const getRandomMysteryEvent = () => {
   const mysteryEvents = [
@@ -1165,7 +1265,10 @@ export const getDialogue = (dialogueId) => {
     // Pre-boss Reed dialogues
     'reed_pre_boss_dialogue': REED_PRE_BOSS_DIALOGUE,
     'reed_pre_boss_lore': REED_PRE_BOSS_LORE,
-    'reed_pre_boss_tips': REED_PRE_BOSS_TIPS
+    'reed_pre_boss_tips': REED_PRE_BOSS_TIPS,
+    // Intro dialogues
+    'reed_stijn_intro': REED_STIJN_INTRO,
+    'intro_mechanics_explanation': INTRO_MECHANICS_EXPLANATION
   };
 
   return dialogues[dialogueId] || null;

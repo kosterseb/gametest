@@ -657,17 +657,17 @@ const gameReducer = (state, action) => {
         )
         .map(node => node.id);
 
-      // Check if player is entering floor 3 (to unlock surprise node)
-      // Simpler check: if we just completed a floor 2 node, we're entering floor 3
-      const floor2Number = (state.currentAct - 1) * 5 + 2;
+      // Check if player is entering floor 4 (to unlock surprise node)
+      // If we just completed a floor 3 node, we're entering floor 4
       const floor3Number = (state.currentAct - 1) * 5 + 3;
-      const isEnteringFloor3 = completedNodeFloor.floor === floor2Number;
+      const floor4Number = (state.currentAct - 1) * 5 + 4;
+      const isEnteringFloor4 = completedNodeFloor.floor === floor3Number;
 
       console.log('🎁 Surprise node check:', {
         completedFloor: completedNodeFloor.floor,
-        floor2Number,
         floor3Number,
-        isEnteringFloor3,
+        floor4Number,
+        isEnteringFloor4,
         currentAct: state.currentAct
       });
 
@@ -695,8 +695,8 @@ const gameReducer = (state, action) => {
                       if (childrenIds.includes(node.id)) {
                         return { ...node, available: true };
                       }
-                      // 🎉 Make surprise node available when entering floor 3
-                      if (node.type === 'surprise' && isEnteringFloor3 && !node.completed) {
+                      // 🎉 Make surprise node available when entering floor 4
+                      if (node.type === 'surprise' && isEnteringFloor4 && !node.completed) {
                         return { ...node, available: true };
                       }
                       return node;
@@ -706,8 +706,8 @@ const gameReducer = (state, action) => {
               }
               return biome;
             }),
-            // If last floor, make boss available
-            bossFloor: isLastFloorBeforeBoss
+            // Make boss available only if conditions are met (surprise node completed for Act 1)
+            bossFloor: canUnlockBoss
               ? { ...act.bossFloor, node: { ...act.bossFloor.node, available: true } }
               : act.bossFloor
           };
@@ -715,29 +715,40 @@ const gameReducer = (state, action) => {
         return act;
       });
 
-      // Find surprise node ID if we're entering floor 3
+      // Find surprise node on floor 4 (for Act 1)
       let surpriseNodeId = null;
-      if (isEnteringFloor3) {
-        const floor3 = selectedBiome.floors.find(f => f.floor === floor3Number);
-        if (floor3) {
-          const surpriseNode = floor3.nodes.find(n => n.type === 'surprise');
-          if (surpriseNode && !surpriseNode.completed) {
-            surpriseNodeId = surpriseNode.id;
+      let surpriseNodeCompleted = false;
+      if (state.currentAct === 1) {
+        const floor4 = selectedBiome.floors.find(f => f.floor === floor4Number);
+        if (floor4) {
+          const surpriseNode = floor4.nodes.find(n => n.type === 'surprise');
+          if (surpriseNode) {
+            surpriseNodeCompleted = surpriseNode.completed;
+            // Add surprise node to available when entering floor 4
+            if (isEnteringFloor4 && !surpriseNode.completed) {
+              surpriseNodeId = surpriseNode.id;
+            }
           }
         }
       }
 
+      // For Act 1: Boss is only available if surprise node is completed
+      // For other acts: Normal boss unlock logic
+      const canUnlockBoss = state.currentAct === 1
+        ? (isLastFloorBeforeBoss && surpriseNodeCompleted)
+        : isLastFloorBeforeBoss;
+
       // Update available nodes list: remove completed node AND sibling nodes, add children
-      // If this is the last floor before boss, add boss node ID
-      // If entering floor 3, add surprise node
+      // If this is the last floor before boss (and surprise is complete for Act 1), add boss node ID
+      // If entering floor 4 in Act 1, add surprise node
       const newAvailableNodeIds = [
         ...state.availableNodeIds.filter(id =>
           id !== nodeId && // Remove completed node
           !siblingNodeIds.includes(id) // Remove locked out siblings
         ),
         ...childrenIds, // Add children
-        ...(isLastFloorBeforeBoss ? [currentAct.bossFloor.node.id] : []), // Add boss if last floor
-        ...(surpriseNodeId ? [surpriseNodeId] : []) // Add surprise node if entering floor 3
+        ...(canUnlockBoss ? [currentAct.bossFloor.node.id] : []), // Add boss if conditions met
+        ...(surpriseNodeId ? [surpriseNodeId] : []) // Add surprise node if entering floor 4 (Act 1)
       ];
 
       // Calculate current floor: use the floor number from the completed node's floor
