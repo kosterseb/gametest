@@ -17,6 +17,7 @@ import { DiceRoll } from '../Battle/DiceRoll';
 import { CoinFlip } from '../Battle/CoinFlip';
 import { TurnBanner } from '../Battle/TurnBanner';
 import { TorusTunnelBackground } from '../Battle/TorusTunnelBackground';
+import { MatrixBackground } from '../Battle/MatrixBackground';
 import { CardHand } from '../Cards/CardHand';
 import { CardPlayParticles } from '../Effects/CardPlayParticles';
 import { NBButton, NBDropdown, useNBConfirm } from '../UI/NeoBrutalUI';
@@ -265,6 +266,9 @@ export const BattleRoute = () => {
     isEnemyHealing: false,
     isEnemyDamaged: false
   });
+
+  // 📹 Camera shake for Reed boss attacks
+  const [cameraShake, setCameraShake] = useState(false);
 
   // ✅ Track consumable belt expansion
   const [consumablesBeltExpanded, setConsumablesBeltExpanded] = useState(false);
@@ -1345,6 +1349,12 @@ export const BattleRoute = () => {
           setPlayerHealth(prev => Math.max(0, prev - finalDamage));
           setPlayerStatuses(shieldResult.newStatuses);
 
+          // 📹 Trigger camera shake for Reed boss attacks
+          if (currentEnemy.name === 'Reed' && currentEnemy.isBoss) {
+            setCameraShake(true);
+            setTimeout(() => setCameraShake(false), 500);
+          }
+
           // Dispatch asynchronously to avoid render conflicts
           setTimeout(() => {
             dispatch({ type: 'DAMAGE_PLAYER', amount: finalDamage });
@@ -1697,19 +1707,28 @@ export const BattleRoute = () => {
     return 'normal';
   };
 
+  // Check if fighting Reed boss
+  const isReedBoss = currentEnemy?.name === 'Reed' && currentEnemy?.isBoss;
+
   return (
     <PageTransition>
-      {/* Torus Tunnel Background */}
+      {/* Background - Matrix for Reed, Torus Tunnel for others */}
       {settings.animatedBackground ? (
-        <TorusTunnelBackground
-          baseSpeed={1}
-          baseRotation={1.9}
-        />
+        isReedBoss ? (
+          <MatrixBackground />
+        ) : (
+          <TorusTunnelBackground
+            baseSpeed={1}
+            baseRotation={1.9}
+          />
+        )
       ) : (
         <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900" />
       )}
 
-      <div className="h-screen overflow-hidden relative z-10">
+      <div
+        className={`h-screen overflow-hidden relative z-10 ${cameraShake ? 'animate-cameraShake' : ''}`}
+      >
         <div className="max-w-7xl mx-auto h-full flex flex-col gap-2 p-2">
           {/* Header - 10% */}
           <div className="h-[10%] flex justify-between items-center px-4 py-2">
