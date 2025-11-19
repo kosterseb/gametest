@@ -287,6 +287,103 @@ export const endRun = (profile, victory = false) => {
   return resetCurrentRun(updatedProfile);
 };
 
+// ========== CHECKPOINT SYSTEM (Rest Node Save Points) ==========
+
+const CHECKPOINT_KEY_PREFIX = 'cardquest_checkpoint_';
+
+// Create checkpoint save at rest node
+export const createCheckpoint = (slotNumber, gameState) => {
+  if (slotNumber < 1 || slotNumber > MAX_SAVE_SLOTS) {
+    console.error('Invalid save slot number:', slotNumber);
+    return false;
+  }
+
+  try {
+    const checkpointData = {
+      floor: gameState.currentFloor,
+      act: gameState.currentAct,
+      gold: gameState.gold,
+      playerHealth: gameState.playerHealth,
+      maxPlayerHealth: gameState.maxPlayerHealth,
+      maxEnergy: gameState.maxEnergy,
+      maxHandSize: gameState.maxHandSize,
+      unlockedCards: gameState.unlockedCards,
+      selectedCardTypes: gameState.selectedCardTypes,
+      inventory: gameState.inventory,
+      // Branching map state
+      branchingMap: gameState.branchingMap,
+      selectedBiome: gameState.selectedBiome,
+      biomeLocked: gameState.biomeLocked,
+      availableNodeIds: gameState.availableNodeIds,
+      completedNodeIds: gameState.completedNodeIds,
+      // Metadata
+      createdAt: new Date().toISOString(),
+      checkpointFloor: gameState.currentFloor,
+      checkpointAct: gameState.currentAct
+    };
+
+    const key = CHECKPOINT_KEY_PREFIX + slotNumber;
+    localStorage.setItem(key, JSON.stringify(checkpointData));
+    console.log(`🏕️ Checkpoint created at Floor ${gameState.currentFloor}, Act ${gameState.currentAct}`);
+    return true;
+  } catch (error) {
+    console.error('Error creating checkpoint:', error);
+    return false;
+  }
+};
+
+// Load checkpoint data
+export const loadCheckpoint = (slotNumber) => {
+  if (slotNumber < 1 || slotNumber > MAX_SAVE_SLOTS) {
+    console.error('Invalid save slot number:', slotNumber);
+    return null;
+  }
+
+  try {
+    const key = CHECKPOINT_KEY_PREFIX + slotNumber;
+    const checkpointData = localStorage.getItem(key);
+
+    if (!checkpointData) {
+      return null; // No checkpoint exists
+    }
+
+    const checkpoint = JSON.parse(checkpointData);
+    console.log(`🏕️ Loaded checkpoint from Floor ${checkpoint.checkpointFloor}, Act ${checkpoint.checkpointAct}`);
+    return checkpoint;
+  } catch (error) {
+    console.error('Error loading checkpoint:', error);
+    return null;
+  }
+};
+
+// Check if checkpoint exists
+export const hasCheckpoint = (slotNumber) => {
+  if (slotNumber < 1 || slotNumber > MAX_SAVE_SLOTS) {
+    return false;
+  }
+
+  const key = CHECKPOINT_KEY_PREFIX + slotNumber;
+  return localStorage.getItem(key) !== null;
+};
+
+// Delete checkpoint
+export const deleteCheckpoint = (slotNumber) => {
+  if (slotNumber < 1 || slotNumber > MAX_SAVE_SLOTS) {
+    console.error('Invalid save slot number:', slotNumber);
+    return false;
+  }
+
+  try {
+    const key = CHECKPOINT_KEY_PREFIX + slotNumber;
+    localStorage.removeItem(key);
+    console.log(`🏕️ Checkpoint deleted for slot ${slotNumber}`);
+    return true;
+  } catch (error) {
+    console.error('Error deleting checkpoint:', error);
+    return false;
+  }
+};
+
 // Get formatted play time
 export const getTimeSinceLastPlayed = (profile) => {
   const lastPlayed = new Date(profile.lastPlayedAt);
@@ -295,7 +392,7 @@ export const getTimeSinceLastPlayed = (profile) => {
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
-  
+
   if (diffMins < 1) return 'Just now';
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;

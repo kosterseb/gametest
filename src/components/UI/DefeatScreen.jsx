@@ -2,33 +2,49 @@ import React, { useEffect, useState } from 'react';
 import { useGame } from '../../context/GameContext';
 import { useRouter } from '../../hooks/useRouter';
 import { PageTransition } from './PageTransition';
-import { Skull, RotateCcw, Crown, Star, TrendingUp, Target, Coins, Zap, Heart, Swords } from 'lucide-react';
+import { Skull, RotateCcw, Crown, Star, TrendingUp, Target, Coins, Zap, Heart, Swords, Save } from 'lucide-react';
 import { NBButton, NBHeading, NBBadge, NBCard } from './NeoBrutalUI';
+import { hasCheckpoint, loadCheckpoint } from '../../utils/SaveManager';
 
 export const DefeatScreen = () => {
   const { gameState, dispatch } = useGame();
   const { navigate } = useRouter();
   const [runEnded, setRunEnded] = useState(false);
   const [levelUps, setLevelUps] = useState(0);
+  const [checkpointAvailable, setCheckpointAvailable] = useState(false);
+  const [checkpointInfo, setCheckpointInfo] = useState(null);
 
   useEffect(() => {
     if (!runEnded && gameState.profile) {
       // Save the current level before ending run
       const levelBefore = gameState.profile.level;
-      
+
       // End the run (this merges stats and resets current run)
       dispatch({ type: 'END_RUN', victory: false });
-      
+
       // Calculate level ups that happened during this run
       const levelAfter = gameState.profile.level;
       setLevelUps(levelAfter - levelBefore);
-      
+
       // Save the profile
       dispatch({ type: 'SAVE_PROFILE' });
-      
+
       setRunEnded(true);
     }
   }, [runEnded, gameState.profile, dispatch]);
+
+  // Check for checkpoint on mount
+  useEffect(() => {
+    if (gameState.currentSaveSlot) {
+      const hasCP = hasCheckpoint(gameState.currentSaveSlot);
+      setCheckpointAvailable(hasCP);
+
+      if (hasCP) {
+        const cpData = loadCheckpoint(gameState.currentSaveSlot);
+        setCheckpointInfo(cpData);
+      }
+    }
+  }, [gameState.currentSaveSlot]);
 
   const handleTryAgain = () => {
     // Start a new run
@@ -44,6 +60,14 @@ export const DefeatScreen = () => {
 
   const handleMainMenu = () => {
     navigate('/save-select');
+  };
+
+  const handleLoadCheckpoint = () => {
+    console.log('🏕️ Loading from checkpoint...');
+    // Load checkpoint data
+    dispatch({ type: 'LOAD_CHECKPOINT' });
+    // Navigate to map
+    navigate('/map');
   };
 
   if (!gameState.profile) {
@@ -209,8 +233,44 @@ export const DefeatScreen = () => {
             </div>
           </div>
 
+          {/* Checkpoint Info (if available) */}
+          {checkpointAvailable && checkpointInfo && (
+            <div className="nb-bg-cyan nb-border-xl nb-shadow-xl p-6 mb-6">
+              <div className="flex items-center gap-3 mb-3">
+                <Save className="w-8 h-8 text-black" />
+                <NBHeading level={3} className="text-black">CHECKPOINT AVAILABLE</NBHeading>
+              </div>
+              <p className="text-black font-bold mb-2">
+                You can load your last rest point from:
+              </p>
+              <div className="flex gap-3">
+                <NBBadge color="purple" className="px-4 py-2">
+                  ACT {checkpointInfo.checkpointAct}
+                </NBBadge>
+                <NBBadge color="orange" className="px-4 py-2">
+                  FLOOR {checkpointInfo.checkpointFloor}
+                </NBBadge>
+                <NBBadge color="pink" className="px-4 py-2">
+                  {checkpointInfo.gold} GOLD
+                </NBBadge>
+              </div>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="flex gap-4 justify-center flex-wrap">
+            {checkpointAvailable && (
+              <NBButton
+                onClick={handleLoadCheckpoint}
+                variant="success"
+                size="xl"
+                className="flex items-center gap-2 animate-pulse"
+              >
+                <Save className="w-6 h-6" />
+                <span>LOAD CHECKPOINT</span>
+              </NBButton>
+            )}
+
             <NBButton
               onClick={handleTryAgain}
               variant="danger"

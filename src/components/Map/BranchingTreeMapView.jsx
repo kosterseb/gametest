@@ -376,6 +376,16 @@ export const BranchingTreeMapView = () => {
       mysteryEventScene = getRandomMysteryEvent();
       console.log('🔮 Mystery node selected! Event:', mysteryEventScene);
       navigationRoute = '/dialogue';
+    } else if (selectedNode.type === 'rest') {
+      // 🏕️ Rest node - heal player and create checkpoint save
+      console.log('🏕️ Rest node selected - Healing and creating checkpoint');
+      dispatch({ type: 'HEAL_PLAYER', amount: gameState.maxPlayerHealth }); // Full heal
+      dispatch({ type: 'CREATE_CHECKPOINT' }); // Create save point
+      // Show a brief message then return to map
+      setTimeout(() => {
+        alert('💾 Checkpoint saved! You are fully healed and your progress has been saved.');
+      }, 500);
+      navigationRoute = '/map'; // Return to map after short delay
     }
 
     // 🎬 Start animation sequence
@@ -817,6 +827,9 @@ export const BranchingTreeMapView = () => {
               )}
               {hoveredNode.node.type === 'mystery' && (
                 <div className="text-xs font-semibold text-gray-700">Fortune or misfortune...</div>
+              )}
+              {hoveredNode.node.type === 'rest' && (
+                <div className="text-xs font-semibold text-gray-700">💾 Heal & Save Checkpoint</div>
               )}
             </div>
           </div>

@@ -8,7 +8,11 @@ import {
   unlockTalent,
   updateRunStats,
   endRun,
-  startNewRun
+  startNewRun,
+  createCheckpoint,
+  loadCheckpoint,
+  hasCheckpoint,
+  deleteCheckpoint
 } from '../utils/SaveManager';
 import { applyTalentBonusesToRunStart } from '../utils/talentEffects';
 import { applyStatus, tickStatuses, calculateStatusDamage } from '../data/statusEffects';
@@ -212,6 +216,52 @@ const gameReducer = (state, action) => {
           ...state,
           profile: updatedProfile
         };
+      }
+      return state;
+
+    // ========== CHECKPOINT SYSTEM ==========
+    case 'CREATE_CHECKPOINT':
+      // Create checkpoint save at rest node
+      if (state.currentSaveSlot) {
+        const success = createCheckpoint(state.currentSaveSlot, state);
+        if (success) {
+          console.log('🏕️ Checkpoint created successfully!');
+        }
+      }
+      return state;
+
+    case 'LOAD_CHECKPOINT':
+      // Load game state from checkpoint
+      if (!state.currentSaveSlot) return state;
+
+      const checkpointData = loadCheckpoint(state.currentSaveSlot);
+      if (!checkpointData) {
+        console.error('⚠️ No checkpoint found!');
+        return state;
+      }
+
+      return {
+        ...state,
+        currentFloor: checkpointData.floor,
+        currentAct: checkpointData.act,
+        gold: checkpointData.gold,
+        playerHealth: checkpointData.playerHealth,
+        maxPlayerHealth: checkpointData.maxPlayerHealth,
+        maxEnergy: checkpointData.maxEnergy,
+        maxHandSize: checkpointData.maxHandSize,
+        unlockedCards: checkpointData.unlockedCards,
+        selectedCardTypes: checkpointData.selectedCardTypes,
+        inventory: checkpointData.inventory,
+        branchingMap: checkpointData.branchingMap,
+        selectedBiome: checkpointData.selectedBiome,
+        biomeLocked: checkpointData.biomeLocked,
+        availableNodeIds: checkpointData.availableNodeIds,
+        completedNodeIds: checkpointData.completedNodeIds
+      };
+
+    case 'DELETE_CHECKPOINT':
+      if (state.currentSaveSlot) {
+        deleteCheckpoint(state.currentSaveSlot);
       }
       return state;
 
